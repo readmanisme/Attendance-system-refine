@@ -32,11 +32,11 @@ import {
   CategoryList,
   CategoryShow,
 } from "./pages/categories";
-
+import { TestPage } from "./pages/test-page/test-page";
 function App() {
   return (
     <BrowserRouter>
-      <GitHubBanner />
+      {/* <GitHubBanner /> */}
       <RefineKbarProvider>
         <ColorModeContextProvider>
           <AntdApp>
@@ -66,6 +66,11 @@ function App() {
                       canDelete: true,
                     },
                   },
+                  {
+                    name:"测试页面",
+                    list: "/test-page",
+                    // create: "/test-page/create",
+                  }
                 ]}
                 options={{
                   syncWithLocation: true,
@@ -100,6 +105,7 @@ function App() {
                       <Route path="edit/:id" element={<CategoryEdit />} />
                       <Route path="show/:id" element={<CategoryShow />} />
                     </Route>
+                    <Route path="/test-page" element={<TestPage />} />
                     <Route path="*" element={<ErrorComponent />} />
                   </Route>
                 </Routes>
