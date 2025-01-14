@@ -39,8 +39,13 @@ import {
   WorkersList,
   WorkersShow,
 } from "./pages/workers";
+import PocketBasePage from "./pages/background/pocketbase";
 import PocketBase from "pocketbase";
-import { authProvider, dataProvider as pocketbaseDataProvider, liveProvider } from "refine-pocketbase";
+import {
+  authProvider,
+  dataProvider as pocketbaseDataProvider,
+  liveProvider,
+} from "refine-pocketbase";
 const POCKETBASE_URL = "http://localhost:8090";
 const pb = new PocketBase(POCKETBASE_URL);
 function App() {
@@ -52,12 +57,10 @@ function App() {
           <AntdApp>
             <DevtoolsProvider>
               <Refine
-                dataProvider={
-      {
-        default: pocketbaseDataProvider(pb),
-        example:dataProvider("https://api.fake-rest.refine.dev")
-      }
-                }
+                dataProvider={{
+                  default: pocketbaseDataProvider(pb),
+                  example: dataProvider("https://api.fake-rest.refine.dev"),
+                }}
                 notificationProvider={useNotificationProvider}
                 routerProvider={routerBindings}
                 resources={[
@@ -92,18 +95,31 @@ function App() {
                     meta: {
                       canDelete: true,
                       label: "人员管理",
-                      },
+                    },
+                  },
+                  {
+                    name: "pocketbase",
+                    list: "/pocketbase",
+                    // create: "/pocketbase/create",
+                    meta: {
+                      label: "PocketBase后台管理",
+                      dataProviderName:undefined,
+                    },
                   },
                   {
                     name: "测试页面",
                     list: "/test-page",
                     // create: "/test-page/create",
+                    meta: {
+                      dataProviderName:undefined,
+                      },
                   },
                 ]}
                 options={{
                   syncWithLocation: true,
                   warnWhenUnsavedChanges: true,
                   useNewQueryKeys: true,
+                  projectId: "1LFZhY-g5ZTkQ-8ndYcP",
                 }}
               >
                 <Routes>
@@ -138,7 +154,10 @@ function App() {
                       <Route path="create" element={<WorkersCreate />} />
                       <Route path="edit/:id" element={<WorkersEdit />} />
                       <Route path="show/:id" element={<WorkersShow />} />
-                      </Route>
+                    </Route>
+                    <Route path="/pocketbase">
+                      <Route index element={<PocketBasePage />} />
+                    </Route>
                     <Route path="/test-page" element={<TestPage />} />
                     <Route path="*" element={<ErrorComponent />} />
                   </Route>
