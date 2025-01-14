@@ -32,7 +32,6 @@ export const dataProvider = (
     };
 
     const collection = pb.collection(resource);
-
     try {
       if (mode === "server") {
         const { items, totalItems } = await collection.getList(

@@ -1,3 +1,4 @@
+import { useMantineColorScheme } from "@mantine/core";
 import { RefineThemes } from "@refinedev/antd";
 import { ConfigProvider, theme } from "antd";
 import {
@@ -6,7 +7,16 @@ import {
   useEffect,
   useState,
 } from "react";
-
+import locale from 'antd/locale/zh_CN';
+import dayjs from 'dayjs';
+import 'dayjs/locale/zh-cn';
+import timezone from 'dayjs/plugin/timezone'
+import utc from 'dayjs/plugin/utc'
+dayjs.locale('zh-cn');
+dayjs.extend(utc)
+dayjs.extend(timezone)
+dayjs.tz.setDefault("Africa/Abidjan")
+// 这个12个月时间都和UTC保持一致，london不一定
 type ColorModeContextType = {
   mode: string;
   setMode: (mode: string) => void;
@@ -32,12 +42,14 @@ export const ColorModeContextProvider: React.FC<PropsWithChildren> = ({
   useEffect(() => {
     window.localStorage.setItem("colorMode", mode);
   }, [mode]);
-
+  const { setColorScheme, clearColorScheme } = useMantineColorScheme()
   const setColorMode = () => {
     if (mode === "light") {
       setMode("dark");
+      setColorScheme("dark");
     } else {
       setMode("light");
+      setColorScheme("light");
     }
   };
 
@@ -51,6 +63,7 @@ export const ColorModeContextProvider: React.FC<PropsWithChildren> = ({
       }}
     >
       <ConfigProvider
+      locale={locale}
         // you can change the theme colors here. example: ...RefineThemes.Magenta,
         theme={{
           ...RefineThemes.Blue,
