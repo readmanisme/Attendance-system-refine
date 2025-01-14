@@ -2132,10 +2132,12 @@ __metadata:
     eslint: "npm:^9.18.0"
     eslint-plugin-react-hooks: "npm:^5.1.0"
     eslint-plugin-react-refresh: "npm:^0.4.18"
+    pocketbase: "npm:^0.25.0"
     postcss: "npm:^8.5.0"
     react: "npm:^19.0.0"
     react-dom: "npm:^19.0.0"
     react-router: "npm:^7.1.1"
+    refine-pocketbase: "npm:^0.3.2"
     tailwindcss: "npm:^3.4.17"
     typescript: "npm:^5.7.3"
     vite: "npm:^6.0.7"
@@ -7061,6 +7063,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"pocketbase@npm:^0.25.0":
+  version: 0.25.0
+  resolution: "pocketbase@npm:0.25.0"
+  checksum: 10c0/f5a03d461cdfd99bcf6f69e445257e0679fa1ff3bd7aa3f14cd61c39b3b848f786be6812c619cea3b3606b716b7bb6f457fac02e3b34eaffe217020a7155a79d
+  languageName: node
+  linkType: hard
+
 "postcss-import@npm:^15.1.0":
   version: 15.1.0
   resolution: "postcss-import@npm:15.1.0"
@@ -8053,6 +8062,15 @@ __metadata:
   dependencies:
     esprima: "npm:~4.0.0"
   checksum: 10c0/350f5e39aebab3886713a170235c38155ee64a74f0f7e629ecc0144ba33905efea30c2c3befe1fcbf0b0366e344e7bfa34e6b2502b423c9a467d32f1306ef166
+  languageName: node
+  linkType: hard
+
+"refine-pocketbase@npm:^0.3.2":
+  version: 0.3.2
+  resolution: "refine-pocketbase@npm:0.3.2"
+  peerDependencies:
+    pocketbase: ">=0.22.0 <0.25.0"
+  checksum: 10c0/ee23b66428fcd0f85f10e1ad0988e84e6192c26e124288425dbd0b6ae88ec946cd76c35b6e29df6d038b0357ecdfac6779044684e83ad7459040e520704dcacb
   languageName: node
   linkType: hard
 

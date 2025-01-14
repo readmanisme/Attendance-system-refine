@@ -33,6 +33,16 @@ import {
   CategoryShow,
 } from "./pages/categories";
 import { TestPage } from "./pages/test-page/test-page";
+import {
+  WorkersCreate,
+  WorkersEdit,
+  WorkersList,
+  WorkersShow,
+} from "./pages/workers";
+import PocketBase from "pocketbase";
+import { authProvider, dataProvider as pocketbaseDataProvider, liveProvider } from "refine-pocketbase";
+const POCKETBASE_URL = "http://localhost:8090";
+const pb = new PocketBase(POCKETBASE_URL);
 function App() {
   return (
     <BrowserRouter>
@@ -42,7 +52,12 @@ function App() {
           <AntdApp>
             <DevtoolsProvider>
               <Refine
-                dataProvider={dataProvider("https://api.fake-rest.refine.dev")}
+                dataProvider={
+      {
+        default: pocketbaseDataProvider(pb),
+        example:dataProvider("https://api.fake-rest.refine.dev")
+      }
+                }
                 notificationProvider={useNotificationProvider}
                 routerProvider={routerBindings}
                 resources={[
@@ -54,6 +69,7 @@ function App() {
                     show: "/blog-posts/show/:id",
                     meta: {
                       canDelete: true,
+                      dataProviderName: "example",
                     },
                   },
                   {
@@ -64,13 +80,25 @@ function App() {
                     show: "/categories/show/:id",
                     meta: {
                       canDelete: true,
+                      dataProviderName: "example",
                     },
                   },
                   {
-                    name:"测试页面",
+                    name: "workers_test",
+                    list: "/workers",
+                    create: "/workers/create",
+                    edit: "/workers/edit/:id",
+                    show: "/workers/show/:id",
+                    meta: {
+                      canDelete: true,
+                      label: "人员管理",
+                      },
+                  },
+                  {
+                    name: "测试页面",
                     list: "/test-page",
                     // create: "/test-page/create",
-                  }
+                  },
                 ]}
                 options={{
                   syncWithLocation: true,
@@ -105,6 +133,12 @@ function App() {
                       <Route path="edit/:id" element={<CategoryEdit />} />
                       <Route path="show/:id" element={<CategoryShow />} />
                     </Route>
+                    <Route path="/workers">
+                      <Route index element={<WorkersList />} />
+                      <Route path="create" element={<WorkersCreate />} />
+                      <Route path="edit/:id" element={<WorkersEdit />} />
+                      <Route path="show/:id" element={<WorkersShow />} />
+                      </Route>
                     <Route path="/test-page" element={<TestPage />} />
                     <Route path="*" element={<ErrorComponent />} />
                   </Route>
