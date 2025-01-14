@@ -4,20 +4,43 @@ import {
   List,
   ShowButton,
   useTable,
-  CreateButton,} from "@refinedev/antd";
+  CreateButton,
+  SaveButton,
+} from "@refinedev/antd";
 import type { BaseRecord } from "@refinedev/core";
-import { Space, Table } from "antd";
+import { Form, Input, Space, Table,Alert  } from "antd";
 
 export const WorkersList = () => {
-  const { tableProps } = useTable({
+  const { tableProps, searchFormProps } = useTable({
     syncWithLocation: true,
+    onSearch: (values) => {
+      return [
+        {
+          field: "name",
+          operator: "contains",
+          value: values.name,
+        },
+      ];
+    },
   });
 
   return (
-    <List
-    headerButtons={<CreateButton>添加人员</CreateButton>}
-    >
-      <Table {...tableProps} rowKey="id">
+    <List headerButtons={<CreateButton>添加人员</CreateButton>}>
+      <Form {...searchFormProps} layout="inline" className="mb-2">
+        <Form.Item name="name" label="搜索人名">
+          <Input placeholder="不支持拼音" />
+        </Form.Item>
+        <SaveButton onClick={searchFormProps.form?.submit}>搜索</SaveButton>
+      </Form>
+      <Table
+        {...tableProps}
+        rowKey="id"
+        // pagination={{
+        //   ...tableProps.pagination,
+        //   position: ["bottomCenter"],
+        //   size: "small",
+        // }}
+      >
         <Table.Column dataIndex="id" title={"ID"} />
         <Table.Column dataIndex="name" title={"姓名"} />
         <Table.Column
@@ -25,9 +48,15 @@ export const WorkersList = () => {
           dataIndex="actions"
           render={(_, record: BaseRecord) => (
             <Space>
-              <EditButton  size="small" recordItemId={record.id} >编辑</EditButton>
-              <ShowButton  size="small" recordItemId={record.id} >查看</ShowButton>
-              <DeleteButton  size="small" recordItemId={record.id} >删除</DeleteButton>
+              <EditButton size="small" recordItemId={record.id}>
+                编辑
+              </EditButton>
+              <ShowButton size="small" recordItemId={record.id}>
+                查看
+              </ShowButton>
+              <DeleteButton size="small" recordItemId={record.id}>
+                删除
+              </DeleteButton>
             </Space>
           )}
         />
