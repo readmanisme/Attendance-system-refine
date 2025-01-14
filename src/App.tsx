@@ -45,7 +45,13 @@ import {
   authProvider,
   dataProvider as pocketbaseDataProvider,
   liveProvider,
+// } from "./providers/pocketbase";
 } from "refine-pocketbase";
+import { UnClockOutCreate,UnClockOutEdit,UnClockOutList,UnClockOutShow } from "./pages/unclockout";
+import { AttendanceRecordCreate,AttendanceRecordEdit,AttendanceRecordList,AttendanceRecordShow } from "./pages/attendance-record";
+import { MantineProvider } from '@mantine/core';
+import QianDaoPage from "./pages/qian-dao/qian-dao";
+
 const POCKETBASE_URL = "http://localhost:8090";
 const pb = new PocketBase(POCKETBASE_URL);
 function App() {
@@ -53,8 +59,11 @@ function App() {
     <BrowserRouter>
       {/* <GitHubBanner /> */}
       <RefineKbarProvider>
+      <MantineProvider>
         <ColorModeContextProvider>
+        {/* <MantineProvider> */}
           <AntdApp>
+            {/* <MantineProvider> */}
             <DevtoolsProvider>
               <Refine
                 dataProvider={{
@@ -84,6 +93,35 @@ function App() {
                     meta: {
                       canDelete: true,
                       dataProviderName: "example",
+                    },
+                  },
+                  {
+                    name: "qiandao",
+                    list: "/qiandao",
+                    meta: {
+                      label: "人员签到",
+                      dataProviderName: undefined,
+                    },
+                  },
+                  // {
+                  //   name: "unclockout",
+                  //   list: "/unclockout",
+                  //   create: "/unclockout/create",
+                  //   edit: "/unclockout/edit/:id",
+                  //   show: "/unclockout/show/:id",
+                  //   meta: {
+                  //     canDelete: true,
+                  //   }
+                  // },
+                  {
+                    name: "attendance_record_test",
+                    list: "/attendance-record",
+                    create: "/attendance-record/create",
+                    edit: "/attendance-record/edit/:id",
+                    show: "/attendance-record/show/:id",
+                    meta: {
+                      canDelete: true,
+                      label: "考勤记录",
                     },
                   },
                   {
@@ -149,6 +187,21 @@ function App() {
                       <Route path="edit/:id" element={<CategoryEdit />} />
                       <Route path="show/:id" element={<CategoryShow />} />
                     </Route>
+                    <Route path="/qiandao">
+                    <Route index element={<QianDaoPage />} />
+                      </Route>
+                      <Route path="/unclockout">
+                      <Route index element={<UnClockOutList />} />
+                      <Route path="create" element={<UnClockOutCreate />} />
+                      <Route path="edit/:id" element={<UnClockOutEdit />} />
+                      <Route path="show/:id" element={<UnClockOutShow />} />
+                      </Route>
+                      <Route path="/attendance-record">
+                      <Route index element={<AttendanceRecordList />} />
+                      <Route path="create" element={<AttendanceRecordCreate />} />
+                      <Route path="edit/:id" element={<AttendanceRecordEdit />} />
+                      <Route path="show/:id" element={<AttendanceRecordShow />} />
+                      </Route>
                     <Route path="/workers">
                       <Route index element={<WorkersList />} />
                       <Route path="create" element={<WorkersCreate />} />
@@ -169,8 +222,11 @@ function App() {
               </Refine>
               <DevtoolsPanel />
             </DevtoolsProvider>
+            {/* </MantineProvider> */}
           </AntdApp>
+          {/* </MantineProvider> */}
         </ColorModeContextProvider>
+        </MantineProvider>
       </RefineKbarProvider>
     </BrowserRouter>
   );
