@@ -58,7 +58,7 @@ export const AttendanceRecordCreate = () => {
           name={["check_out"]}
           rules={[
             {
-              required: true,
+              // required: true,
             },
           ]}
         >

@@ -45,13 +45,13 @@ import {
   authProvider,
   dataProvider as pocketbaseDataProvider,
   liveProvider,
-// } from "./providers/pocketbase";
-} from "refine-pocketbase";
+} from "./providers/pocketbase";
+// } from "refine-pocketbase";
 import { UnClockOutCreate,UnClockOutEdit,UnClockOutList,UnClockOutShow } from "./pages/unclockout";
 import { AttendanceRecordCreate,AttendanceRecordEdit,AttendanceRecordList,AttendanceRecordShow } from "./pages/attendance-record";
 import { MantineProvider } from '@mantine/core';
 import QianDaoPage from "./pages/qian-dao/qian-dao";
-
+import {IconChecks,IconUsers,IconList,IconClipboardData,IconLockSquareRounded,IconMicroscope} from "@tabler/icons-react"
 const POCKETBASE_URL = "http://localhost:8090";
 const pb = new PocketBase(POCKETBASE_URL);
 function App() {
@@ -82,6 +82,7 @@ function App() {
                     meta: {
                       canDelete: true,
                       dataProviderName: "example",
+                      icon: <IconList  />,
                     },
                   },
                   {
@@ -93,6 +94,7 @@ function App() {
                     meta: {
                       canDelete: true,
                       dataProviderName: "example",
+                      icon: <IconList  />,
                     },
                   },
                   {
@@ -101,6 +103,7 @@ function App() {
                     meta: {
                       label: "人员签到",
                       dataProviderName: undefined,
+                      icon: <IconChecks  />,
                     },
                   },
                   // {
@@ -122,6 +125,7 @@ function App() {
                     meta: {
                       canDelete: true,
                       label: "考勤记录",
+                      icon: <IconClipboardData  />,
                     },
                   },
                   {
@@ -133,6 +137,7 @@ function App() {
                     meta: {
                       canDelete: true,
                       label: "人员管理",
+                      icon: <IconUsers  />,
                     },
                   },
                   {
@@ -142,6 +147,7 @@ function App() {
                     meta: {
                       label: "PocketBase后台管理",
                       dataProviderName:undefined,
+                      icon: <IconLockSquareRounded  />,
                     },
                   },
                   {
@@ -150,6 +156,7 @@ function App() {
                     // create: "/test-page/create",
                     meta: {
                       dataProviderName:undefined,
+                      icon: <IconMicroscope  />,
                       },
                   },
                 ]}

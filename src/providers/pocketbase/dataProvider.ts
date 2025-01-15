@@ -22,7 +22,7 @@ export const dataProvider = (
     const sort = sorters
       ?.map((s) => `${s.order === "desc" ? "-" : ""}${s.field}`)
       .join(",");
-
+    // console.log("untransformed filters", filters)
     const options: RecordListOptions = {
       requestKey: meta?.requestKey ?? null,
       ...(sort ? { sort } : {}),
@@ -30,7 +30,7 @@ export const dataProvider = (
       ...(meta?.expand ? { expand: meta?.expand.join(",") } : {}),
       ...(meta?.fields ? { fields: meta?.fields?.join(",") } : {}),
     };
-
+    // console.log("options", options)
     const collection = pb.collection(resource);
     try {
       if (mode === "server") {
