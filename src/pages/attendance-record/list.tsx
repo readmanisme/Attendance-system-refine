@@ -5,15 +5,64 @@ import {
   ShowButton,
   useTable,
   DateField,
+  FilterDropdown,
 } from "@refinedev/antd";
-import { useList, type BaseRecord } from "@refinedev/core";
-import { Space, Table } from "antd";
+import { useList, type BaseRecord, getDefaultFilter } from "@refinedev/core";
+import {
+  Space,
+  Table,
+  Switch,
+  Typography,
+  Select,
+  Radio,
+  Button,
+  TableProps,
+} from "antd";
+import { use, useEffect, useState } from "react";
 
 export const AttendanceRecordList = () => {
-  const { tableProps } = useTable({
+  const { tableProps, filters, setFilters } = useTable({
+    resource: "attendance_record_test",
     syncWithLocation: true,
+    filters: {
+      // 这里operator是null的实际是不等于null，nnull实际上是等于null
+      permanent: [
+        // {
+        //     field: "check_out",
+        //     value: "200",
+        //     operator: "null",
+        // },
+      ],
+      defaultBehavior: "replace",
+    },
   });
+  interface DataType {
+    id: string;
+    worker_id: string;
+    check_in: string;
+    check_out: string;
+  }
+  type OnChange = NonNullable<TableProps<DataType>["onChange"]>;
+  type Filters = Parameters<OnChange>[1];
 
+  type GetSingle<T> = T extends (infer U)[] ? U : never;
+  type Sorts = GetSingle<Parameters<OnChange>[2]>;
+  const [unclockoutfilter, setUnclockoutfilter] = useState(false);
+  const [filteredInfo, setFilteredInfo] = useState<Filters>({});
+  const [sortedInfo, setSortedInfo] = useState<Sorts>({});
+  const handleTableChange: OnChange = (pagination, filters, sorter) => {
+    console.log("Various parameters", pagination, filters, sorter);
+    setFilteredInfo(filters);
+    setSortedInfo(sorter as Sorts);
+  };
+  const clearFilters = () => {
+    setFilteredInfo({});
+  };
+
+  const clearAll = () => {
+    setFilteredInfo({});
+    setSortedInfo({});
+  };
   const {
     data: names,
     isLoading,
@@ -35,10 +84,62 @@ export const AttendanceRecordList = () => {
     });
   }
   // console.log("names", names);
+  const handleUnclockoutfilterChange = (checked: boolean) => {
+    setUnclockoutfilter(checked);
+  };
+  useEffect(() => {
+    if (unclockoutfilter) {
+      console.log("执行了过滤");
+      setFilters([
+        {
+          field: "check_out",
+          operator: "eq",
+          value: "",
+        },
+      ]);
+    } else {
+      setFilters([], "replace");
+    }
+  }, [unclockoutfilter]);
 
   return (
     <List>
-      <Table {...tableProps} rowKey="id">
+      <div className="flex flex-row justify-center items-center ">
+        <Typography.Title level={5}>过滤未下班记录</Typography.Title>
+        <Switch
+          checked={unclockoutfilter}
+          onChange={handleUnclockoutfilterChange}
+        />
+        <Button
+          onClick={() => {
+            setFilters([
+              {
+                field: "check_out",
+                operator: "eq",
+                value: "",
+              },
+            ]);
+          }}
+        >
+          过滤
+        </Button>
+        <Button
+          onClick={() => {
+            setFilters([]);
+          }}
+        >
+          取消过滤
+        </Button>
+        <Button
+          onClick={() => {
+            clearFilters();
+          }}
+        >
+          取消表自带过滤
+        </Button>
+      </div>
+      <Space></Space>
+      <Table {...tableProps} rowKey="id" onChange={handleTableChange}>
         <Table.Column dataIndex="id" title={"ID"} />
         {/* <Table.Column dataIndex="worker_id" title={"人员ID"} /> */}
         <Table.Column
@@ -54,14 +155,45 @@ export const AttendanceRecordList = () => {
           // DateField只显示到日期
           // slice(0,-5)去掉.000Z
           render={(_, record: BaseRecord) => {
-            return <>{record.check_in.slice(0,-5)}</>;
+            return <>{record.check_in.slice(0, -5)}</>;
           }}
         />
         <Table.Column
           dataIndex="check_out"
           title={"下班时间"}
+          filters={[
+            { text: "非空", value: "非空" },
+            { text: "空值", value: "空值" },
+          ]}
+          filteredValue={filteredInfo.check_out || null}
+          onFilter={(value, record) => {
+            if (value === "非空") {
+              return record.check_out !== "";
+            } else if (value === "空值") {
+              return record.check_out === "";
+            }
+          }}
+          // filterDropdown={(props) => (
+          // <FilterDropdown {...props}
+          // onFilter={(value, record) => {
+          //   if (value === "null") {
+          //     return record.check_out === null;
+          //   } else if (value === "draft") {
+          //     return record.check_out === null;
+          //   } else if (value === "rejected") {
+          //     return record.check_out === null;
+          //   }
+          // }}
+          // >
+          //   <Radio.Group>
+          //     <Radio value="null">Published</Radio>
+          //     <Radio value="draft">Draft</Radio>
+          //     <Radio value="rejected">Rejected</Radio>
+          //   </Radio.Group>
+          // </FilterDropdown>
+          // )}
           render={(_, record: BaseRecord) => {
-            return <>{record.check_out.slice(0,-5)}</>;
+            return <>{record.check_out.slice(0, -5)}</>;
           }}
         />
         <Table.Column
