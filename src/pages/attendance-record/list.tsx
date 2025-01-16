@@ -17,14 +17,24 @@ import {
   Radio,
   Button,
   TableProps,
+  DatePicker
 } from "antd";
 import dayjs from "dayjs";
 import { use, useEffect, useState } from "react";
-
+import { useSomeStore } from "@/stores";
+import { f } from "react-router/dist/development/fog-of-war-DLtn2OLr";
 export const AttendanceRecordList = () => {
+  const { recordDateRange, setRecordDateRange } = useSomeStore();
+  const {RangePicker}=DatePicker;
   const { tableProps, filters, setFilters } = useTable({
     resource: "attendance_record_test",
     syncWithLocation: true,
+    sorters:{
+      permanent:[{
+        field: "created",
+        order: "desc",
+      }],
+    },
     filters: {
       // 这里operator是null的实际是不等于null，nnull实际上是等于null
       permanent: [
@@ -102,7 +112,14 @@ export const AttendanceRecordList = () => {
       setFilters([], "replace");
     }
   }, [unclockoutfilter]);
-
+  const getDefaultValue = () => {
+    // return [dayjs().subtract(1, "month"),dayjs()];
+    if (recordDateRange.length > 0) {
+      return [dayjs(recordDateRange[0]),dayjs(recordDateRange[1])]
+    } else {
+      return [];
+    }
+  };
   return (
     <List>
       <div className="flex flex-row justify-center items-center ">
@@ -140,6 +157,13 @@ export const AttendanceRecordList = () => {
         </Button>
       </div>
       <Space></Space>
+      <RangePicker
+        className="w-full"
+        defaultValue={getDefaultValue()}
+        onChange={(dates, dateStrings) => {
+          setRecordDateRange(...dateStrings);
+        }}
+      />
       {/* <Table {...tableProps} rowKey="id" onChange={handleTableChange}> */}
       <Table {...tableProps} rowKey="id">
         <Table.Column dataIndex="id" title={"ID"} />
@@ -158,7 +182,7 @@ export const AttendanceRecordList = () => {
           // slice(0,-5)去掉.000Z
           render={(_, record: BaseRecord) => {
             // return <>{record.check_in.slice(0, -5)}</>;
-            return <>{dayjs(record.check_in).format("YYYY-MM-DD HH:mm:ss")}</>;
+            return <>{record.check_in?dayjs(record.check_in).format("YYYY-MM-DD HH:mm:ss"):"--"}</>;
           }}
         />
         <Table.Column
@@ -170,6 +194,8 @@ export const AttendanceRecordList = () => {
           ]}
           filteredValue={filteredInfo.check_out || null}
           filterMultiple={false}
+          // TODO 这里表自带的筛选有问题
+          
           onFilter={(value, record) => {
             if (value === "非空") {
               return record.check_out !== "";
@@ -177,28 +203,9 @@ export const AttendanceRecordList = () => {
               return record.check_out === "";
             }
           }}
-          // filterDropdown={(props) => (
-          // <FilterDropdown {...props}
-          // onFilter={(value, record) => {
-          //   if (value === "null") {
-          //     return record.check_out === null;
-          //   } else if (value === "draft") {
-          //     return record.check_out === null;
-          //   } else if (value === "rejected") {
-          //     return record.check_out === null;
-          //   }
-          // }}
-          // >
-          //   <Radio.Group>
-          //     <Radio value="null">Published</Radio>
-          //     <Radio value="draft">Draft</Radio>
-          //     <Radio value="rejected">Rejected</Radio>
-          //   </Radio.Group>
-          // </FilterDropdown>
-          // )}
           render={(_, record: BaseRecord) => {
             // return <>{record.check_out.slice(0, -5)}</>;
-            return <>{dayjs(record.check_out).format("YYYY-MM-DD HH:mm:ss")}</>;
+            return <>{record.check_out?dayjs(record.check_out).format("YYYY-MM-DD HH:mm:ss"):"--"}</>;
           }}
         />
         <Table.Column

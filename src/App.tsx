@@ -64,6 +64,7 @@ import { MantineProvider } from "@mantine/core";
 import logo from "@/public/logo.png";
 import QianDaoPage from "./pages/qian-dao/qian-dao";
 import XinZiList from "./pages/xin-zi/list";
+import XinZiShow from "./pages/xin-zi/show";
 import GongShiList from "./pages/gong-shi/list";
 import ZhuYe from "./pages/zhu-ye/zhu-ye";
 import {
@@ -108,7 +109,7 @@ function App() {
                         canDelete: true,
                         dataProviderName: "example",
                         icon: <IconList />,
-                        hide: true,
+                        // hide: true,
                       },
                     },
                     {
@@ -179,6 +180,7 @@ function App() {
                     {
                       name:"xinzi",
                       list: "/xinzi",
+                      show: "/xinzi/show/:id",
                       meta: {
                         label: "薪资计算",
                         dataProviderName: undefined,
@@ -307,6 +309,7 @@ function App() {
                       </Route>
                       <Route path="/xinzi">
                         <Route index element={<XinZiList />} />
+                        <Route path="show/:id" element={<XinZiShow />} />
                         </Route>
                         <Route path="/gongshi">
                         <Route index element={<GongShiList />} />
