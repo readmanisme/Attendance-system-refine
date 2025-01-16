@@ -8,36 +8,17 @@ import '@mantine/core/styles.css';
 import { ErrorBoundary } from 'react-error-boundary';
 import { Button, Result } from 'antd';
 import { FrownOutlined } from '@ant-design/icons';
+import { CustomErrorBoundary } from "@/components/ErrorBoundary";
 
-const CustomErrorBoundary = ({ children }) => {
-  const handleError = (error, info) => {
-    // 可以在此记录错误，发送到后端等
-    console.error('ErrorBoundary caught an error', error, info);
-  };
+const _error = console.error;
 
-  const FallbackComponent = ({ error, resetErrorBoundary }) => (
-    <div className="flex items-center justify-center h-screen bg-gray-50">
-      <Result
-        icon={<FrownOutlined style={{ fontSize: 50, color: '#FF4D4F' }} />}
-        title="Something went wrong"
-        subTitle={error.message}
-        extra={
-          <Button type="primary" onClick={resetErrorBoundary}>
-            Try Again
-          </Button>
-        }
-        className="w-full max-w-xl p-4"
-      />
-    </div>
-  );
+const itemsWarning = "`children` is deprecated. Please use `items` instead";
 
-  return (
-    <ErrorBoundary FallbackComponent={FallbackComponent} onError={handleError}>
-      {children}
-    </ErrorBoundary>
-  );
+console.error = function (msg, ...args) {
+  if (!`${msg}`.includes(itemsWarning)) {
+    _error.apply(console, [msg, ...args]);
+  }
 };
-
 
 const container = document.getElementById("root") as HTMLElement;
 const root = createRoot(container);

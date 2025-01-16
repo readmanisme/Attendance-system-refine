@@ -5,8 +5,10 @@ import {
   Button as AntdButton,
   Table,
   Badge,
+  Alert,
+  Tag,
 } from "antd";
-import { useCallback, useState,useContext, useEffect} from "react";
+import { useCallback, useState, useContext, useEffect } from "react";
 import { match } from "pinyin-pro";
 import dayjs from "dayjs";
 import {
@@ -44,17 +46,19 @@ import {
   LogoutOutlined,
 } from "@ant-design/icons";
 import RealTimeClock from "@/components/RealTimeClock";
-import { useThemeMode } from 'antd-style';
+import { useThemeMode } from "antd-style";
 import { ColorModeContext } from "../../contexts/color-mode";
-import { List } from "@refinedev/antd";
+import { List, useSelect } from "@refinedev/antd";
+import { title } from "process";
+import { W } from "react-router/dist/development/fog-of-war-DLtn2OLr";
 
 const { Title: AntdTitle } = Typography;
 export default function QianDaoPage() {
   const [highoightWord, setHighoightWord] = useState([]);
   const [selectValue, setSelectValue] = useState<string>();
   const [selectID, setSelectID] = useState<string>();
-    const { mode, setMode } = useContext(ColorModeContext);
-const colorMode=mode;
+  const { mode, setMode } = useContext(ColorModeContext);
+  const colorMode = mode;
   // 来自mantine的useLocalStorage不妥，会导致颜色混乱,而且也不实时
   // readLocalStorageValue不具有响应性
   //来自react use 的useLocalStorage更是一点用处都没有
@@ -98,17 +102,25 @@ const colorMode=mode;
           {
             field: "check_in",
             operator: "gte",
-            value:
-              dayjs().startOf("day").format("YYYY-MM-DD HH:mm:ss.SSS") + "Z",
+            value: dayjs().startOf("day").toISOString().replace("T", " "),
+            // value:dayjs().startOf("day").format("YYYY-MM-DD HH:mm:ss.SSS") + "Z",
+            // value:dayjs().startOf("day").format("YYYY-MM-DD HH:mm:ss.SSSZ"),
+            // pocketbase不识别'2025-01-16 23:59:59.999+08:00'这种格式的
+            // 并且不能用T
           },
           {
-            field: "check_in",
+            field: "check_out",
             operator: "lte",
-            value: dayjs().endOf("day").format("YYYY-MM-DD HH:mm:ss.SSS") + "Z",
+            // value: dayjs().endOf("day").format("YYYY-MM-DD HH:mm:ss.SSS") + "Z",
+            // value: dayjs().endOf("day").format("YYYY-MM-DD HH:mm:ss.SSSZ"),
+            value: dayjs().endOf("day").toISOString().replace("T", " "),
           },
         ],
       },
     ],
+    meta:{
+      expand:["work"]
+    }
   });
 
   // 未下班工人示例数据，具有姓名和上班时间
@@ -200,11 +212,12 @@ const colorMode=mode;
   // }, [last_record?.data])
   const handleQiandao = (mode: "上班" | "下班") => {
     // 使用dayjs获取当前时间，并格式化为“2025-01-01 12:00:00.000Z"
-    const now = dayjs().format("YYYY-MM-DD HH:mm:ss.SSS") + "Z";
+    // const now = dayjs().format("YYYY-MM-DD HH:mm:ss.SSS") + "Z";
+    const now = dayjs().toISOString().replace("T", " ");
     // dayjs.tz.setDefault("Africa/Abidjan")
     // let now = dayjs();
     // console.log("点击了签到");
-    if (!last_record?.data?.length || !(last_record?.data[0].check_in)) {
+    if (!last_record?.data?.length || !last_record?.data[0].check_in) {
       // 有可能存在既没有上班有没有下班的意外数据
       if (mode === "下班") {
         notify?.({
@@ -214,17 +227,17 @@ const colorMode=mode;
         });
         return;
       }
-      if (!last_record?.data?.length){
+      if (!last_record?.data?.length) {
         CreateRecord({
           values: {
             worker_id: selectID,
             // check_in: now.format("YYYY-MM-DD HH:mm:ss.SSS"),
             check_in: now,
             check_out: "",
+            work:work_type_id
           },
         });
-      }
-      else {
+      } else {
         UpdateRecord({
           id: last_record?.data[0].id,
           values: {
@@ -262,9 +275,14 @@ const colorMode=mode;
       render: (text) => (
         <Space>
           <ClockCircleOutlined />
-          {text}
+          {dayjs(text).format("YYYY-MM-DD HH:mm:ss")}
         </Space>
       ),
+    },
+    {
+      title:"工作",
+      dataIndex:"workType",
+      key:"workType",
     },
     {
       title: "状态",
@@ -284,7 +302,7 @@ const colorMode=mode;
       title: "签退时间",
       dataIndex: "checkOutTime",
       key: "checkOutTime",
-      render: (text) => text || "-",
+      render: (text) => text?dayjs(text).format("YYYY-MM-DD HH:mm:ss") : "-",
     },
   ];
 
@@ -308,97 +326,110 @@ const colorMode=mode;
       status: worker.check_out ? "checked-out" : "pending",
       checkOutTime: worker.check_out,
       key: worker.id,
+      worker_id: worker.worker_id,
+      workType:worker.expand.work.type
     };
   });
-  const A_div_color = colorMode === 'dark' ? "dark:bg-gray-800" : "bg-gray-50";
-  // 排序employees，status是pending的放在上面
+  const A_div_color = colorMode === "dark" ? "dark:bg-gray-800" : "bg-gray-50";
+  // 排序employees，status是pending的放在上面，check_out时间晚的放在上面
   employees = employees?.sort((a, b) => {
-    if (a.status === "pending") {
+    // 首先按 status 排序，pending 的排在最前面
+    if (a.status === "pending" && b.status !== "pending") {
       return -1;
-    } else if (b.status === "pending") {
+    } else if (b.status === "pending" && a.status !== "pending") {
       return 1;
     } else {
-      return 0;
+      // 如果 status 相同，按 check_out 时间排序，check_out 时间晚的排前面
+      const timeA = dayjs(a.checkOutTime);
+      const timeB = dayjs(b.checkOutTime);
+  
+      if (timeA.isAfter(timeB)) {
+        return -1;
+      } else if (timeA.isBefore(timeB)) {
+        return 1;
+      } else {
+        return 0;
+      }
     }
   });
+  const { selectProps: workTypeSelectProps } = useSelect({
+    resource: "workType_test",
+    optionLabel: "type",
+  });
 
+  function get_alert_description() {
+    if (!selectID) {
+      return "选择人员后显示签到记录";
+    }
+    // 查找签到记录
+    // const record = employees?.find(
+    //   (employee) => employee.worker_id === selectID
+    // );
+
+    // 查找该员工的所有签到记录
+    const records = employees
+      ?.filter((employee) => employee.worker_id === selectID)
+      .sort((a, b) => {
+        if (a.status === "pending" && b.status !== "pending") return -1;
+        if (b.status === "pending" && a.status !== "pending") return 1;
+        return 0; // 如果两个记录的状态相同，则保持原有顺序
+      });
+
+    // if (!record) {
+    if (!records || records.length === 0) {
+      // return `${selectValue}未签到，请先签到`;
+      return (
+        <>
+          {selectValue} <Tag color="orange">未签到</Tag>，请先签到
+        </>
+      );
+    }
+    //   const { name, checkInTime, checkOutTime, status } = record;
+    //   if (status === "pending") {
+    //     // TODO 应该将pending更换为cheched-in
+    //     // return `${name}已签到，签到时间：${checkInTime}`;
+    //     return <>{name} <Tag color="green">已签到</Tag>，签到时间：{checkInTime}</>;
+    //   } else if (status === "checked-out") {
+    //     // return `${name}已签退，签退时间：${checkOutTime}`;
+    //     return <>{name} <Tag color="red">已签退</Tag>，签退时间：{checkOutTime}</>;
+    //   } else {
+    //     return `${name}未签到，请先签到`;
+    // }
+
+    return records.map((record, index) => {
+      const { name, checkInTime, checkOutTime, status } = record;
+      let statusMessage;
+      if (status === "pending") {
+        statusMessage = (
+          <>
+            <Tag color="green">已签到</Tag>，签到时间：{dayjs(checkInTime).format("YYYY-MM-DD HH:mm:ss")}
+          </>
+        );
+      } else if (status === "checked-out") {
+        statusMessage = (
+          <>
+            <Tag color="red">已签退</Tag>，签退时间：{dayjs(checkOutTime).format("YYYY-MM-DD HH:mm:ss")}
+          </>
+        );
+      } else {
+        statusMessage = (
+          <>
+            <Tag color="orange">未签到</Tag>，请先签到
+          </>
+        );
+      }
+      return (
+        <div key={index}>
+          {name} {statusMessage}
+        </div>
+      );
+    });
+  }
+  const [work_type_value, set_work_type_value] = useState<string>();
+  const [work_type_id, set_work_type_id] = useState<string>();
+  // console.log("work_type",work_type_value,work_type_id)
   return (
     <List>
-      {/* <div className="flex flex-row justify-center items-center">
-      <div>
-        <Text align="center" size="lg" className="mt-8 mb-4">
-          当前未下班工人
-        </Text>
-
-        {unClockOutWorkers?.length === 0 ? (
-          <Text align="center">暂无未下班工人</Text>
-        ) : (
-          unClockOutWorkers?.map((worker) => (
-            <Card
-              key={worker.id}
-              className="mb-1"
-              shadow="sm"
-              padding="lg"
-              radius="md"
-              withBorder
-            >
-              <Text>{worker.name}</Text>
-              <Text color="gray">上班时间 ：{worker.time}</Text>
-            </Card>
-          ))
-        )}
-      </div>
-      <div className="flex flex-col items-center justify-center">
-        <AntdSelect
-          placeholder="请选择考勤人员"
-          showSearch
-          allowClear
-          labelInValue
-          optionFilterProp="label"
-          style={{ width: 180 }}
-          filterOption={(input, option) => SelectSearchPingying(input, option)}
-          options={workers?.map((worker) => ({
-            label: worker.name,
-            value: worker.id,
-          }))}
-          // onChange={(value) => {
-          onChange={(value: { value: string; label: string }) => {
-            setHighoightWord([]);
-            setSelectValue(value?.label);
-            setSelectID(value?.value);
-          }}
-          onBlur={() => {
-            setHighoightWord([]);
-          }}
-          optionRender={(option) => {
-            return (
-              <Highlight highlight={highoightWord}>{option.label}</Highlight>
-            );
-          }}
-        />
-        <SegmentedControl
-          value={workOrOff}
-          onChange={setWorkOrOff}
-          color="blue"
-          data={[
-            { label: "上班", value: "上班" },
-            { label: "下班", value: "下班" },
-          ]}
-        />
-        <Button
-          onClick={handleQiandao}
-          variant="outline"
-          color="blue"
-          className="mt-4"
-          disabled={!selectValue}
-        >
-          签到
-        </Button>
-        <div>{dayjs().format("YYYY-MM-DD HH:mm:ss.SSS")}</div>
-        <pre>{JSON.stringify(last_record?.data, null, 2)}</pre>
-      </div>
-    </div> */}
-
       {/* <div className="min-h-screen bg-gray-50 p-4 sm:p-6 lg:p-8"> */}
       <div className={`min-h-screen ${A_div_color} p-4 sm:p-6 lg:p-8`}>
         <Card className="max-w-6xl mx-auto">
@@ -408,62 +439,90 @@ const colorMode=mode;
             </AntdTitle>
             {/* <p>当前颜色模式:{colorMode}</p> */}
             <div className="flex flex-col sm:flex-row gap-4 justify-between items-center mb-6">
-              <AntdSelect
-                placeholder="请选择考勤人员"
-                showSearch
-                allowClear
-                labelInValue
-                optionFilterProp="label"
-                style={{ width: 180 }}
-                filterOption={(input, option) =>
-                  SelectSearchPingying(input, option)
-                }
-                options={workers?.map((worker) => ({
-                  label: worker.name,
-                  value: worker.id,
-                }))}
-                // onChange={(value) => {
-                onChange={(value: { value: string; label: string }) => {
-                  setHighoightWord([]);
-                  setSelectValue(value?.label);
-                  setSelectID(value?.value);
-                }}
-                onBlur={() => {
-                  setHighoightWord([]);
-                }}
-                optionRender={(option) => {
-                  return (
-                    <Highlight highlight={highoightWord}>
-                      {option.label}
-                    </Highlight>
-                  );
-                }}
-              />
               <RealTimeClock />
               <Space>
+                <AntdSelect
+                  placeholder="请选择考勤人员"
+                  showSearch
+                  allowClear
+                  labelInValue
+                  optionFilterProp="label"
+                  style={{ width: 180 }}
+                  filterOption={(input, option) =>
+                    SelectSearchPingying(input, option)
+                  }
+                  options={workers?.map((worker) => ({
+                    label: worker.name,
+                    value: worker.id,
+                  }))}
+                  // onChange={(value) => {
+                  onChange={(value: { value: string; label: string }) => {
+                    setHighoightWord([]);
+                    setSelectValue(value?.label);
+                    setSelectID(value?.value);
+                  }}
+                  onBlur={() => {
+                    setHighoightWord([]);
+                  }}
+                  optionRender={(option) => {
+                    return (
+                      <Highlight highlight={highoightWord}>
+                        {option.label}
+                      </Highlight>
+                    );
+                  }}
+                />
+                <AntdSelect
+                  placeholder="请选择考勤类型"
+                  {...workTypeSelectProps}
+                  style={{ width: 150 }}
+                  allowClear
+                  labelInValue
+                  // labelInValue很关键！！！
+                  onChange={(value: { value: string; label: string }) => {
+                    set_work_type_value(value?.label);
+                    set_work_type_id(value?.value);
+                  }}
+                />
+
                 <AntdButton
                   type="primary"
                   icon={<CheckOutlined />}
                   onClick={() => handleQiandao("上班")}
                   // disabled={!selectValue}
-                  disabled={!(!last_record?.data?.length || !(last_record?.data[0].check_in))}
+                  disabled={
+                    !(
+                      !last_record?.data?.length ||
+                      !last_record?.data[0].check_in
+                    )||!work_type_id
+                  }
                 >
                   上班打卡
                 </AntdButton>
+                {/* TODO 可以添加一些tooltip，例如需要选择工作然后才能打卡 */}
                 <AntdButton
                   danger
                   icon={<LogoutOutlined />}
                   onClick={() => handleQiandao("下班")}
                   // disabled={!selectValue}
-                  disabled={(!last_record?.data?.length || !(last_record?.data[0].check_in))}
+                  disabled={
+                    !last_record?.data?.length || !last_record?.data[0].check_in
+                  }
                 >
                   下班打卡
                 </AntdButton>
               </Space>
             </div>
+            <Alert
+              message="所选择人员的签到记录"
+              description={get_alert_description()}
+              type="info"
+              showIcon
+            />
           </div>
 
           <Table
+            // className="mt-4"
             columns={columns}
             dataSource={employees}
             pagination={false}

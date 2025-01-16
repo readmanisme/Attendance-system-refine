@@ -28,7 +28,7 @@ export const WorkersList = () => {
     <List headerButtons={<CreateButton>添加人员</CreateButton>}>
       <Form {...searchFormProps} layout="inline" className="mb-2">
         <Form.Item name="name" label="搜索人名">
-          <Input placeholder="不支持拼音" />
+          <Input allowClear placeholder="不支持拼音" />
         </Form.Item>
         <SaveButton onClick={searchFormProps.form?.submit}>搜索</SaveButton>
       </Form>

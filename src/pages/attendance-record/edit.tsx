@@ -30,12 +30,12 @@ export const AttendanceRecordEdit = () => {
         <Form.Item
           label={"签到时间"}
           name={["check_in"]}
-          getValueProps={(value) => ({ value: value ? dayjs.utc(value) : "", })}
-          rules={[
-            {
+          getValueProps={(value) => ({ value: value ? dayjs(value) : "", })}
+          // rules={[
+          //   {
               // required: true,
-            },
-          ]}
+          //   },
+          // ]}
         >
           <DatePicker
             showTime
@@ -44,12 +44,12 @@ export const AttendanceRecordEdit = () => {
         <Form.Item
           label={"签出时间"}
           name={["check_out"]}
-          getValueProps={(value) => ({ value: value ? dayjs.utc(value) : "", })}
-          rules={[
-            {
+          getValueProps={(value) => ({ value: value ? dayjs(value) : "", })}
+          // rules={[
+          //   {
               // required: true,
-            },
-          ]}
+          //   },
+          // ]}
         >
           <DatePicker
             showTime

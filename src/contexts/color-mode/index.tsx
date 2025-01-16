@@ -15,7 +15,7 @@ import utc from 'dayjs/plugin/utc'
 dayjs.locale('zh-cn');
 dayjs.extend(utc)
 dayjs.extend(timezone)
-dayjs.tz.setDefault("Africa/Abidjan")
+// dayjs.tz.setDefault("Africa/Abidjan")
 // 这个12个月时间都和UTC保持一致，london不一定
 type ColorModeContextType = {
   mode: string;
