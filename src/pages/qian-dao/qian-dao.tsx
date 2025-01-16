@@ -51,6 +51,7 @@ import { ColorModeContext } from "../../contexts/color-mode";
 import { List, useSelect } from "@refinedev/antd";
 import { title } from "process";
 import { W } from "react-router/dist/development/fog-of-war-DLtn2OLr";
+import { ColumnsType } from "antd/es/table";
 
 const { Title: AntdTitle } = Typography;
 export default function QianDaoPage() {
@@ -525,9 +526,9 @@ export default function QianDaoPage() {
             // className="mt-4"
             columns={columns}
             dataSource={employees}
-            pagination={false}
+            // pagination={false}
             rowClassName={(record) =>
-              record.status === "checked-in" ? "bg-blue-50" : ""
+              record.status === "pending" ? "bg-blue-50" : ""
             }
           />
         </Card>

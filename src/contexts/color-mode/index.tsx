@@ -4,6 +4,7 @@ import { ConfigProvider, theme } from "antd";
 import {
   type PropsWithChildren,
   createContext,
+  use,
   useEffect,
   useState,
 } from "react";
@@ -12,6 +13,8 @@ import dayjs from 'dayjs';
 import 'dayjs/locale/zh-cn';
 import timezone from 'dayjs/plugin/timezone'
 import utc from 'dayjs/plugin/utc'
+import { useSomeStore } from "@/stores";
+
 dayjs.locale('zh-cn');
 dayjs.extend(utc)
 dayjs.extend(timezone)
@@ -38,7 +41,7 @@ export const ColorModeContextProvider: React.FC<PropsWithChildren> = ({
   const [mode, setMode] = useState(
     colorModeFromLocalStorage || systemPreference
   );
-
+  const {setColorMode:scm2}=useSomeStore();
   useEffect(() => {
     window.localStorage.setItem("colorMode", mode);
   }, [mode]);
@@ -47,9 +50,11 @@ export const ColorModeContextProvider: React.FC<PropsWithChildren> = ({
     if (mode === "light") {
       setMode("dark");
       setColorScheme("dark");
+      scm2("dark");
     } else {
       setMode("light");
       setColorScheme("light");
+      scm2("light");
     }
   };
 
