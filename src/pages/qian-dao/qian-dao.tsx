@@ -1,5 +1,12 @@
-import { Select as AntdSelect,Space,Typography,Button as AntdButton, Table, Badge } from "antd";
-import { useCallback, useState } from "react";
+import {
+  Select as AntdSelect,
+  Space,
+  Typography,
+  Button as AntdButton,
+  Table,
+  Badge,
+} from "antd";
+import { useCallback, useState,useContext, useEffect} from "react";
 import { match } from "pinyin-pro";
 import dayjs from "dayjs";
 import {
@@ -24,14 +31,34 @@ import {
   SegmentedControl,
   NativeScrollArea,
 } from "@mantine/core";
-import { useCreate, useList, useNotification, useResource, useUpdate } from "@refinedev/core";
-import { CheckOutlined, ClockCircleOutlined, LogoutOutlined } from "@ant-design/icons";
-import { r } from "react-router/dist/development/fog-of-war-DLtn2OLr";
-const { Title:AntdTitle } = Typography
+import {
+  useCreate,
+  useList,
+  useNotification,
+  useResource,
+  useUpdate,
+} from "@refinedev/core";
+import {
+  CheckOutlined,
+  ClockCircleOutlined,
+  LogoutOutlined,
+} from "@ant-design/icons";
+import RealTimeClock from "@/components/RealTimeClock";
+import { useThemeMode } from 'antd-style';
+import { ColorModeContext } from "../../contexts/color-mode";
+import { List } from "@refinedev/antd";
+
+const { Title: AntdTitle } = Typography;
 export default function QianDaoPage() {
   const [highoightWord, setHighoightWord] = useState([]);
   const [selectValue, setSelectValue] = useState<string>();
   const [selectID, setSelectID] = useState<string>();
+    const { mode, setMode } = useContext(ColorModeContext);
+const colorMode=mode;
+  // 来自mantine的useLocalStorage不妥，会导致颜色混乱,而且也不实时
+  // readLocalStorageValue不具有响应性
+  //来自react use 的useLocalStorage更是一点用处都没有
+  // const [colorMode, setcolorMode] = useState("light")
   const {
     data: raw_workers,
     isLoading,
@@ -41,24 +68,49 @@ export default function QianDaoPage() {
   const workers = raw_workers?.data;
   // 定义变量，用于确定当前选择是上班还是下班
   const [workOrOff, setWorkOrOff] = useState("上班");
-  const {data:raw_unClockOutWorkers}=useList({
+  const { data: raw_unClockOutWorkers } = useList({
     resource: "attendance_record_test",
-    filters:[
+    filters: [
       {
         field: "check_out",
         operator: "eq",
         value: "",
-      }
-    ]
+      },
+    ],
   });
-  const unClockOutWorkers=raw_unClockOutWorkers?.data.map((item)=>{
+  const unClockOutWorkers = raw_unClockOutWorkers?.data.map((item) => {
     return {
       // name需要根据worker_id到workers中获取真实姓名
-      name:workers?.find((worker)=>worker.id===item.worker_id)?.name,
-      time:item.check_in.slice(0,-5),
-      id:item.id
-    }
+      name: workers?.find((worker) => worker.id === item.worker_id)?.name,
+      time: item.check_in.slice(0, -5),
+      id: item.id,
+    };
   });
+
+  const { data: raw_todayRecord } = useList({
+    resource: "attendance_record_test",
+    filters: [
+      {
+        operator: "and",
+        value: [
+          // 筛选出今天的记录
+          // 筛选方法来自https://pocketbase.io/docs/collections/#datefield
+          {
+            field: "check_in",
+            operator: "gte",
+            value:
+              dayjs().startOf("day").format("YYYY-MM-DD HH:mm:ss.SSS") + "Z",
+          },
+          {
+            field: "check_in",
+            operator: "lte",
+            value: dayjs().endOf("day").format("YYYY-MM-DD HH:mm:ss.SSS") + "Z",
+          },
+        ],
+      },
+    ],
+  });
+
   // 未下班工人示例数据，具有姓名和上班时间
   // const unClockOutWorkers = [
   //   { name: "张三", time: "2022-01-01 08:00:00", id: 1 },
@@ -143,37 +195,50 @@ export default function QianDaoPage() {
     resource: "attendance_record_test",
   });
   const { open: notify, close: closeNotify } = useNotification();
-
-  const handleQiandao = (mode:"上班"|"下班") => {
+  // useEffect(() => {
+  //   if (!last_record?.data?.length || last_record?.data[0].check_in){}
+  // }, [last_record?.data])
+  const handleQiandao = (mode: "上班" | "下班") => {
     // 使用dayjs获取当前时间，并格式化为“2025-01-01 12:00:00.000Z"
-    const now = dayjs().format("YYYY-MM-DD HH:mm:ss.SSS")+"Z";
+    const now = dayjs().format("YYYY-MM-DD HH:mm:ss.SSS") + "Z";
     // dayjs.tz.setDefault("Africa/Abidjan")
     // let now = dayjs();
     // console.log("点击了签到");
-    if (!last_record?.data?.length) {
-      if (mode === "下班"){
+    if (!last_record?.data?.length || !(last_record?.data[0].check_in)) {
+      // 有可能存在既没有上班有没有下班的意外数据
+      if (mode === "下班") {
         notify?.({
-          type:"error",
-          description:"不应该是下班签到",
-          message:"选择了下班，但是缺乏记录，请先上班签到"
-        })
+          type: "error",
+          description: "不应该是下班签到",
+          message: "选择了下班，但是缺乏记录，请先上班签到",
+        });
         return;
       }
-      CreateRecord({
-        values: {
-          worker_id: selectID,
-          // check_in: now.format("YYYY-MM-DD HH:mm:ss.SSS"),
-          check_in: now,
-          check_out: "",
-        },
-      });
+      if (!last_record?.data?.length){
+        CreateRecord({
+          values: {
+            worker_id: selectID,
+            // check_in: now.format("YYYY-MM-DD HH:mm:ss.SSS"),
+            check_in: now,
+            check_out: "",
+          },
+        });
+      }
+      else {
+        UpdateRecord({
+          id: last_record?.data[0].id,
+          values: {
+            check_in: now,
+          },
+        });
+      }
     } else {
       if (mode === "上班") {
         notify?.({
-          type:"error",
-          description:"不应该是上班签到",
-          message:"选择了上班，但是已经签到，请先下班签退"
-        })
+          type: "error",
+          description: "不应该是上班签到",
+          message: "选择了上班，但是已经签到，请先下班签退",
+        });
         return;
       }
       UpdateRecord({
@@ -186,57 +251,80 @@ export default function QianDaoPage() {
   };
   const columns: ColumnsType<Employee> = [
     {
-      title: '员工姓名',
-      dataIndex: 'name',
-      key: 'name',
+      title: "员工姓名",
+      dataIndex: "name",
+      key: "name",
     },
     {
-      title: '签到时间',
-      dataIndex: 'checkInTime',
-      key: 'checkInTime',
+      title: "签到时间",
+      dataIndex: "checkInTime",
+      key: "checkInTime",
       render: (text) => (
         <Space>
           <ClockCircleOutlined />
           {text}
         </Space>
-      )
+      ),
     },
     {
-      title: '状态',
-      key: 'status',
-      dataIndex: 'status',
+      title: "状态",
+      key: "status",
+      dataIndex: "status",
       render: (status: string) => {
         const statusMap = {
-          'pending': { text: '待签退', color: 'warning' },
-          'checked-in': { text: '已签到', color: 'success' },
-          'checked-out': { text: '已签退', color: 'default' }
-        }
-        const current = statusMap[status as keyof typeof statusMap]
-        return <Badge status={current.color as any} text={current.text} />
-      }
+          pending: { text: "待签退", color: "warning" },
+          "checked-in": { text: "已签到", color: "success" },
+          "checked-out": { text: "已签退", color: "default" },
+        };
+        const current = statusMap[status as keyof typeof statusMap];
+        return <Badge status={current.color as any} text={current.text} />;
+      },
     },
     {
-      title: '签退时间',
-      dataIndex: 'checkOutTime',
-      key: 'checkOutTime',
-      render: (text) => text || '-'
-    }
-  ]
+      title: "签退时间",
+      dataIndex: "checkOutTime",
+      key: "checkOutTime",
+      render: (text) => text || "-",
+    },
+  ];
 
-  const employees=unClockOutWorkers?.map((worker)=>{
+  // const employees=unClockOutWorkers?.map((worker)=>{
+  //   return {
+  //     name:worker.name,
+  //     checkInTime:worker.time,
+  //     // status:last_record?.data?.length? 'checked-in' : 'pending',
+  //     // checkOutTime:last_record?.data?.length? last_record?.data[0].check_out.slice(0,-5) : ''
+  //           status:'pending',
+  //     checkOutTime:''
+  //   }
+  // })
+  let employees = raw_todayRecord?.data?.map((worker) => {
     return {
-      name:worker.name,
-      checkInTime:worker.time,
+      name: workers?.find((workerItem) => workerItem.id === worker.worker_id)
+        ?.name,
+      checkInTime: worker.check_in,
       // status:last_record?.data?.length? 'checked-in' : 'pending',
       // checkOutTime:last_record?.data?.length? last_record?.data[0].check_out.slice(0,-5) : ''
-            status:'pending',
-      checkOutTime:''
+      status: worker.check_out ? "checked-out" : "pending",
+      checkOutTime: worker.check_out,
+      key: worker.id,
+    };
+  });
+  const A_div_color = colorMode === 'dark' ? "dark:bg-gray-800" : "bg-gray-50";
+  // 排序employees，status是pending的放在上面
+  employees = employees?.sort((a, b) => {
+    if (a.status === "pending") {
+      return -1;
+    } else if (b.status === "pending") {
+      return 1;
+    } else {
+      return 0;
     }
-  })
+  });
 
   return (
-    <>
-    <div className="flex flex-row justify-center items-center">
+    <List>
+      {/* <div className="flex flex-row justify-center items-center">
       <div>
         <Text align="center" size="lg" className="mt-8 mb-4">
           当前未下班工人
@@ -309,59 +397,82 @@ export default function QianDaoPage() {
         <div>{dayjs().format("YYYY-MM-DD HH:mm:ss.SSS")}</div>
         <pre>{JSON.stringify(last_record?.data, null, 2)}</pre>
       </div>
-    </div>
+    </div> */}
 
-
-
-    <div className="min-h-screen bg-gray-50 p-4 sm:p-6 lg:p-8">
-      <Card className="max-w-6xl mx-auto">
-        <div className="mb-6">
-          <AntdTitle level={3} className="!mb-6 text-center">
-            员工签到系统
-          </AntdTitle>
-          <div className="flex flex-col sm:flex-row gap-4 justify-between items-center mb-6">
-            <AntdSelect
-              placeholder="请选择待签到人员"
-              style={{ width: '100%', maxWidth: 300 }}
-              onChange={(value: { value: string; label: string }) => {
-                setHighoightWord([]);
-                setSelectValue(value?.label);
-                setSelectID(value?.value);
-              }}
-              options={workers?.map((worker) => ({
-                label: worker.name,
-                value: worker.id,
-              }))}
-            />
-            <Space>
-              <AntdButton 
-                type="primary" 
-                icon={<CheckOutlined />}
-                onClick={() => handleQiandao("上班")}
-              >
-                上班打卡
-              </AntdButton>
-              <AntdButton 
-                danger
-                icon={<LogoutOutlined />}
-                onClick={() => handleQiandao("下班")}
-              >
-                下班打卡
-              </AntdButton>
-            </Space>
+      {/* <div className="min-h-screen bg-gray-50 p-4 sm:p-6 lg:p-8"> */}
+      <div className={`min-h-screen ${A_div_color} p-4 sm:p-6 lg:p-8`}>
+        <Card className="max-w-6xl mx-auto">
+          <div className="mb-6">
+            <AntdTitle level={3} className="!mb-6 text-center">
+              员工签到系统
+            </AntdTitle>
+            {/* <p>当前颜色模式:{colorMode}</p> */}
+            <div className="flex flex-col sm:flex-row gap-4 justify-between items-center mb-6">
+              <AntdSelect
+                placeholder="请选择考勤人员"
+                showSearch
+                allowClear
+                labelInValue
+                optionFilterProp="label"
+                style={{ width: 180 }}
+                filterOption={(input, option) =>
+                  SelectSearchPingying(input, option)
+                }
+                options={workers?.map((worker) => ({
+                  label: worker.name,
+                  value: worker.id,
+                }))}
+                // onChange={(value) => {
+                onChange={(value: { value: string; label: string }) => {
+                  setHighoightWord([]);
+                  setSelectValue(value?.label);
+                  setSelectID(value?.value);
+                }}
+                onBlur={() => {
+                  setHighoightWord([]);
+                }}
+                optionRender={(option) => {
+                  return (
+                    <Highlight highlight={highoightWord}>
+                      {option.label}
+                    </Highlight>
+                  );
+                }}
+              />
+              <RealTimeClock />
+              <Space>
+                <AntdButton
+                  type="primary"
+                  icon={<CheckOutlined />}
+                  onClick={() => handleQiandao("上班")}
+                  // disabled={!selectValue}
+                  disabled={!(!last_record?.data?.length || !(last_record?.data[0].check_in))}
+                >
+                  上班打卡
+                </AntdButton>
+                <AntdButton
+                  danger
+                  icon={<LogoutOutlined />}
+                  onClick={() => handleQiandao("下班")}
+                  // disabled={!selectValue}
+                  disabled={(!last_record?.data?.length || !(last_record?.data[0].check_in))}
+                >
+                  下班打卡
+                </AntdButton>
+              </Space>
+            </div>
           </div>
-        </div>
 
-        <Table 
-          columns={columns} 
-          dataSource={employees}
-          pagination={false}
-          rowClassName={(record) => 
-            record.status === 'checked-in' ? 'bg-blue-50' : ''
-          }
-        />
-      </Card>
-    </div>
-    </>
+          <Table
+            columns={columns}
+            dataSource={employees}
+            pagination={false}
+            rowClassName={(record) =>
+              record.status === "checked-in" ? "bg-blue-50" : ""
+            }
+          />
+        </Card>
+      </div>
+    </List>
   );
 }

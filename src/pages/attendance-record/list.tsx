@@ -166,6 +166,7 @@ export const AttendanceRecordList = () => {
             { text: "空值", value: "空值" },
           ]}
           filteredValue={filteredInfo.check_out || null}
+          filterMultiple={false}
           onFilter={(value, record) => {
             if (value === "非空") {
               return record.check_out !== "";
