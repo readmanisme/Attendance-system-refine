@@ -33,7 +33,7 @@ export const AttendanceRecordEdit = () => {
           getValueProps={(value) => ({ value: value ? dayjs.utc(value) : "", })}
           rules={[
             {
-              required: true,
+              // required: true,
             },
           ]}
         >
@@ -47,7 +47,7 @@ export const AttendanceRecordEdit = () => {
           getValueProps={(value) => ({ value: value ? dayjs.utc(value) : "", })}
           rules={[
             {
-              required: true,
+              // required: true,
             },
           ]}
         >
