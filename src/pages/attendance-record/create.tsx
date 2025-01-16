@@ -25,11 +25,11 @@ export const AttendanceRecordCreate = () => {
         {/* <Form.Item
           label={"日期"}
           name={["date"]}
-          rules={[
-            {
+          // rules={[
+          //   {
               required: true,
-            },
-          ]}
+          //   },
+          // ]}
         >
           <Input />
         </Form.Item> */}
@@ -56,11 +56,11 @@ export const AttendanceRecordCreate = () => {
         <Form.Item
           label={"签出时间"}
           name={["check_out"]}
-          rules={[
-            {
-              // required: true,
-            },
-          ]}
+          // rules={[
+          //   {
+          //     required: true,
+          //   },
+          // ]}
         >
           <DatePicker
             showTime

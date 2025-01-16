@@ -11,6 +11,9 @@ export const WorkersCreate = () => {
     isError,
   } = useList({
     resource: resource?.name,
+    pagination:{
+      mode:"off"
+    }
   });
   // console.log(namelist);
   const go = useGo();
@@ -91,7 +94,9 @@ export const WorkersCreate = () => {
       setStatus("unknown");
       return;
     }
-    const names = value.split("\n");
+    let names = value.split("\n");
+    // 去除空的元素
+    names = names.filter((name:string) => name.trim() !== "");
     const names_list = namelist?.data.map((item) => item.name);
     if (names_list) {
       const exist_names = names_list.filter((name) => names.includes(name));
@@ -139,7 +144,7 @@ export const WorkersCreate = () => {
         // return '数据校验不通过，请检查输入';
         return ErrorMsg;
       default:
-        return "输入数据以进行检查";
+        return "输入数据以进行检查；空行将被忽略";
     }
   };
   function luru_component() {
@@ -155,9 +160,19 @@ export const WorkersCreate = () => {
               },
             ]}
           >
-            <Input />
+            <Input
+            onChange={handle_textarea_change}
+            />
           </Form.Item>
+          <Alert
+            className="mt-2"
+            message={getAlertMessage()}
+            description={getAlertDescription()}
+            type={getAlertType()}
+            showIcon
+          />
         </Form>
+        
       );
     } else {
       return (
@@ -192,6 +207,7 @@ export const WorkersCreate = () => {
               {...saveButtonProps}
               // type="primary"
               // style={{ marginRight: 8 }}
+              disabled={status === "error" || status === "unknown"}
             >
               保存
             </SaveButton>

@@ -18,6 +18,7 @@ import {
   Button,
   TableProps,
 } from "antd";
+import dayjs from "dayjs";
 import { use, useEffect, useState } from "react";
 
 export const AttendanceRecordList = () => {
@@ -51,7 +52,7 @@ export const AttendanceRecordList = () => {
   const [filteredInfo, setFilteredInfo] = useState<Filters>({});
   const [sortedInfo, setSortedInfo] = useState<Sorts>({});
   const handleTableChange: OnChange = (pagination, filters, sorter) => {
-    console.log("Various parameters", pagination, filters, sorter);
+    // console.log("Various parameters", pagination, filters, sorter);
     setFilteredInfo(filters);
     setSortedInfo(sorter as Sorts);
   };
@@ -139,7 +140,8 @@ export const AttendanceRecordList = () => {
         </Button>
       </div>
       <Space></Space>
-      <Table {...tableProps} rowKey="id" onChange={handleTableChange}>
+      {/* <Table {...tableProps} rowKey="id" onChange={handleTableChange}> */}
+      <Table {...tableProps} rowKey="id">
         <Table.Column dataIndex="id" title={"ID"} />
         {/* <Table.Column dataIndex="worker_id" title={"人员ID"} /> */}
         <Table.Column
@@ -155,7 +157,8 @@ export const AttendanceRecordList = () => {
           // DateField只显示到日期
           // slice(0,-5)去掉.000Z
           render={(_, record: BaseRecord) => {
-            return <>{record.check_in.slice(0, -5)}</>;
+            // return <>{record.check_in.slice(0, -5)}</>;
+            return <>{dayjs(record.check_in).format("YYYY-MM-DD HH:mm:ss")}</>;
           }}
         />
         <Table.Column
@@ -194,7 +197,8 @@ export const AttendanceRecordList = () => {
           // </FilterDropdown>
           // )}
           render={(_, record: BaseRecord) => {
-            return <>{record.check_out.slice(0, -5)}</>;
+            // return <>{record.check_out.slice(0, -5)}</>;
+            return <>{dayjs(record.check_out).format("YYYY-MM-DD HH:mm:ss")}</>;
           }}
         />
         <Table.Column
