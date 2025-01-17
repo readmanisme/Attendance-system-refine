@@ -42,9 +42,9 @@ export default function XinZiList() {
         },
       ],
     },
-    pagination: {
-      mode: "off",
-    },
+    // pagination: {
+    //   mode: "off",
+    // },
     meta: {
       expand: ["worker_id"],
     },

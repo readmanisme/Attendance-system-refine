@@ -1,5 +1,6 @@
 import { List } from "@refinedev/antd";
 import { Line } from "@ant-design/plots";
+import { Pagination, Select } from "antd";
 const DemoLine = () => {
   const data = [
     { year: "1991", value: 3 },
@@ -32,9 +33,35 @@ const DemoLine = () => {
   return <Line {...config} />;
 };
 export default function GongShiList() {
+  
+
+
+
   return (
     <List>
-      <DemoLine />
+      {/* <DemoLine /> */}
+      <Select
+    showSearch
+    placeholder="Select a person"
+    optionFilterProp="label"
+    // onChange={onChange}
+    // onSearch={onSearch}
+    options={[
+      {
+        value: 'jack',
+        label: 'Jack',
+      },
+      {
+        value: 'lucy',
+        label: 'Lucy',
+      },
+      {
+        value: 'tom',
+        label: 'Tom',
+      },
+    ]}
+  />
+  <Pagination defaultCurrent={1} total={50} />
     </List>
   );
 }

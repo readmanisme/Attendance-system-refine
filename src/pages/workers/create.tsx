@@ -1,6 +1,15 @@
+import { el } from "@faker-js/faker/.";
 import { Create, SaveButton, useForm } from "@refinedev/antd";
 import { useCreateMany, useGo, useList, useResource } from "@refinedev/core";
-import { Alert, Button, ConfigProvider, Form, Input, Segmented } from "antd";
+import {
+  Alert,
+  Button,
+  ConfigProvider,
+  Form,
+  Input,
+  Segmented,
+  Tag,
+} from "antd";
 import { useState } from "react";
 export const WorkersCreate = () => {
   const { formProps, saveButtonProps } = useForm({});
@@ -11,9 +20,9 @@ export const WorkersCreate = () => {
     isError,
   } = useList({
     resource: resource?.name,
-    pagination:{
-      mode:"off"
-    }
+    pagination: {
+      mode: "off",
+    },
   });
   // console.log(namelist);
   const go = useGo();
@@ -58,6 +67,7 @@ export const WorkersCreate = () => {
     "批量录入"
   );
   const [Textareavalue, setTextareaValue] = useState("");
+  const [Inputvalue, setInputValue] = useState("");
   const process_value = async () => {
     // console.log(value);
     const names = Textareavalue.split("\n");
@@ -86,25 +96,53 @@ export const WorkersCreate = () => {
   const [status, setStatus] = useState<"success" | "error" | "unknown">(
     "unknown"
   );
-  const [ErrorMsg, setErrorMsg] = useState<string>("");
+  const [ErrorMsg, setErrorMsg] = useState("");
   function handle_textarea_change(event: any) {
-    setTextareaValue(event.currentTarget.value);
-    const value = event.currentTarget.value;
+    let value = "";
+    if (event === null) {
+      if (luru_type === "单人录入") {
+        // 此时类型还未变过来
+        value = Textareavalue;
+      } else {
+        value = Inputvalue;
+      }
+    } else {
+      if (luru_type === "单人录入") {
+        setInputValue(event.currentTarget.value);
+        value = event.currentTarget.value;
+      } else {
+        setTextareaValue(event.currentTarget.value);
+        value = event.currentTarget.value;
+      }
+    }
     if (value.trim() === "") {
       setStatus("unknown");
       return;
     }
     let names = value.split("\n");
     // 去除空的元素
-    names = names.filter((name:string) => name.trim() !== "");
+    names = names.filter((name: string) => name.trim() !== "");
     const names_list = namelist?.data.map((item) => item.name);
     if (names_list) {
-      const exist_names = names_list.filter((name) => names.includes(name));
+      let exist_names = names_list.filter((name) => names.includes(name));
       const new_names = names.filter((name) => !exist_names.includes(name));
+      // 检查new_names里面自身有没有重复的名字，有的话加入到exist_names中
+      let duplicates = new_names.filter(
+        (name, index) => new_names.indexOf(name) !== index
+      );
+      exist_names = exist_names.concat(duplicates);
       if (exist_names.length !== 0) {
         setStatus("error");
         setErrorMsg(
-          `以下姓名已存在于数据库中：${exist_names.join("、")},请修改后再提交。`
+          <span>
+            以下姓名已存在于数据库中：
+            {exist_names.map((name, index) => (
+              <Tag color="red" key={index}>
+                {name}
+              </Tag>
+            ))}
+            ，请修改后再提交。
+          </span>
         );
       } else if (new_names.length !== 0) {
         setStatus("success");
@@ -160,9 +198,7 @@ export const WorkersCreate = () => {
               },
             ]}
           >
-            <Input
-            onChange={handle_textarea_change}
-            />
+            <Input value={Inputvalue} onChange={handle_textarea_change} />
           </Form.Item>
           <Alert
             className="mt-2"
@@ -172,7 +208,6 @@ export const WorkersCreate = () => {
             showIcon
           />
         </Form>
-        
       );
     } else {
       return (
@@ -212,9 +247,12 @@ export const WorkersCreate = () => {
               保存
             </SaveButton>
           ) : luru_type === "批量录入" ? (
-            <SaveButton onClick={process_value}
-            disabled={status === "error" || status === "unknown"}
-            >保存</SaveButton>
+            <SaveButton
+              onClick={process_value}
+              disabled={status === "error" || status === "unknown"}
+            >
+              保存
+            </SaveButton>
           ) : null}
         </>
       )}
@@ -237,6 +275,9 @@ export const WorkersCreate = () => {
           onChange={(value) => {
             // console.log(value); // string
             setLuruType(value);
+            setStatus("unknown");
+            setErrorMsg("");
+            handle_textarea_change(null);
           }}
         />
       </ConfigProvider>
