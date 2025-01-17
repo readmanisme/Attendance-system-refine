@@ -2,33 +2,13 @@ const pocketbase_url = "http://localhost:8090";
 import axios from "axios";
 import { useEffect, useState } from "react";
 import { useInterval } from '@mantine/hooks';
-
+import { Chart } from '@antv/g2';
+import { SwitchDataRange } from "@/components/SwitchDataRange";
 export function TestPage() {
   const [health, setHealth] = useState<"good" | "bad" | "unknown">("unknown");
-  function pb_health_check() {
-    return axios.get(pocketbase_url + "/api/health");
-    // {
-    //   "code": 200,
-    //   "message": "API is healthy.",
-    //   "data": {
-    //     "canBackup": false
-    //   }
-    // }
-  }
-  // const health_interval = useInterval(() => {
-  //   pb_health_check()
-  //    .then((res) => {
-  //       setHealth(res.data.code==200? "good" : "bad");
-  //       // console.log(res);
-  //     })
-  //    .catch(() => {
-  //       setHealth("unknown");
-  //     });
-  // }, 5000,{autoInvoke:true});
-  // useEffect(() => {
-  //   health_interval.start();
-  //   return health_interval.stop;
-  // }, []);
+
+
+
   return (
     <div>
       {/* Test Page */}
@@ -43,6 +23,8 @@ export function TestPage() {
           {health === "bad" && <span className="text-red-500">不健康</span>}
           {health === "unknown" && <span className="text-gray-500">未知</span>}
         </p>
+        <div id="container"/>
+        <SwitchDataRange />
       </div>
     </div>
   );

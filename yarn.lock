@@ -532,7 +532,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@antv/g2@npm:^5.1.8, @antv/g2@npm:^5.2.7":
+"@antv/g2@npm:^5.1.8, @antv/g2@npm:^5.2.10, @antv/g2@npm:^5.2.7":
   version: 5.2.10
   resolution: "@antv/g2@npm:5.2.10"
   dependencies:
@@ -3516,6 +3516,7 @@ __metadata:
     "@ant-design/charts": "npm:^2.2.6"
     "@ant-design/icons": "npm:^5.5.2"
     "@ant-design/v5-patch-for-react-19": "npm:^1.0.3"
+    "@antv/g2": "npm:^5.2.10"
     "@mantine/carousel": "npm:^7.15.3"
     "@mantine/charts": "npm:^7.15.3"
     "@mantine/code-highlight": "npm:^7.15.3"
@@ -3559,6 +3560,7 @@ __metadata:
     eslint: "npm:^9.18.0"
     eslint-plugin-react-hooks: "npm:^5.1.0"
     eslint-plugin-react-refresh: "npm:^0.4.18"
+    immutable: "npm:^5.0.3"
     pinyin-pro: "npm:^3.26.0"
     pocketbase: "npm:^0.25.0"
     postcss: "npm:^8.5.0"
@@ -7089,6 +7091,13 @@ __metadata:
   version: 4.3.7
   resolution: "immutable@npm:4.3.7"
   checksum: 10c0/9b099197081b22f6433003e34929da8ecddbbdc1474cdc8aa3b7669dee4adda349c06143de22def36016d1b6de5322b043eccd7a11db1dad2ca85dad4fff5435
+  languageName: node
+  linkType: hard
+
+"immutable@npm:^5.0.3":
+  version: 5.0.3
+  resolution: "immutable@npm:5.0.3"
+  checksum: 10c0/3269827789e1026cd25c2ea97f0b2c19be852ffd49eda1b674b20178f73d84fa8d945ad6f5ac5bc4545c2b4170af9f6e1f77129bc1cae7974a4bf9b04a9cdfb9
   languageName: node
   linkType: hard
 

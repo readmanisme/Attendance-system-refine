@@ -11,6 +11,7 @@ import {
   useTable,
 } from "@refinedev/antd";
 import { useSomeStore } from "@/stores";
+import { SwitchDataRange } from "@/components/SwitchDataRange";
 const { RangePicker } = DatePicker;
 export default function XinZiList() {
   //   const { data: Attendance_records } = useList({
@@ -85,6 +86,7 @@ export default function XinZiList() {
 
   const [DataRange, setDataRange] = useState([]);
   const { recordDateRange, setRecordDateRange } = useSomeStore();
+  const [PickMonth, setPickMonth] = useState("")
   const getDefaultValue = () => {
     // return [dayjs().subtract(1, "month"),dayjs()];
     if (recordDateRange.length > 0) {
@@ -107,7 +109,8 @@ export default function XinZiList() {
         />
         元/小时
       </div>
-      <RangePicker
+      <SwitchDataRange />
+      {/* <RangePicker
         className="w-full"
         defaultValue={getDefaultValue()}
         // 这里必须使用函数，而不是箭头函数，否则会出现TypeError: date4.isValid is not a function
@@ -116,7 +119,15 @@ export default function XinZiList() {
           setRecordDateRange(...dateStrings);
         }}
       />
-      <pre>{JSON.stringify(DataRange, null, 2)}</pre>
+          <DatePicker 
+          defaultValue={null}
+          className="w-full" onChange={(date, dateString) => {setPickMonth(dateString)}} picker="month" /> */}
+
+      {/* <pre>{JSON.stringify(DataRange, null, 2)}</pre>
+      <pre>{JSON.stringify(PickMonth, null, 2)}</pre> */}
+      {/* 显示PickMonth的start date和end date */}
+      {/* <pre>{dayjs(PickMonth).startOf("month").format("YYYY-MM-DD")}</pre>
+      <pre>{dayjs(PickMonth).endOf("month").format("YYYY-MM-DD")}</pre> */}
       <Table {...tableProps} rowKey="id" className="mt-4">
         <Table.Column title={"ID"} dataIndex="id" />
         <Table.Column
