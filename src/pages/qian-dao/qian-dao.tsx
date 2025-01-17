@@ -8,7 +8,9 @@ import {
   Alert,
   Tag,
 } from "antd";
-import { useCallback, useState, useContext, useEffect } from "react";
+import { List as ImmutableList } from "immutable";
+
+import { useCallback, useState, useContext, useEffect, use, useRef } from "react";
 import { match } from "pinyin-pro";
 import dayjs from "dayjs";
 import {
@@ -55,7 +57,8 @@ import { ColumnsType } from "antd/es/table";
 
 const { Title: AntdTitle } = Typography;
 export default function QianDaoPage() {
-  const [highoightWord, setHighoightWord] = useState([]);
+  // const [HighlightWord, setHighlightWord] = useState([]);
+  const HighlightWord=useRef([]);
   const [selectValue, setSelectValue] = useState<string>();
   const [selectID, setSelectID] = useState<string>();
   const { mode, setMode } = useContext(ColorModeContext);
@@ -64,6 +67,9 @@ export default function QianDaoPage() {
   // readLocalStorageValue不具有响应性
   //来自react use 的useLocalStorage更是一点用处都没有
   // const [colorMode, setcolorMode] = useState("light")
+
+  
+
   const {
     data: raw_workers,
     isLoading,
@@ -110,7 +116,7 @@ export default function QianDaoPage() {
             // 并且不能用T
           },
           {
-            field: "check_out",
+            field: "check_in",
             operator: "lte",
             // value: dayjs().endOf("day").format("YYYY-MM-DD HH:mm:ss.SSS") + "Z",
             // value: dayjs().endOf("day").format("YYYY-MM-DD HH:mm:ss.SSSZ"),
@@ -119,56 +125,103 @@ export default function QianDaoPage() {
         ],
       },
     ],
-    meta:{
-      expand:["work"]
-    }
+    meta: {
+      expand: ["work"],
+    },
   });
 
-  // 未下班工人示例数据，具有姓名和上班时间
-  // const unClockOutWorkers = [
-  //   { name: "张三", time: "2022-01-01 08:00:00", id: 1 },
-  //   { name: "王五", time: "2022-01-01 18:00:00", id: 2 },
-  //   { name: "李四", time: "2022-01-02 08:00:00", id: 3 },
-  //   { name: "赵六", time: "2022-01-02 18:00:00", id: 4 },
-  //   { name: "陈七", time: "2022-01-04 18:00:00", id: 5 },
-  //   { name: "杨八", time: "2022-01-05 18:00:00", id: 6 },
-  // ];
+  // const [inputValue, setInputValue] = useState<string>("");
 
-  function SelectSearch(
+  // const handleInputChange = useCallback((input: string) => {
+  //   setInputValue(input);
+  // }, []);
+
+  // useEffect(() => {
+  //   if (inputValue) {
+  //     setHighoightWord(inputValue);
+  //   } else {
+  //     setHighoightWord([]);
+  //   }
+  // }, [inputValue]);
+
+  // const SelectSearch = useCallback(
+  //   (input: string, option: { label: string; value: string } | undefined) => {
+  //     handleInputChange([input]);
+  //     return option?.label.toLowerCase().indexOf(input.toLowerCase()) !== -1;
+  //   },
+  //   [handleInputChange]
+  // );
+
+  // const SelectSearchPingying = useCallback(
+  //   (input: string, option: { label: string; value: string } | undefined) => {
+  //     const code = input[0].charCodeAt(0);
+  //     // 检查是不是拼音
+  //     if ((code >= 65 && code <= 90) || (code >= 97 && code <= 122)) {
+  //       const matchResult = match(option?.label, input);
+  //       if (matchResult) {
+  //         // const first: number = matchResult[0];
+  //         // const hanzi: string = option?.label.slice(first, first + 1);
+  //         // handleInputChange(hanzi);
+  //         let hanzi = [];
+  //         for (let i = 0; i < matchResult.length; i++) {
+  //           const first = matchResult[i];
+  //           hanzi.push(option?.label.slice(first, first + 1));
+  //         }
+  //         handleInputChange(ImmutableList(hanzi));
+  //         return true;
+  //       } else {
+  //         return false;
+  //       }
+  //     } else {
+  //       return SelectSearch(input, option);
+  //     }
+  //   },
+  //   [SelectSearch, handleInputChange]
+  // );
+
+  const SelectSearch = (
     input: string,
     option: { label: string; value: string } | undefined
-  ) {
-    setHighoightWord([input]);
+  ) => {
+    HighlightWord.current = [input];
+    // useEffect(() => {
+    //   setHighlightWord([input])
+    //   }, [input]);
+    // Do not call Hooks inside useEffect(...), useMemo(...), or other built-in Hooks
+    // 不使用useEffect会触发Cannot update a component (QianDaoPage) while rendering a different component (Select)
     return option?.label.toLowerCase().indexOf(input.toLowerCase()) !== -1;
-  }
-  const SelectSearchPingying = useCallback(
-    (input: string, option: { label: string; value: string } | undefined) => {
-      const code = input[0].charCodeAt(0);
-      // 检查是不是拼音
-      if ((code >= 65 && code <= 90) || (code >= 97 && code <= 122)) {
-        const matchResult = match(option?.label, input);
-        if (matchResult) {
-          const first: number = matchResult[0];
-          const hanzi: string = option?.label.slice(first, first + 1);
-          // 只在highoightWord发生变化时更新
-          setHighoightWord((prev) => {
-            if (!prev.includes(hanzi)) {
-              return [...prev, hanzi];
-            }
-            return prev;
-          });
-          return true;
-        } else {
-          return false;
-        }
-      } else {
-        return SelectSearch(input, option);
-      }
-    },
-    [] // 这里我们确保只有SelectSearchPingying函数需要依赖的state或props会触发更新
-  );
+  };
 
-  const { resource } = useResource();
+  const SelectSearchPingying = (
+    input: string,
+    option: { label: string; value: string } | undefined
+  ) => {
+    const code = input[0].charCodeAt(0);
+    // 检查是不是拼音
+    if ((code >= 65 && code <= 90) || (code >= 97 && code <= 122)) {
+      const matchResult = match(option?.label, input);
+      if (matchResult) {
+        // const first: number = matchResult[0];
+        // const hanzi: string = option?.label.slice(first, first + 1);
+        // handleInputChange(hanzi);
+        let hanzi = [];
+        for (let i = 0; i < matchResult.length; i++) {
+          const first = matchResult[i];
+          hanzi.push(option?.label.slice(first, first + 1));
+        }
+        HighlightWord.current = hanzi;
+        // useEffect(() => {
+        //   setHighoightWord(hanzi);
+        //   }, [hanzi]);
+        return true;
+      } else {
+        return false;
+      }
+    } else {
+      return SelectSearch(input, option);
+    }
+  };
+
   const {
     data: last_record,
     isLoading: ListisLoading,
@@ -235,7 +288,7 @@ export default function QianDaoPage() {
             // check_in: now.format("YYYY-MM-DD HH:mm:ss.SSS"),
             check_in: now,
             check_out: "",
-            work:work_type_id
+            work: work_type_id,
           },
         });
       } else {
@@ -281,9 +334,9 @@ export default function QianDaoPage() {
       ),
     },
     {
-      title:"工作",
-      dataIndex:"workType",
-      key:"workType",
+      title: "工作",
+      dataIndex: "workType",
+      key: "workType",
     },
     {
       title: "状态",
@@ -303,7 +356,8 @@ export default function QianDaoPage() {
       title: "签退时间",
       dataIndex: "checkOutTime",
       key: "checkOutTime",
-      render: (text) => text?dayjs(text).format("YYYY-MM-DD HH:mm:ss") : "-",
+      render: (text) =>
+        text ? dayjs(text).format("YYYY-MM-DD HH:mm:ss") : "-",
     },
   ];
 
@@ -328,7 +382,7 @@ export default function QianDaoPage() {
       checkOutTime: worker.check_out,
       key: worker.id,
       worker_id: worker.worker_id,
-      workType:worker.expand.work.type
+      workType: worker.expand.work.type,
     };
   });
   const A_div_color = colorMode === "dark" ? "dark:bg-gray-800" : "bg-gray-50";
@@ -343,7 +397,7 @@ export default function QianDaoPage() {
       // 如果 status 相同，按 check_out 时间排序，check_out 时间晚的排前面
       const timeA = dayjs(a.checkOutTime);
       const timeB = dayjs(b.checkOutTime);
-  
+
       if (timeA.isAfter(timeB)) {
         return -1;
       } else if (timeA.isBefore(timeB)) {
@@ -403,13 +457,15 @@ export default function QianDaoPage() {
       if (status === "pending") {
         statusMessage = (
           <>
-            <Tag color="green">已签到</Tag>，签到时间：{dayjs(checkInTime).format("YYYY-MM-DD HH:mm:ss")}
+            <Tag color="green">已签到</Tag>，签到时间：
+            {dayjs(checkInTime).format("YYYY-MM-DD HH:mm:ss")}
           </>
         );
       } else if (status === "checked-out") {
         statusMessage = (
           <>
-            <Tag color="red">已签退</Tag>，签退时间：{dayjs(checkOutTime).format("YYYY-MM-DD HH:mm:ss")}
+            <Tag color="red">已签退</Tag>，签退时间：
+            {dayjs(checkOutTime).format("YYYY-MM-DD HH:mm:ss")}
           </>
         );
       } else {
@@ -449,25 +505,27 @@ export default function QianDaoPage() {
                   labelInValue
                   optionFilterProp="label"
                   style={{ width: 180 }}
-                  filterOption={(input, option) =>
-                    SelectSearchPingying(input, option)
-                  }
+                  filterOption={(input, option) =>{
+                    // setSelect_filterOption_value([input, option])
+                    return SelectSearchPingying(input, option);
+                  }}
+                  // filterOption={SelectSearchPingying}
                   options={workers?.map((worker) => ({
                     label: worker.name,
                     value: worker.id,
                   }))}
                   // onChange={(value) => {
                   onChange={(value: { value: string; label: string }) => {
-                    setHighoightWord([]);
+                    HighlightWord.current = [];
                     setSelectValue(value?.label);
                     setSelectID(value?.value);
                   }}
                   onBlur={() => {
-                    setHighoightWord([]);
+                    HighlightWord.current = [];
                   }}
                   optionRender={(option) => {
                     return (
-                      <Highlight highlight={highoightWord}>
+                      <Highlight highlight={HighlightWord.current}>
                         {option.label}
                       </Highlight>
                     );
@@ -495,7 +553,7 @@ export default function QianDaoPage() {
                     !(
                       !last_record?.data?.length ||
                       !last_record?.data[0].check_in
-                    )||!work_type_id
+                    ) || !work_type_id
                   }
                 >
                   上班打卡

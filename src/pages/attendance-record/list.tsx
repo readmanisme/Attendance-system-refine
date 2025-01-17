@@ -17,33 +17,32 @@ import {
   Radio,
   Button,
   TableProps,
-  DatePicker
+  DatePicker,
 } from "antd";
 import dayjs from "dayjs";
 import { use, useEffect, useState } from "react";
 import { useSomeStore } from "@/stores";
 import { f } from "react-router/dist/development/fog-of-war-DLtn2OLr";
+import { SwitchDataRange } from "@/components/SwitchDataRange";
+import { use_get_date_picker_filter } from "@/components/SwitchDataRange";
 export const AttendanceRecordList = () => {
   const { recordDateRange, setRecordDateRange } = useSomeStore();
-  const {RangePicker}=DatePicker;
+  const { RangePicker } = DatePicker;
+
   const { tableProps, filters, setFilters } = useTable({
     resource: "attendance_record_test",
     syncWithLocation: true,
-    sorters:{
-      permanent:[{
-        field: "created",
-        order: "desc",
-      }],
+    sorters: {
+      permanent: [
+        {
+          field: "created",
+          order: "desc",
+        },
+      ],
     },
     filters: {
       // 这里operator是null的实际是不等于null，nnull实际上是等于null
-      permanent: [
-        // {
-        //     field: "check_out",
-        //     value: "200",
-        //     operator: "null",
-        // },
-      ],
+      permanent:use_get_date_picker_filter(),
       defaultBehavior: "replace",
     },
   });
@@ -115,13 +114,14 @@ export const AttendanceRecordList = () => {
   const getDefaultValue = () => {
     // return [dayjs().subtract(1, "month"),dayjs()];
     if (recordDateRange.length > 0) {
-      return [dayjs(recordDateRange[0]),dayjs(recordDateRange[1])]
+      return [dayjs(recordDateRange[0]), dayjs(recordDateRange[1])];
     } else {
       return [];
     }
   };
   return (
     <List>
+      {/* <pre>{JSON.stringify(use_get_date_picker_filter(), null, 2)}</pre> */}
       <div className="flex flex-row justify-center items-center ">
         <Typography.Title level={5}>过滤未下班记录</Typography.Title>
         <Switch
@@ -157,13 +157,7 @@ export const AttendanceRecordList = () => {
         </Button>
       </div>
       <Space></Space>
-      <RangePicker
-        className="w-full"
-        defaultValue={getDefaultValue()}
-        onChange={(dates, dateStrings) => {
-          setRecordDateRange(...dateStrings);
-        }}
-      />
+      <SwitchDataRange />
       {/* <Table {...tableProps} rowKey="id" onChange={handleTableChange}> */}
       <Table {...tableProps} rowKey="id">
         <Table.Column dataIndex="id" title={"ID"} />
@@ -182,7 +176,13 @@ export const AttendanceRecordList = () => {
           // slice(0,-5)去掉.000Z
           render={(_, record: BaseRecord) => {
             // return <>{record.check_in.slice(0, -5)}</>;
-            return <>{record.check_in?dayjs(record.check_in).format("YYYY-MM-DD HH:mm:ss"):"--"}</>;
+            return (
+              <>
+                {record.check_in
+                  ? dayjs(record.check_in).format("YYYY-MM-DD HH:mm:ss")
+                  : "--"}
+              </>
+            );
           }}
         />
         <Table.Column
@@ -195,7 +195,7 @@ export const AttendanceRecordList = () => {
           filteredValue={filteredInfo.check_out || null}
           filterMultiple={false}
           // TODO 这里表自带的筛选有问题
-          
+
           onFilter={(value, record) => {
             if (value === "非空") {
               return record.check_out !== "";
@@ -205,7 +205,13 @@ export const AttendanceRecordList = () => {
           }}
           render={(_, record: BaseRecord) => {
             // return <>{record.check_out.slice(0, -5)}</>;
-            return <>{record.check_out?dayjs(record.check_out).format("YYYY-MM-DD HH:mm:ss"):"--"}</>;
+            return (
+              <>
+                {record.check_out
+                  ? dayjs(record.check_out).format("YYYY-MM-DD HH:mm:ss")
+                  : "--"}
+              </>
+            );
           }}
         />
         <Table.Column
