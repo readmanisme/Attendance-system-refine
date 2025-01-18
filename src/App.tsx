@@ -43,9 +43,7 @@ import {
 import PocketBasePage from "./pages/background/pocketbase";
 import PocketBase from "pocketbase";
 import {
-  authProvider,
   dataProvider as pocketbaseDataProvider,
-  liveProvider,
 } from "./providers/pocketbase";
 // } from "refine-pocketbase";
 import {
@@ -67,6 +65,7 @@ import XinZiList from "./pages/xin-zi/list";
 import XinZiShow from "./pages/xin-zi/show";
 import GongShiList from "./pages/gong-shi/list";
 import ZhuYe from "./pages/zhu-ye/zhu-ye";
+import { ShowWorkType,EditWorkType,CreateWorkType,ListWorkType } from "./pages/workType";
 import {
   IconChecks,
   IconUsers,
@@ -76,7 +75,8 @@ import {
   IconMicroscope,
   IconCoinYen,
   IconReport,
-  IconHome
+  IconHome,
+  IconBriefcase
 } from "@tabler/icons-react";
 const POCKETBASE_URL = "http://localhost:8090";
 const pb = new PocketBase(POCKETBASE_URL);
@@ -175,6 +175,18 @@ function App() {
                         canDelete: true,
                         label: "人员管理",
                         icon: <IconUsers />,
+                      },
+                    },
+                    {
+                      name: "workType_test",
+                      list: "/workType",
+                      create: "/workType/create",
+                      edit: "/workType/edit/:id",
+                      show: "/workType/show/:id",
+                      meta: {
+                        canDelete: true,
+                        label: "工作管理",
+                        icon: <IconBriefcase />,
                       },
                     },
                     {
@@ -306,6 +318,12 @@ function App() {
                         <Route path="create" element={<WorkersCreate />} />
                         <Route path="edit/:id" element={<WorkersEdit />} />
                         <Route path="show/:id" element={<WorkersShow />} />
+                      </Route>
+                      <Route path="/workType">
+                      <Route index element={<ListWorkType/>} />
+                      <Route path="create" element={<CreateWorkType/>} />
+                      <Route path="edit/:id" element={<EditWorkType/>} />
+                      <Route path="show/:id" element={<ShowWorkType/>} />
                       </Route>
                       <Route path="/xinzi">
                         <Route index element={<XinZiList />} />

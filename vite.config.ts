@@ -4,7 +4,13 @@ import tsconfigPaths from 'vite-tsconfig-paths';
 import path from 'path';
 export default defineConfig({
   // 帮助文档 https://cn.vite.dev/config/
-  plugins: [react(), tsconfigPaths()],
+  plugins: [react({
+    babel:{
+      plugins:[
+        ["babel-plugin-react-compiler",{}]
+      ]
+    }
+  }), tsconfigPaths()],
   // test: {
   //   globals: true,
   //   environment: 'jsdom',

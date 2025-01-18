@@ -4,31 +4,28 @@ import {
   List,
   ShowButton,
   useTable,
-  DateField,
-  FilterDropdown,
 } from "@refinedev/antd";
-import { useList, type BaseRecord, getDefaultFilter } from "@refinedev/core";
+import { useList, type BaseRecord } from "@refinedev/core";
 import {
   Space,
   Table,
   Switch,
   Typography,
-  Select,
-  Radio,
   Button,
   TableProps,
   DatePicker,
 } from "antd";
 import dayjs from "dayjs";
-import { use, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useSomeStore } from "@/stores";
-import { f } from "react-router/dist/development/fog-of-war-DLtn2OLr";
 import { SwitchDataRange } from "@/components/SwitchDataRange";
-import { use_get_date_picker_filter } from "@/components/SwitchDataRange";
+import { useGetDatePickerFilter } from "@/utils/get_data_picker_filter";
 export const AttendanceRecordList = () => {
+  const datePickerFilter = useGetDatePickerFilter();
   const { recordDateRange, setRecordDateRange } = useSomeStore();
   const { RangePicker } = DatePicker;
-
+  
+  console.log("datePickerFilter", datePickerFilter);
   const { tableProps, filters, setFilters } = useTable({
     resource: "attendance_record_test",
     syncWithLocation: true,
@@ -42,7 +39,7 @@ export const AttendanceRecordList = () => {
     },
     filters: {
       // 这里operator是null的实际是不等于null，nnull实际上是等于null
-      permanent:use_get_date_picker_filter(),
+      permanent:datePickerFilter,
       defaultBehavior: "replace",
     },
   });
@@ -60,11 +57,6 @@ export const AttendanceRecordList = () => {
   const [unclockoutfilter, setUnclockoutfilter] = useState(false);
   const [filteredInfo, setFilteredInfo] = useState<Filters>({});
   const [sortedInfo, setSortedInfo] = useState<Sorts>({});
-  const handleTableChange: OnChange = (pagination, filters, sorter) => {
-    // console.log("Various parameters", pagination, filters, sorter);
-    setFilteredInfo(filters);
-    setSortedInfo(sorter as Sorts);
-  };
   const clearFilters = () => {
     setFilteredInfo({});
   };
@@ -75,8 +67,6 @@ export const AttendanceRecordList = () => {
   };
   const {
     data: names,
-    isLoading,
-    isError,
   } = useList({
     resource: "workers_test",
     pagination: {
@@ -89,8 +79,8 @@ export const AttendanceRecordList = () => {
   if (names) {
     names.data.map((item) => {
       if (item.id && item.name) {
+        nameDict[item.id] = item.name;
       }
-      nameDict[item.id] = item.name;
     });
   }
   // console.log("names", names);
@@ -195,16 +185,7 @@ export const AttendanceRecordList = () => {
           filteredValue={filteredInfo.check_out || null}
           filterMultiple={false}
           // TODO 这里表自带的筛选有问题
-
-          onFilter={(value, record) => {
-            if (value === "非空") {
-              return record.check_out !== "";
-            } else if (value === "空值") {
-              return record.check_out === "";
-            }
-          }}
           render={(_, record: BaseRecord) => {
-            // return <>{record.check_out.slice(0, -5)}</>;
             return (
               <>
                 {record.check_out
