@@ -54,7 +54,7 @@ export function TestPage() {
     set_status("开始插入工作类型数据");
     const workType_test_data = () => {
       let workTypes = ["浇水", "移苗", "加工", "清理", "施肥", "割草"];
-      workTypes = workTypes.map((item) => ({ type: item }));
+      workTypes = workTypes.map((item) => ({ name: item }));
       // faker.preson.jobType()还没有本地化
       return workTypes;
     };

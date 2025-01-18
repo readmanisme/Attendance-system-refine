@@ -8,38 +8,22 @@ import {
   Alert,
   Tag,
 } from "antd";
-import { List as ImmutableList } from "immutable";
 
-import { useCallback, useState, useContext, useEffect, use, useRef } from "react";
+import {
+  useState,
+  useContext,
+  useRef,
+} from "react";
 import { match } from "pinyin-pro";
 import dayjs from "dayjs";
 import {
-  AppShell,
-  Avatar,
-  Burger,
-  Button,
   Card,
-  Combobox,
-  Container,
-  Flex,
-  Group,
   Highlight,
-  Input,
-  InputBase,
-  Menu,
-  Radio,
-  Select,
-  Text,
-  Title,
-  useCombobox,
-  SegmentedControl,
-  NativeScrollArea,
 } from "@mantine/core";
 import {
   useCreate,
   useList,
   useNotification,
-  useResource,
   useUpdate,
 } from "@refinedev/core";
 import {
@@ -48,32 +32,24 @@ import {
   LogoutOutlined,
 } from "@ant-design/icons";
 import RealTimeClock from "@/components/RealTimeClock";
-import { useThemeMode } from "antd-style";
 import { ColorModeContext } from "../../contexts/color-mode";
 import { List, useSelect } from "@refinedev/antd";
-import { title } from "process";
-import { W } from "react-router/dist/development/fog-of-war-DLtn2OLr";
 import { ColumnsType } from "antd/es/table";
+import PySearchSelect from "@/components/PySearchSelect";
 
 const { Title: AntdTitle } = Typography;
 export default function QianDaoPage() {
-  // const [HighlightWord, setHighlightWord] = useState([]);
-  const HighlightWord=useRef([]);
   const [selectValue, setSelectValue] = useState<string>();
   const [selectID, setSelectID] = useState<string>();
-  const { mode, setMode } = useContext(ColorModeContext);
+  const { mode } = useContext(ColorModeContext);
   const colorMode = mode;
   // 来自mantine的useLocalStorage不妥，会导致颜色混乱,而且也不实时
   // readLocalStorageValue不具有响应性
   //来自react use 的useLocalStorage更是一点用处都没有
   // const [colorMode, setcolorMode] = useState("light")
 
-  
-
   const {
     data: raw_workers,
-    isLoading,
-    isError,
   } = useList({ resource: "workers_test", pagination: { mode: "off" } });
   //   const workers = raw_workers?.data.map((item) => item.name);
   const workers = raw_workers?.data;
@@ -88,14 +64,6 @@ export default function QianDaoPage() {
         value: "",
       },
     ],
-  });
-  const unClockOutWorkers = raw_unClockOutWorkers?.data.map((item) => {
-    return {
-      // name需要根据worker_id到workers中获取真实姓名
-      name: workers?.find((worker) => worker.id === item.worker_id)?.name,
-      time: item.check_in.slice(0, -5),
-      id: item.id,
-    };
   });
 
   const { data: raw_todayRecord } = useList({
@@ -130,102 +98,13 @@ export default function QianDaoPage() {
     },
   });
 
-  // const [inputValue, setInputValue] = useState<string>("");
 
-  // const handleInputChange = useCallback((input: string) => {
-  //   setInputValue(input);
-  // }, []);
 
-  // useEffect(() => {
-  //   if (inputValue) {
-  //     setHighoightWord(inputValue);
-  //   } else {
-  //     setHighoightWord([]);
-  //   }
-  // }, [inputValue]);
 
-  // const SelectSearch = useCallback(
-  //   (input: string, option: { label: string; value: string } | undefined) => {
-  //     handleInputChange([input]);
-  //     return option?.label.toLowerCase().indexOf(input.toLowerCase()) !== -1;
-  //   },
-  //   [handleInputChange]
-  // );
 
-  // const SelectSearchPingying = useCallback(
-  //   (input: string, option: { label: string; value: string } | undefined) => {
-  //     const code = input[0].charCodeAt(0);
-  //     // 检查是不是拼音
-  //     if ((code >= 65 && code <= 90) || (code >= 97 && code <= 122)) {
-  //       const matchResult = match(option?.label, input);
-  //       if (matchResult) {
-  //         // const first: number = matchResult[0];
-  //         // const hanzi: string = option?.label.slice(first, first + 1);
-  //         // handleInputChange(hanzi);
-  //         let hanzi = [];
-  //         for (let i = 0; i < matchResult.length; i++) {
-  //           const first = matchResult[i];
-  //           hanzi.push(option?.label.slice(first, first + 1));
-  //         }
-  //         handleInputChange(ImmutableList(hanzi));
-  //         return true;
-  //       } else {
-  //         return false;
-  //       }
-  //     } else {
-  //       return SelectSearch(input, option);
-  //     }
-  //   },
-  //   [SelectSearch, handleInputChange]
-  // );
-
-  const SelectSearch = (
-    input: string,
-    option: { label: string; value: string } | undefined
-  ) => {
-    HighlightWord.current = [input];
-    // useEffect(() => {
-    //   setHighlightWord([input])
-    //   }, [input]);
-    // Do not call Hooks inside useEffect(...), useMemo(...), or other built-in Hooks
-    // 不使用useEffect会触发Cannot update a component (QianDaoPage) while rendering a different component (Select)
-    return option?.label.toLowerCase().indexOf(input.toLowerCase()) !== -1;
-  };
-
-  const SelectSearchPingying = (
-    input: string,
-    option: { label: string; value: string } | undefined
-  ) => {
-    const code = input[0].charCodeAt(0);
-    // 检查是不是拼音
-    if ((code >= 65 && code <= 90) || (code >= 97 && code <= 122)) {
-      const matchResult = match(option?.label, input);
-      if (matchResult) {
-        // const first: number = matchResult[0];
-        // const hanzi: string = option?.label.slice(first, first + 1);
-        // handleInputChange(hanzi);
-        let hanzi = [];
-        for (let i = 0; i < matchResult.length; i++) {
-          const first = matchResult[i];
-          hanzi.push(option?.label.slice(first, first + 1));
-        }
-        HighlightWord.current = hanzi;
-        // useEffect(() => {
-        //   setHighoightWord(hanzi);
-        //   }, [hanzi]);
-        return true;
-      } else {
-        return false;
-      }
-    } else {
-      return SelectSearch(input, option);
-    }
-  };
 
   const {
     data: last_record,
-    isLoading: ListisLoading,
-    isError: ListisError,
   } = useList({
     // 此处的uselist等价于pb的getFirstListItem
     resource: "attendance_record_test",
@@ -260,17 +139,12 @@ export default function QianDaoPage() {
   const { mutate: UpdateRecord } = useUpdate({
     resource: "attendance_record_test",
   });
-  const { open: notify, close: closeNotify } = useNotification();
+  const { open: notify } = useNotification();
   // useEffect(() => {
   //   if (!last_record?.data?.length || last_record?.data[0].check_in){}
   // }, [last_record?.data])
   const handleQiandao = (mode: "上班" | "下班") => {
-    // 使用dayjs获取当前时间，并格式化为“2025-01-01 12:00:00.000Z"
-    // const now = dayjs().format("YYYY-MM-DD HH:mm:ss.SSS") + "Z";
     const now = dayjs().toISOString().replace("T", " ");
-    // dayjs.tz.setDefault("Africa/Abidjan")
-    // let now = dayjs();
-    // console.log("点击了签到");
     if (!last_record?.data?.length || !last_record?.data[0].check_in) {
       // 有可能存在既没有上班有没有下班的意外数据
       if (mode === "下班") {
@@ -360,17 +234,6 @@ export default function QianDaoPage() {
         text ? dayjs(text).format("YYYY-MM-DD HH:mm:ss") : "-",
     },
   ];
-
-  // const employees=unClockOutWorkers?.map((worker)=>{
-  //   return {
-  //     name:worker.name,
-  //     checkInTime:worker.time,
-  //     // status:last_record?.data?.length? 'checked-in' : 'pending',
-  //     // checkOutTime:last_record?.data?.length? last_record?.data[0].check_out.slice(0,-5) : ''
-  //           status:'pending',
-  //     checkOutTime:''
-  //   }
-  // })
   let employees = raw_todayRecord?.data?.map((worker) => {
     return {
       name: workers?.find((workerItem) => workerItem.id === worker.worker_id)
@@ -382,7 +245,7 @@ export default function QianDaoPage() {
       checkOutTime: worker.check_out,
       key: worker.id,
       worker_id: worker.worker_id,
-      workType: worker.expand.work.type,
+      workType: worker.expand.work.name,
     };
   });
   const A_div_color = colorMode === "dark" ? "dark:bg-gray-800" : "bg-gray-50";
@@ -409,7 +272,7 @@ export default function QianDaoPage() {
   });
   const { selectProps: workTypeSelectProps } = useSelect({
     resource: "workType_test",
-    optionLabel: "type",
+    optionLabel: "name",
   });
 
   function get_alert_description() {
@@ -497,39 +360,17 @@ export default function QianDaoPage() {
             {/* <p>当前颜色模式:{colorMode}</p> */}
             <div className="flex flex-col sm:flex-row gap-4 justify-between items-center mb-6">
               <RealTimeClock />
+              {/* <div className="blue"> */}
               <Space>
-                <AntdSelect
-                  placeholder="请选择考勤人员"
-                  showSearch
-                  allowClear
-                  labelInValue
-                  optionFilterProp="label"
-                  style={{ width: 180 }}
-                  filterOption={(input, option) =>{
-                    // setSelect_filterOption_value([input, option])
-                    return SelectSearchPingying(input, option);
-                  }}
-                  // filterOption={SelectSearchPingying}
-                  options={workers?.map((worker) => ({
-                    label: worker.name,
-                    value: worker.id,
-                  }))}
-                  // onChange={(value) => {
-                  onChange={(value: { value: string; label: string }) => {
-                    HighlightWord.current = [];
-                    setSelectValue(value?.label);
-                    setSelectID(value?.value);
-                  }}
-                  onBlur={() => {
-                    HighlightWord.current = [];
-                  }}
-                  optionRender={(option) => {
-                    return (
-                      <Highlight highlight={HighlightWord.current}>
-                        {option.label}
-                      </Highlight>
-                    );
-                  }}
+                <PySearchSelect
+                onChangeFn={(value: { value: string; label: string }) => {
+                  setSelectValue(value?.label);
+                  setSelectID(value?.value);
+                }}
+                options={workers?.map((worker) => ({
+                  label: worker.name,
+                  value: worker.id,
+                }))}
                 />
                 <AntdSelect
                   placeholder="请选择考勤类型"
@@ -571,6 +412,7 @@ export default function QianDaoPage() {
                   下班打卡
                 </AntdButton>
               </Space>
+              {/* </div> */}
             </div>
             <Alert
               message="所选择人员的签到记录"

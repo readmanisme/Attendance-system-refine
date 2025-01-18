@@ -1,7 +1,7 @@
 import { useSomeStore } from "@/stores";
 import { Segmented, DatePicker, Button } from "antd";
 import dayjs, { Dayjs } from "dayjs";
-import { use, useEffect, useState } from "react";
+import {  useEffect, useState } from "react";
 export const SwitchDataRange = () => {
   const {
     DatePickerMode,
@@ -95,26 +95,4 @@ export const SwitchDataRange = () => {
   );
 };
 
-export const use_get_date_picker_filter = () => {
-  const { DatePickerMode, recordDateRange } = useSomeStore();
-  let [start, end] = recordDateRange;
-  start = start
-    ? dayjs(start).startOf("day").toISOString().replace("T", " ")
-    : null;
-  end = end ? dayjs(end).endOf("day").toISOString().replace("T", " ") : null;
-  if (!start && !end) {
-    return [];
-  }
-  return [
-    {
-      field: "check_in",
-      operator: "gte",
-      value: start,
-    },
-    {
-      field: "check_in",
-      operator: "lte",
-      value: end,
-    },
-  ];
-};
+
