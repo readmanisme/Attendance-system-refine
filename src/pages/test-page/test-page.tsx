@@ -8,6 +8,8 @@ import _ from "lodash";
 import { zh_CN, fakerZH_CN as faker } from "@faker-js/faker";
 import PocketBase from "pocketbase";
 import dayjs from "dayjs";
+import { TestPage2 } from "./test-page-2";
+import { useResource } from "@refinedev/core";
 const pb = new PocketBase(__BACKEND_API_URL__);
 export function TestPage() {
   const [messageApi, contextHolder] = message.useMessage();
@@ -268,6 +270,7 @@ export function TestPage() {
   };
   return (
     <div>
+      {/* <TestPage2 /> */}
       {/* Test Page */}
       <h1 className="text-4xl font-bold text-blue-500">
         TailwindCSS 安装检测，此处文字应该是蓝色

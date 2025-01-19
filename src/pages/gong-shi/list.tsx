@@ -11,18 +11,18 @@ import {
   Button,
   Space,
   Drawer,
-  Popconfirm
+  Popconfirm,
 } from "antd";
 import { useList } from "@refinedev/core";
 import dayjs from "dayjs";
 import * as XLSX from "xlsx";
 import PocketBase from "pocketbase";
 import PySearchSelect from "@/components/PySearchSelect";
-import { useEffect, useRef,useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Paragraph from "antd/es/typography/Paragraph";
 
 export default function GongShiList() {
-  const PySearchSelectValue=useRef([]);
+  const PySearchSelectValue = useRef([]);
   const get_select_filter = (value) => {
     const list = value?.map((item) => item?.value);
     const filters = [];
@@ -35,15 +35,15 @@ export default function GongShiList() {
     });
     return filters;
   };
- 
-  const { listProps, setFilters, } = useSimpleList({
+
+  const { listProps, setFilters } = useSimpleList({
     resource: __Workers_TableName,
     filters: {
       defaultBehavior: "replace",
       // permanent:get_select_filter(PySearchSelectValue.current)
     },
   });
-  
+
   const get_month_view_filter = () => {
     const data = listProps.dataSource;
     const ids = data?.map((item) => item.id);
@@ -63,8 +63,8 @@ export default function GongShiList() {
     isError,
   } = useList({
     resource: __WorkHours_Month_ViewName,
-    queryOptions:{
-      enabled:!listProps.loading
+    queryOptions: {
+      enabled: !listProps.loading,
     },
     filters: [
       {
@@ -82,8 +82,8 @@ export default function GongShiList() {
     isError: day_view_error,
   } = useList({
     resource: __WorkHours_Day_ViewName,
-    queryOptions:{
-      enabled:!listProps.loading
+    queryOptions: {
+      enabled: !listProps.loading,
     },
     filters: [
       {
@@ -101,8 +101,8 @@ export default function GongShiList() {
     isError: attendance_record_error,
   } = useList({
     resource: __AttendanceRecord_TableName,
-    queryOptions:{
-      enabled:!listProps.loading
+    queryOptions: {
+      enabled: !listProps.loading,
     },
     filters: [
       {
@@ -126,31 +126,36 @@ export default function GongShiList() {
   });
 
   function renderItem(item: any) {
-    const month_records = month_view_data?.data?.filter(
-      (record) => record.worker_id === item.id
-    ) ?? [];
-    const day_records = day_view_data?.data?.filter(
-      (record) => record.worker_id === item.id
-    ) ?? [];
-    const attendance_records = attendance_record_data?.data?.filter(
-      (record) => record.worker_id === item.id
-    ) ?? [];
-    
-    const workerDetails = listProps.dataSource?.reduce((acc, worker) => {
-      acc[worker.id] = worker.name;
-      return acc;
-    }, {}) ?? {};
-    
-    const workTypeDetails = workType_test_data?.data?.reduce((acc, workType) => {
-      acc[workType.id] = workType.name;
-      return acc;
-    }, {}) ?? {};
-  
-    const getNestedList = (work_date: string) => {
-      const records = attendance_records?.filter((record) =>
-        record.check_in.startsWith(work_date)
+    // 这里的item是worker
+    const month_records =
+      month_view_data?.data?.filter((record) => record.worker_id === item.id) ??
+      [];
+    const day_records =
+      day_view_data?.data?.filter((record) => record.worker_id === item.id) ??
+      [];
+    const attendance_records =
+      attendance_record_data?.data?.filter(
+        (record) => record.worker_id === item.id
       ) ?? [];
-      
+
+    const workerDetails =
+      listProps.dataSource?.reduce((acc, worker) => {
+        acc[worker.id] = worker.name;
+        return acc;
+      }, {}) ?? {};
+
+    const workTypeDetails =
+      workType_test_data?.data?.reduce((acc, workType) => {
+        acc[workType.id] = workType.name;
+        return acc;
+      }, {}) ?? {};
+
+    const getNestedList = (work_date: string) => {
+      const records =
+        attendance_records?.filter((record) =>
+          record.check_in.startsWith(work_date)
+        ) ?? [];
+
       return records.map((record) => {
         const worker_name = workerDetails[record.worker_id];
         const work_name = workTypeDetails[record.work];
@@ -168,35 +173,64 @@ export default function GongShiList() {
         );
       });
     };
-  
-    const nestItems: CollapseProps["items"] = day_records.map((record) => ({
-      key: record.work_date,
-      label: (
-        <p>
-          此人在 {record.work_date} 日工作了{" "}
-          <Tag color="blue">{record.total_work_hours}</Tag> 小时
-        </p>
-      ),
-      children: <List size="small">{getNestedList(record.work_date)}</List>,
-      extra: <p>展开以查看详情</p>,
-    }));
-  
-    const collapseItems: CollapseProps["items"] = month_records.map((record) => ({
-      key: record.work_month,
-      label: (
-        <p>
-          此人在 {record.work_month} 月工作了{" "}
-          <Tag color="blue">{record.total_work_hours}</Tag> 小时
-        </p>
-      ),
-      children: <Collapse size="small" items={nestItems} />,
-      extra: <p>展开以查看详情</p>,
-    }));
-  
-    const collapse = (
-      <Collapse size="middle" items={collapseItems} destroyInactivePanel={false} />
+
+    // const nestItems: CollapseProps["items"] = day_records.map((record) => ({
+    //   key: record.work_date,
+    //   label: (
+    //     <p>
+    //       此人在 {record.work_date} 日工作了{" "}
+    //       <Tag color="blue">{record.total_work_hours}</Tag> 小时
+    //     </p>
+    //   ),
+    //   children: <List size="small">{getNestedList(record.work_date)}</List>,
+    //   extra: <p>展开以查看详情</p>,
+    // }));
+    const getnestItems = (work_month: string) => {
+      const records =
+        day_records?.filter((record) =>
+          record.work_date.startsWith(work_month)
+        ) ?? [];
+      return records.map((record) => {
+        const worker_name = workerDetails[record.worker_id];
+        const work_name = workTypeDetails[record.work];
+        return {
+          key: record.work_date,
+          label: (
+            <p>
+              {worker_name}在 {record.work_date} 日进行工作{work_name}共计{" "}
+              <Tag color="blue">{record.total_work_hours}</Tag> 小时
+            </p>
+          ),
+          children: <List size="small">{getNestedList(record.work_date)}</List>,
+          extra: <p>展开以查看详情</p>,
+        };
+      });
+    };
+
+    const collapseItems: CollapseProps["items"] = month_records.map(
+      (record) => ({
+        key: record.work_month,
+        label: (
+          <p>
+            {workerDetails[record.worker_id]} 在 {record.work_month} 月工作了{" "}
+            <Tag color="blue">{record.total_work_hours}</Tag> 小时
+          </p>
+        ),
+        children: (
+          <Collapse size="small" items={getnestItems(record.work_month)} />
+        ),
+        extra: <p>展开以查看详情</p>,
+      })
     );
-  
+
+    const collapse = (
+      <Collapse
+        size="middle"
+        items={collapseItems}
+        destroyInactivePanel={false}
+      />
+    );
+
     return (
       <List.Item>
         <Card title={item.name} className="w-full">
@@ -205,7 +239,7 @@ export default function GongShiList() {
       </List.Item>
     );
   }
-  
+
   const [isExportLoading, setIsExportLoading] = useState(false);
   const exportToExcel = async () => {
     setIsExportLoading(true);
@@ -268,54 +302,53 @@ export default function GongShiList() {
     XLSX.writeFile(wb, "工时记录.xlsx");
     setIsExportLoading(false);
   };
-const [helpOpen, setHelpOpen] = useState(false);
+  const [helpOpen, setHelpOpen] = useState(false);
   return (
     <LList
-    headerButtons={({ defaultButtons }) => (
-      <>
-        {defaultButtons}
-        <Space>
-      <PySearchSelect
-        onChangeFn={(value: { value: string; label: string }) => {
-          setFilters(get_select_filter([value]), "replace");
-          // PySearchSelectValue.current=[value];
-        }}
-        options={null}
-        onClearFn={() => {setFilters([], "replace");}}
-      />
-        <Popconfirm
-    title="导出考勤记录"
-    description="你确定需要导出考勤记录吗?"
-    onConfirm={exportToExcel}
-    // onCancel={cancel}
-    okText="进行导出"
-    cancelText="取消操作"
-  >
-         <Button loading={isExportLoading}>
-        导出所有考勤记录到Excel
-      </Button>
-  </Popconfirm>
+      headerButtons={({ defaultButtons }) => (
+        <>
+          {defaultButtons}
+          <Space>
+            <PySearchSelect
+              onChangeFn={(value: { value: string; label: string }) => {
+                setFilters(get_select_filter([value]), "replace");
+                // PySearchSelectValue.current=[value];
+              }}
+              options={null}
+              onClearFn={() => {
+                setFilters([], "replace");
+              }}
+            />
+            <Popconfirm
+              title="导出考勤记录"
+              description="你确定需要导出考勤记录吗?"
+              onConfirm={exportToExcel}
+              // onCancel={cancel}
+              okText="进行导出"
+              cancelText="取消操作"
+            >
+              <Button loading={isExportLoading}>导出所有考勤记录到Excel</Button>
+            </Popconfirm>
 
-      <Button type="primary" onClick={() => setHelpOpen(true)}>
-            查看帮助
-          </Button>
-          <Drawer
-            title="帮助"
-            open={helpOpen}
-            onClose={() => setHelpOpen(false)}
-          >
-            <Paragraph>
-              1、导出所有考勤记录到Excel需要一定的时间，请耐心等待
-            </Paragraph>
-            <Paragraph>
-              2、如果误点击二次确认中的导出按钮，可刷新页面组织导出
-            </Paragraph>
-          </Drawer>
-      </Space>
-      </>
-    )}
+            <Button type="primary" onClick={() => setHelpOpen(true)}>
+              查看帮助
+            </Button>
+            <Drawer
+              title="帮助"
+              open={helpOpen}
+              onClose={() => setHelpOpen(false)}
+            >
+              <Paragraph>
+                1、导出所有考勤记录到Excel需要一定的时间，请耐心等待
+              </Paragraph>
+              <Paragraph>
+                2、如果误点击二次确认中的导出按钮，可刷新页面组织导出
+              </Paragraph>
+            </Drawer>
+          </Space>
+        </>
+      )}
     >
-
       <List
         {...listProps}
         pagination={{
