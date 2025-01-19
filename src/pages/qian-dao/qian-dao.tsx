@@ -7,7 +7,10 @@ import {
   Badge,
   Alert,
   Tag,
+  Button,
+  Drawer,
 } from "antd";
+const { Title, Paragraph, Text, Link } = Typography;
 
 import {
   useState,
@@ -50,13 +53,13 @@ export default function QianDaoPage() {
 
   const {
     data: raw_workers,
-  } = useList({ resource: "workers_test", pagination: { mode: "off" } });
+  } = useList({ resource: __Workers_TableName, pagination: { mode: "off" } });
   //   const workers = raw_workers?.data.map((item) => item.name);
   const workers = raw_workers?.data;
   // 定义变量，用于确定当前选择是上班还是下班
   const [workOrOff, setWorkOrOff] = useState("上班");
   const { data: raw_unClockOutWorkers } = useList({
-    resource: "attendance_record_test",
+    resource: __AttendanceRecord_TableName,
     filters: [
       {
         field: "check_out",
@@ -67,7 +70,7 @@ export default function QianDaoPage() {
   });
 
   const { data: raw_todayRecord } = useList({
-    resource: "attendance_record_test",
+    resource: __AttendanceRecord_TableName,
     filters: [
       {
         operator: "and",
@@ -107,7 +110,7 @@ export default function QianDaoPage() {
     data: last_record,
   } = useList({
     // 此处的uselist等价于pb的getFirstListItem
-    resource: "attendance_record_test",
+    resource: __AttendanceRecord_TableName,
     queryOptions: {
       enabled: !!selectID,
     },
@@ -134,10 +137,10 @@ export default function QianDaoPage() {
     ],
   });
   const { mutate: CreateRecord } = useCreate({
-    resource: "attendance_record_test",
+    resource: __AttendanceRecord_TableName,
   });
   const { mutate: UpdateRecord } = useUpdate({
-    resource: "attendance_record_test",
+    resource: __AttendanceRecord_TableName,
   });
   const { open: notify } = useNotification();
   // useEffect(() => {
@@ -271,7 +274,7 @@ export default function QianDaoPage() {
     }
   });
   const { selectProps: workTypeSelectProps } = useSelect({
-    resource: "workType_test",
+    resource: __WorkTypes_TableName,
     optionLabel: "name",
   });
 
@@ -347,9 +350,22 @@ export default function QianDaoPage() {
   }
   const [work_type_value, set_work_type_value] = useState<string>();
   const [work_type_id, set_work_type_id] = useState<string>();
-  // console.log("work_type",work_type_value,work_type_id)
+  const [helpOpen, setHelpOpen] = useState(false);
+
   return (
-    <List>
+    <List
+    headerButtons={({ defaultButtons }) => (
+      <>
+        {defaultButtons}
+        <Button type="primary" onClick={() => setHelpOpen(true)}>查看帮助</Button>
+        <Drawer title="帮助" open={helpOpen} onClose={() => setHelpOpen(false)}>
+        <Paragraph>1、选择员工，选择考勤类型，点击上班或下班按钮，即可进行签到或签退。</Paragraph>
+        <Paragraph>2、为防止数据异常，通过代码设计，未签到者不可签退，未签退者不可签到。</Paragraph>
+        <Paragraph>3、此页面显示当天签到记录</Paragraph>
+      </Drawer>
+      </>
+    )}
+    >
       {/* <div className="min-h-screen bg-gray-50 p-4 sm:p-6 lg:p-8"> */}
       <div className={`min-h-screen ${A_div_color} p-4 sm:p-6 lg:p-8`}>
         <Card className="max-w-6xl mx-auto">
@@ -391,10 +407,7 @@ export default function QianDaoPage() {
                   onClick={() => handleQiandao("上班")}
                   // disabled={!selectValue}
                   disabled={
-                    !(
-                      !last_record?.data?.length ||
-                      !last_record?.data[0].check_in
-                    ) || !work_type_id
+                     !work_type_id || !selectID || !!last_record?.data?.length
                   }
                 >
                   上班打卡
@@ -406,7 +419,7 @@ export default function QianDaoPage() {
                   onClick={() => handleQiandao("下班")}
                   // disabled={!selectValue}
                   disabled={
-                    !last_record?.data?.length || !last_record?.data[0].check_in
+                     !work_type_id || !selectID || !last_record?.data?.length || !last_record?.data[0].check_in
                   }
                 >
                   下班打卡

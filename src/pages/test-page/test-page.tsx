@@ -1,4 +1,3 @@
-const pocketbase_url = "http://localhost:8090";
 import axios from "axios";
 import { useEffect, useState } from "react";
 import { useInterval } from "@mantine/hooks";
@@ -9,22 +8,22 @@ import _ from "lodash";
 import { zh_CN, fakerZH_CN as faker } from "@faker-js/faker";
 import PocketBase from "pocketbase";
 import dayjs from "dayjs";
-const pb = new PocketBase("http://127.0.0.1:8090");
+const pb = new PocketBase(__BACKEND_API_URL__);
 export function TestPage() {
   const [messageApi, contextHolder] = message.useMessage();
 
   const [health, setHealth] = useState<"good" | "bad" | "unknown">("unknown");
   const 集合 = {
-    考勤记录: "attendance_record_test",
-    工人: "workers_test",
-    工作类型: "workType_test",
+    考勤记录: __AttendanceRecord_TableName,
+    工人: __Workers_TableName,
+    工作类型: __WorkTypes_TableName,
   };
   const [status_2, set_status] = useState("未进行");
   const start_time = Date.now();
   // you can also fetch all records at once via getFullList
   const records_time_test = async () => {
     // console.log("Fetching records...");
-    const records = await pb.collection('attendance_record_test').getFullList({
+    const records = await pb.collection(__AttendanceRecord_TableName).getFullList({
     });
     // const end_time = Date.now();
     // console.log(`${records.length} records fetched in ${(end_time - start_time)/1000}s`);

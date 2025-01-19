@@ -18,22 +18,22 @@ export const ListWorkType = () => {
     return (
         <List>
             <Table {...tableProps} rowKey="id">
-                <Table.Column
+                {/* <Table.Column
                     dataIndex="collectionName"
                     title="Collection Name"
-                />
-                <Table.Column
+                /> */}
+                {/* <Table.Column
                     dataIndex={["created"]}
                     title="Created"
                     render={(value: any) => <DateField value={value} />}
-                />
+                /> */}
                 <Table.Column dataIndex="id" title="Id" />
-                <Table.Column dataIndex="name" title="Type" />
-                <Table.Column
+                <Table.Column dataIndex="name" title="名字" />
+                {/* <Table.Column
                     dataIndex={["updated"]}
                     title="Updated"
                     render={(value: any) => <DateField value={value} />}
-                />
+                /> */}
                 <Table.Column
                     title="Actions"
                     dataIndex="actions"

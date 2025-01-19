@@ -27,7 +27,7 @@ export const AttendanceRecordList = () => {
   
   console.log("datePickerFilter", datePickerFilter);
   const { tableProps, filters, setFilters } = useTable({
-    resource: "attendance_record_test",
+    resource: __AttendanceRecord_TableName,
     syncWithLocation: true,
     sorters: {
       permanent: [
@@ -68,7 +68,7 @@ export const AttendanceRecordList = () => {
   const {
     data: names,
   } = useList({
-    resource: "workers_test",
+    resource: __Workers_TableName,
     pagination: {
       mode: "off",
       // 此处只能是off,client无法获取全部内容

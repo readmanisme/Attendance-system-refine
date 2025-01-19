@@ -32,7 +32,7 @@ export default function XinZiList() {
   //   });
   const { tableProps } = useTable({
     syncWithLocation: true,
-    resource: "attendance_record_test",
+    resource: __AttendanceRecord_TableName,
     filters: {
       permanent: [
         {

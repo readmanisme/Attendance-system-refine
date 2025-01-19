@@ -1,4 +1,4 @@
-import { GitHubBanner, Refine } from "@refinedev/core";
+import { Refine } from "@refinedev/core";
 import { DevtoolsPanel, DevtoolsProvider } from "@refinedev/devtools";
 import { RefineKbar, RefineKbarProvider } from "@refinedev/kbar";
 
@@ -42,16 +42,8 @@ import {
 } from "./pages/workers";
 import PocketBasePage from "./pages/background/pocketbase";
 import PocketBase from "pocketbase";
-import {
-  dataProvider as pocketbaseDataProvider,
-} from "./providers/pocketbase";
+import { dataProvider as pocketbaseDataProvider } from "./providers/pocketbase";
 // } from "refine-pocketbase";
-import {
-  UnClockOutCreate,
-  UnClockOutEdit,
-  UnClockOutList,
-  UnClockOutShow,
-} from "./pages/unclockout";
 import {
   AttendanceRecordCreate,
   AttendanceRecordEdit,
@@ -65,7 +57,12 @@ import XinZiList from "./pages/xin-zi/list";
 import XinZiShow from "./pages/xin-zi/show";
 import GongShiList from "./pages/gong-shi/list";
 import ZhuYe from "./pages/zhu-ye/zhu-ye";
-import { ShowWorkType,EditWorkType,CreateWorkType,ListWorkType } from "./pages/workType";
+import {
+  ShowWorkType,
+  EditWorkType,
+  CreateWorkType,
+  ListWorkType,
+} from "./pages/workType";
 import {
   IconChecks,
   IconUsers,
@@ -76,10 +73,64 @@ import {
   IconCoinYen,
   IconReport,
   IconHome,
-  IconBriefcase
+  IconBriefcase,
 } from "@tabler/icons-react";
-const POCKETBASE_URL = "http://localhost:8090";
-const pb = new PocketBase(POCKETBASE_URL);
+const pb = new PocketBase(__BACKEND_API_URL__);
+function get_sample_resource_or_route(type: "resource" | "route") {
+  if (import.meta.env.PROD) {
+    if (type === "resource") {
+      return [];
+    } else if (type === "route") {
+      return;
+    }
+    
+  } else if (type === "resource") {
+    return [
+      {
+        name: "blog_posts",
+        list: "/blog-posts",
+        create: "/blog-posts/create",
+        edit: "/blog-posts/edit/:id",
+        show: "/blog-posts/show/:id",
+        meta: {
+          canDelete: true,
+          dataProviderName: "example",
+          icon: <IconList />,
+        },
+      },
+      {
+        name: "categories",
+        list: "/categories",
+        create: "/categories/create",
+        edit: "/categories/edit/:id",
+        show: "/categories/show/:id",
+        meta: {
+          canDelete: true,
+          dataProviderName: "example",
+          icon: <IconList />,
+        },
+      },
+    ];
+  } else if (type === "route") {
+    return (
+      <>
+        <Route path="/blog-posts">
+          <Route index element={<BlogPostList />} />
+          <Route path="create" element={<BlogPostCreate />} />
+          <Route path="edit/:id" element={<BlogPostEdit />} />
+          <Route path="show/:id" element={<BlogPostShow />} />
+        </Route>
+        <Route path="/categories">
+          <Route index element={<CategoryList />} />
+          <Route path="create" element={<CategoryCreate />} />
+          <Route path="edit/:id" element={<CategoryEdit />} />
+          <Route path="show/:id" element={<CategoryShow />} />
+        </Route>
+      </>
+    );
+  }
+}
+
 function App() {
   return (
     <BrowserRouter>
@@ -99,40 +150,15 @@ function App() {
                   notificationProvider={useNotificationProvider}
                   routerProvider={routerBindings}
                   resources={[
+                    ...get_sample_resource_or_route("resource"),
                     {
-                      name: "blog_posts",
-                      list: "/blog-posts",
-                      create: "/blog-posts/create",
-                      edit: "/blog-posts/edit/:id",
-                      show: "/blog-posts/show/:id",
-                      meta: {
-                        canDelete: true,
-                        dataProviderName: "example",
-                        icon: <IconList />,
-                        // hide: true,
-                      },
-                    },
-                    {
-                      name: "categories",
-                      list: "/categories",
-                      create: "/categories/create",
-                      edit: "/categories/edit/:id",
-                      show: "/categories/show/:id",
-                      meta: {
-                        canDelete: true,
-                        dataProviderName: "example",
-                        icon: <IconList />,
-                        hide: true,
-                      },
-                    },
-                    {
-                      name:"zhuye",
+                      name: "zhuye",
                       list: "/zhuye",
                       meta: {
                         label: "主页",
                         dataProviderName: undefined,
                         icon: <IconHome />,
-                        }
+                      },
                     },
                     {
                       name: "qiandao",
@@ -143,18 +169,8 @@ function App() {
                         icon: <IconChecks />,
                       },
                     },
-                    // {
-                    //   name: "unclockout",
-                    //   list: "/unclockout",
-                    //   create: "/unclockout/create",
-                    //   edit: "/unclockout/edit/:id",
-                    //   show: "/unclockout/show/:id",
-                    //   meta: {
-                    //     canDelete: true,
-                    //   }
-                    // },
                     {
-                      name: "attendance_record_test",
+                      name: __AttendanceRecord_TableName,
                       list: "/attendance-record",
                       create: "/attendance-record/create",
                       edit: "/attendance-record/edit/:id",
@@ -166,7 +182,7 @@ function App() {
                       },
                     },
                     {
-                      name: "workers_test",
+                      name: __Workers_TableName,
                       list: "/workers",
                       create: "/workers/create",
                       edit: "/workers/edit/:id",
@@ -178,7 +194,7 @@ function App() {
                       },
                     },
                     {
-                      name: "workType_test",
+                      name: __WorkTypes_TableName,
                       list: "/workType",
                       create: "/workType/create",
                       edit: "/workType/edit/:id",
@@ -190,28 +206,27 @@ function App() {
                       },
                     },
                     {
-                      name:"xinzi",
+                      name: "xinzi",
                       list: "/xinzi",
                       show: "/xinzi/show/:id",
                       meta: {
-                        label: "薪资计算",
+                        label: "薪资设置",
                         dataProviderName: undefined,
                         icon: <IconCoinYen />,
                       },
                     },
                     {
-                      name:"gongshi",
+                      name: "gongshi",
                       list: "/gongshi",
                       meta: {
-                        label: "工时管理",
+                        label: "工时&薪资显示",
                         dataProviderName: undefined,
                         icon: <IconReport />,
-                        }
+                      },
                     },
                     {
                       name: "pocketbase",
                       list: "/pocketbase",
-                      // create: "/pocketbase/create",
                       meta: {
                         label: "PocketBase后台管理",
                         dataProviderName: undefined,
@@ -225,6 +240,7 @@ function App() {
                       meta: {
                         dataProviderName: undefined,
                         icon: <IconMicroscope />,
+                        hide: !import.meta.env.DEV,
                       },
                     },
                   ]}
@@ -272,31 +288,14 @@ function App() {
                     >
                       <Route
                         index
-                        element={<NavigateToResource resource="blog_posts" />}
+                        element={<NavigateToResource resource="zhuye" />}
                       />
-                      <Route path="/blog-posts">
-                        <Route index element={<BlogPostList />} />
-                        <Route path="create" element={<BlogPostCreate />} />
-                        <Route path="edit/:id" element={<BlogPostEdit />} />
-                        <Route path="show/:id" element={<BlogPostShow />} />
-                      </Route>
-                      <Route path="/categories">
-                        <Route index element={<CategoryList />} />
-                        <Route path="create" element={<CategoryCreate />} />
-                        <Route path="edit/:id" element={<CategoryEdit />} />
-                        <Route path="show/:id" element={<CategoryShow />} />
-                      </Route>
+                      {get_sample_resource_or_route("route")}
                       <Route path="/zhuye">
-                      <Route index element={<ZhuYe/>} />
+                        <Route index element={<ZhuYe />} />
                       </Route>
                       <Route path="/qiandao">
                         <Route index element={<QianDaoPage />} />
-                      </Route>
-                      <Route path="/unclockout">
-                        <Route index element={<UnClockOutList />} />
-                        <Route path="create" element={<UnClockOutCreate />} />
-                        <Route path="edit/:id" element={<UnClockOutEdit />} />
-                        <Route path="show/:id" element={<UnClockOutShow />} />
                       </Route>
                       <Route path="/attendance-record">
                         <Route index element={<AttendanceRecordList />} />
@@ -320,18 +319,18 @@ function App() {
                         <Route path="show/:id" element={<WorkersShow />} />
                       </Route>
                       <Route path="/workType">
-                      <Route index element={<ListWorkType/>} />
-                      <Route path="create" element={<CreateWorkType/>} />
-                      <Route path="edit/:id" element={<EditWorkType/>} />
-                      <Route path="show/:id" element={<ShowWorkType/>} />
+                        <Route index element={<ListWorkType />} />
+                        <Route path="create" element={<CreateWorkType />} />
+                        <Route path="edit/:id" element={<EditWorkType />} />
+                        <Route path="show/:id" element={<ShowWorkType />} />
                       </Route>
                       <Route path="/xinzi">
                         <Route index element={<XinZiList />} />
                         <Route path="show/:id" element={<XinZiShow />} />
-                        </Route>
-                        <Route path="/gongshi">
+                      </Route>
+                      <Route path="/gongshi">
                         <Route index element={<GongShiList />} />
-                        </Route>
+                      </Route>
                       <Route path="/pocketbase">
                         <Route index element={<PocketBasePage />} />
                       </Route>
