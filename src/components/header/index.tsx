@@ -8,6 +8,7 @@ import {
   theme,
   Typography,
 } from "antd";
+import { Switch as ManSwitch } from "@mantine/core";
 import React, { useContext } from "react";
 import { ColorModeContext } from "../../contexts/color-mode";
 
@@ -46,11 +47,19 @@ export const Header: React.FC<RefineThemedLayoutV2HeaderProps> = ({
     <AntdLayout.Header style={headerStyles}>
       <Space>
         <Switch
-          checkedChildren="🌛"
-          unCheckedChildren="🔆"
+          // checkedChildren="🌛"
+          unCheckedChildren={"🌞"}
+          checkedChildren="黑夜"
+          // unCheckedChildren="白天"
           onChange={() => setMode(mode === "light" ? "dark" : "light")}
           defaultChecked={mode === "dark"}
         />
+        {/* <ManSwitch
+        onLabel="🌛"
+        offLabel="🔆"
+          onChange={() => setMode(mode === "light" ? "dark" : "light")}
+          defaultChecked={mode === "dark"}
+        /> */}
         <Space style={{ marginLeft: "8px" }} size="middle">
           {user?.name && <Text strong>{user.name}</Text>}
           {user?.avatar && <Avatar src={user?.avatar} alt={user?.name} />}

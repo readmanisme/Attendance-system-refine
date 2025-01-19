@@ -25,7 +25,7 @@ export const AttendanceRecordList = () => {
   const { recordDateRange, setRecordDateRange } = useSomeStore();
   const { RangePicker } = DatePicker;
   
-  console.log("datePickerFilter", datePickerFilter);
+  // console.log("datePickerFilter", datePickerFilter);
   const { tableProps, filters, setFilters } = useTable({
     resource: __AttendanceRecord_TableName,
     syncWithLocation: true,

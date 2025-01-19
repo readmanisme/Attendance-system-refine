@@ -6,12 +6,11 @@ import "./style/index.css";
 import "@mantine/core/styles.css";
 
 import { ErrorBoundary } from "react-error-boundary";
-import { Alert, Spin } from "antd";
-import { FrownOutlined } from "@ant-design/icons";
+import { Alert, FloatButton, Spin } from "antd";
+import { FrownOutlined, QuestionCircleOutlined } from "@ant-design/icons";
 import { CustomErrorBoundary } from "@/components/ErrorBoundary";
 import { useInterval } from "@mantine/hooks";
 import axios from "axios";
-import { f } from "react-router/dist/development/fog-of-war-DLtn2OLr";
 
 const _error = console.error;
 
@@ -66,6 +65,7 @@ const RootComponent = () => {
     <React.StrictMode>
       <CustomErrorBoundary>
         <App />
+
         {spinIsOpen && (
           <Spin
             size="large"
