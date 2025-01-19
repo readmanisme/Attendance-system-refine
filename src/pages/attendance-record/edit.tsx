@@ -6,7 +6,7 @@ export const AttendanceRecordEdit = () => {
   const { formProps, saveButtonProps,query,formLoading } = useForm({});
   const recordData = query?.data?.data;
   const { selectProps: nameSelectProps } = useSelect({
-    resource: "workers_test",
+    resource: __Workers_TableName,
     optionLabel: "name",
     defaultValue: recordData?.worker_id,
     queryOptions:{

@@ -17,7 +17,7 @@ export default function PySearchSelect({
 }) {
   // onChangeFn用于接收选择的选项以做他用
   // options用于提供选项列表,默认是工人列表
-  const HighlightWord = useRef([]);
+  const HighlightWord = useRef<string[]>([]);
   const SelectSearch = (
     input: string,
     option: { label: string; value: string } | undefined
@@ -38,12 +38,13 @@ export default function PySearchSelect({
     const code = input[0].charCodeAt(0);
     // 检查是不是拼音
     if ((code >= 65 && code <= 90) || (code >= 97 && code <= 122)) {
+      if (option && option.label) {
       const matchResult = match(option?.label, input);
       if (matchResult) {
         // const first: number = matchResult[0];
         // const hanzi: string = option?.label.slice(first, first + 1);
         // handleInputChange(hanzi);
-        let hanzi = [];
+        const hanzi = [];
         for (let i = 0; i < matchResult.length; i++) {
           const first = matchResult[i];
           hanzi.push(option?.label.slice(first, first + 1));
@@ -56,12 +57,16 @@ export default function PySearchSelect({
       } else {
         return false;
       }
+    }
+    else{
+      return false;
+    }
     } else {
       return SelectSearch(input, option);
     }
   };
   const { data: raw_workers } = useList({
-    resource: "workers_test",
+    resource: __Workers_TableName,
     pagination: { mode: "off" },
   });
   if (options === null) {

@@ -25,7 +25,7 @@ console.error = function (msg, ...args) {
 
 const container = document.getElementById("root") as HTMLElement;
 const root = createRoot(container);
-const pocketbase_url = "http://localhost:8090";
+const pocketbase_url = __BACKEND_API_URL__;
 
 function pb_health_check() {
   return axios.get(pocketbase_url + "/api/health");

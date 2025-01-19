@@ -4,7 +4,7 @@ import { DatePicker, Form, Input, Select } from "antd";
 export const AttendanceRecordCreate = () => {
   const { formProps, saveButtonProps } = useForm({});
   const { selectProps: nameSelectProps } = useSelect({
-    resource: "workers_test",
+    resource: __Workers_TableName,
     optionLabel: "name",
   });
   // console.log("nameSelectProps", nameSelectProps);

@@ -16,6 +16,16 @@ export default defineConfig({
   //   environment: 'jsdom',
   //   setupFiles: './vitest.setup.mjs',
   // },
+  define:{
+    __BACKEND_API_URL__: JSON.stringify('http://localhost:8090'),
+    __BACKEND_Admin_URL__: JSON.stringify('http://localhost:8090/_/'),
+    __AttendanceRecord_TableName: JSON.stringify('attendance_record_test'),
+    __Workers_TableName: JSON.stringify('workers_test'),
+    __WorkTypes_TableName: JSON.stringify('workType_test'),
+    __WorkHours_Day_ViewName: JSON.stringify('workHour_day_view'),
+    __WorkHours_Month_ViewName: JSON.stringify('workHour_month_view'),
+    __SalaryType_TableName: JSON.stringify('SalaryType_test'),
+  },
   base: './', // 使用相对路径
   resolve: {
     alias: {

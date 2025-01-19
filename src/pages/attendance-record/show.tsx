@@ -10,7 +10,7 @@ export const AttendanceRecordShow = () => {
 
   const record = data?.data;
   const { data: names, isLoading: namesLoading } = useOne({
-    resource: "workers_test",
+    resource: __Workers_TableName,
     id: record?.worker_id || "",
     queryOptions:{
       enabled:!!record

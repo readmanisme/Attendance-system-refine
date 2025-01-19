@@ -9,6 +9,8 @@
     "esModuleInterop": false,
     "allowSyntheticDefaultImports": true,
     "strict": true,
+    // "noCheck": true,
+    // 不编译的时候就不要这两个选项，否则编辑器检查有问题
     "forceConsistentCasingInFileNames": true,
     "module": "ESNext",
     "moduleResolution": "Node",
