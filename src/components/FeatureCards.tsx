@@ -13,7 +13,8 @@ import {
   IconReport,
   IconHome,
   IconBriefcase,
-  IconHelp
+  IconHelp,
+  IconBrightness
 } from "@tabler/icons-react";
 import {
   Badge,
@@ -27,7 +28,6 @@ import {
   Kbd,
 } from "@mantine/core";
 import classes from "./FeaturesCards.module.css";
-import Icon from "@ant-design/icons";
 
 const mockdata = [
   {
@@ -87,6 +87,11 @@ const mockdata = [
       </>
     ),
     icon: IconCommand,
+  },
+  {
+    title: "暗黑模式",
+    description: "全页面适配，点击右上角按钮切换暗黑模式。",
+    icon: IconBrightness,
   },
 ];
 

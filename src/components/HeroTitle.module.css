@@ -24,6 +24,7 @@
     font-weight: 900;
     line-height: 1.1;
     margin: 0;
+    margin-bottom: var(--mantine-spacing-lg);
     padding: 0;
     color: light-dark(var(--mantine-color-black), var(--mantine-color-white));
   

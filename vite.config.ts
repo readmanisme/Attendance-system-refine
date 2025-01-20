@@ -25,6 +25,7 @@ export default defineConfig({
     __WorkHours_Day_ViewName: JSON.stringify('workHour_day_view'),
     __WorkHours_Month_ViewName: JSON.stringify('workHour_month_view'),
     __SalaryType_TableName: JSON.stringify('SalaryType_test'),
+    __SystemName__: JSON.stringify('工人考勤系统'),
   },
   base: './', // 使用相对路径
   resolve: {

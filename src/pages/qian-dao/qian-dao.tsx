@@ -350,21 +350,10 @@ export default function QianDaoPage() {
   }
   const [work_type_value, set_work_type_value] = useState<string>();
   const [work_type_id, set_work_type_id] = useState<string>();
-  const [helpOpen, setHelpOpen] = useState(false);
 
   return (
     <List
-    headerButtons={({ defaultButtons }) => (
-      <>
-        {defaultButtons}
-        <Button type="primary" onClick={() => setHelpOpen(true)}>查看帮助</Button>
-        <Drawer title="帮助" open={helpOpen} onClose={() => setHelpOpen(false)}>
-        <Paragraph>1、选择员工，选择考勤类型，点击上班或下班按钮，即可进行签到或签退。</Paragraph>
-        <Paragraph>2、为防止数据异常，通过代码设计，未签到者不可签退，未签退者不可签到。</Paragraph>
-        <Paragraph>3、此页面显示当天签到记录</Paragraph>
-      </Drawer>
-      </>
-    )}
+
     >
       {/* <div className="min-h-screen bg-gray-50 p-4 sm:p-6 lg:p-8"> */}
       <div className={`min-h-screen ${A_div_color} p-4 sm:p-6 lg:p-8`}>

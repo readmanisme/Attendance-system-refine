@@ -330,21 +330,7 @@ export default function GongShiList() {
               <Button loading={isExportLoading}>导出所有考勤记录到Excel</Button>
             </Popconfirm>
 
-            <Button type="primary" onClick={() => setHelpOpen(true)}>
-              查看帮助
-            </Button>
-            <Drawer
-              title="帮助"
-              open={helpOpen}
-              onClose={() => setHelpOpen(false)}
-            >
-              <Paragraph>
-                1、导出所有考勤记录到Excel需要一定的时间，请耐心等待
-              </Paragraph>
-              <Paragraph>
-                2、如果误点击二次确认中的导出按钮，可刷新页面组织导出
-              </Paragraph>
-            </Drawer>
+
           </Space>
         </>
       )}

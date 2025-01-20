@@ -11,27 +11,7 @@ export default function PocketBasePage() {
   const [helpOpen, setHelpOpen] = React.useState(false);
   return (
     <List
-      headerButtons={({ defaultButtons }) => (
-        <>
-          {defaultButtons}
-          <Button type="primary" onClick={() => setHelpOpen(true)}>
-            查看帮助
-          </Button>
-          <Drawer
-            title="帮助"
-            open={helpOpen}
-            onClose={() => setHelpOpen(false)}
-          >
-            <Paragraph>
-              1、这里是后台，负责所有数据的储存。仅在完全理解的情况下进行操作。
-            </Paragraph>
-            <Paragraph>
-              2、账号：shed2705@outlook.com 密码：bPWU8GCMuqwKF9z
-            </Paragraph>
-            <Paragraph>3、如果觉得此处界面较小，可以点击左下角箭头收起导航栏，或者可以点击<a target="_blank" href={__BACKEND_Admin_URL__}>此处</a>在新标签中打开。密码账号不变</Paragraph>
-          </Drawer>
-        </>
-      )}
+
     >
       <iframe src={iframeUrl} className="w-full h-screen"></iframe>
 

@@ -9,7 +9,7 @@ export const CreateWorkType = () => {
     return (
         <Create saveButtonProps={saveButtonProps}>
             <Form {...formProps} layout="vertical">
-                <Form.Item
+                {/* <Form.Item
                     label="Collection Name"
                     name={["collectionName"]}
                     rules={[
@@ -19,8 +19,8 @@ export const CreateWorkType = () => {
                     ]}
                 >
                     <Input />
-                </Form.Item>
-                <Form.Item
+                </Form.Item> */}
+                {/* <Form.Item
                     label="Created"
                     name={["created"]}
                     rules={[
@@ -33,7 +33,7 @@ export const CreateWorkType = () => {
                     })}
                 >
                     <DatePicker />
-                </Form.Item>
+                </Form.Item> */}
                 <Form.Item
                     label="Type"
                     name={["name"]}
@@ -45,7 +45,7 @@ export const CreateWorkType = () => {
                 >
                     <Input />
                 </Form.Item>
-                <Form.Item
+                {/* <Form.Item
                     label="Updated"
                     name={["updated"]}
                     rules={[
@@ -58,7 +58,7 @@ export const CreateWorkType = () => {
                     })}
                 >
                     <DatePicker />
-                </Form.Item>
+                </Form.Item> */}
             </Form>
         </Create>
     );

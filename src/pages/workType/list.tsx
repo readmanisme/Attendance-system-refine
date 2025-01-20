@@ -15,18 +15,9 @@ export const ListWorkType = () => {
     const { tableProps } = useTable({
         syncWithLocation: true,
     });
-    const [helpOpen, setHelpOpen] = React.useState(false);
     return (
         <List
-        headerButtons={({ defaultButtons }) => (
-            <>
-              {defaultButtons}
-              <Button type="primary" onClick={() => setHelpOpen(true)}>查看帮助</Button>
-              <Drawer title="帮助" open={helpOpen} onClose={() => setHelpOpen(false)}>
-              <Paragraph>1、此处的“基础”工作类型为系统内置，不可删除或修改，只能查看。用于作为基础薪资的计算。</Paragraph>
-            </Drawer>
-            </>
-          )}
+
         >
             <Table {...tableProps} rowKey="id">
                 {/* <Table.Column

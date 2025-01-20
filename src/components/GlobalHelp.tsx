@@ -79,6 +79,7 @@ export const GlobalHelp = () => {
         type="primary"
         style={{ insetInlineEnd: 24 }}
         onClick={() => setHelpOpen(true)}
+        tooltip="显示当前页面的帮助"
       />
       <Drawer title="帮助" open={helpOpen} onClose={() => setHelpOpen(false)}>
         {helps[String(resource?.meta?.label)]}

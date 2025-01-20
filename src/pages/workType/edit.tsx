@@ -11,7 +11,7 @@ export const EditWorkType = () => {
     return (
         <Edit saveButtonProps={saveButtonProps}>
             <Form {...formProps} layout="vertical">
-                <Form.Item
+                {/* <Form.Item
                     label="Collection Name"
                     name={["collectionName"]}
                     rules={[
@@ -21,8 +21,8 @@ export const EditWorkType = () => {
                     ]}
                 >
                     <Input />
-                </Form.Item>
-                <Form.Item
+                </Form.Item> */}
+                {/* <Form.Item
                     label="Created"
                     name={["created"]}
                     rules={[
@@ -35,7 +35,7 @@ export const EditWorkType = () => {
                     })}
                 >
                     <DatePicker />
-                </Form.Item>
+                </Form.Item> */}
                 <Form.Item
                     label="Id"
                     name={["id"]}
@@ -58,7 +58,7 @@ export const EditWorkType = () => {
                 >
                     <Input />
                 </Form.Item>
-                <Form.Item
+                {/* <Form.Item
                     label="Updated"
                     name={["updated"]}
                     rules={[
@@ -71,7 +71,7 @@ export const EditWorkType = () => {
                     })}
                 >
                     <DatePicker />
-                </Form.Item>
+                </Form.Item> */}
             </Form>
         </Edit>
     );
