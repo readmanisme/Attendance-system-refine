@@ -11,6 +11,7 @@ import {
 import { Switch as ManSwitch } from "@mantine/core";
 import React, { useContext } from "react";
 import { ColorModeContext } from "../../contexts/color-mode";
+import { IconMoon, IconMoonFilled, IconSun, IconSunFilled } from "@tabler/icons-react";
 
 const { Text } = Typography;
 const { useToken } = theme;
@@ -48,8 +49,8 @@ export const Header: React.FC<RefineThemedLayoutV2HeaderProps> = ({
       <Space>
         <Switch
           // checkedChildren="🌛"
-          unCheckedChildren={"🌞"}
-          checkedChildren="黑夜"
+          unCheckedChildren=<IconSunFilled size={22} color="#ffec3d"/>
+          checkedChildren=<IconMoonFilled size={22} color="#ffec3d"/>
           // unCheckedChildren="白天"
           onChange={() => setMode(mode === "light" ? "dark" : "light")}
           defaultChecked={mode === "dark"}
