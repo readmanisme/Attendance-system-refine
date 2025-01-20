@@ -21,7 +21,11 @@ export const GlobalHelp = () => {
       </>
     ),
     考勤记录: "考勤记录",
-    人员管理: "人员管理",
+    人员管理: (<>
+            <Paragraph>
+          1、人员名字中不可含有下划线"_" ！，否则会影响到薪资计算。
+        </Paragraph>
+    </>),
     工作管理: (
       <>
         {" "}
@@ -34,9 +38,9 @@ export const GlobalHelp = () => {
       <>
         {" "}
         <Paragraph>
-          1、此处可设置不同人员或不同工作的时薪，也就是人员和工作只能同时填写一个。
+          1、此处可设置不同人员或不同工作的时薪。
         </Paragraph>
-        <Paragraph>2、暂不支持同时设置人员与工作的时薪。</Paragraph>
+        <Paragraph>2、薪资计算顺序为：首先匹配（人员，工作，时薪），然后匹配（人员，时薪），最后匹配（工作，时薪），如果都没有匹配到，则使用基础。</Paragraph>
         <Paragraph>
           3、“基础”工作为系统内置，不可删除，其用于计算未设置具体时薪的情况下的薪资。
         </Paragraph>
@@ -58,7 +62,7 @@ export const GlobalHelp = () => {
           1、这里是后台，负责所有数据的储存。仅在完全理解的情况下进行操作。
         </Paragraph>
         <Paragraph>
-          2、账号：shed2705@outlook.com 密码：bPWU8GCMuqwKF9z
+          2、账号：{__Backend_UserName__} 密码：{__Backend_Password__}
         </Paragraph>
         <Paragraph>
           3、如果觉得此处界面较小，可以点击左下角箭头收起导航栏，或者可以点击
@@ -80,6 +84,9 @@ export const GlobalHelp = () => {
         style={{ insetInlineEnd: 24 }}
         onClick={() => setHelpOpen(true)}
         tooltip="显示当前页面的帮助"
+      />
+      <FloatButton.BackTop
+      style={{ insetInlineEnd: 84 }}
       />
       <Drawer title="帮助" open={helpOpen} onClose={() => setHelpOpen(false)}>
         {helps[String(resource?.meta?.label)]}

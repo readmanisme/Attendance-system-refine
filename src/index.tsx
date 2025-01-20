@@ -11,6 +11,7 @@ import { FrownOutlined, QuestionCircleOutlined } from "@ant-design/icons";
 import { CustomErrorBoundary } from "@/components/ErrorBoundary";
 import { useInterval } from "@mantine/hooks";
 import axios from "axios";
+import { BackupDatabase } from "./components/BackupDatabase";
 
 const _error = console.error;
 
@@ -65,7 +66,7 @@ const RootComponent = () => {
     <React.StrictMode>
       <CustomErrorBoundary>
         <App />
-
+        <BackupDatabase />
         {spinIsOpen && (
           <Spin
             size="large"

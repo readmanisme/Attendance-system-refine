@@ -192,12 +192,11 @@ export default function GongShiList() {
         ) ?? [];
       return records.map((record) => {
         const worker_name = workerDetails[record.worker_id];
-        const work_name = workTypeDetails[record.work];
         return {
           key: record.work_date,
           label: (
             <p>
-              {worker_name}在 {record.work_date} 日进行工作{work_name}共计{" "}
+              {worker_name}在 {record.work_date} 日进行工作共计{" "}
               <Tag color="blue">{record.total_work_hours}</Tag> 小时
             </p>
           ),

@@ -14,7 +14,8 @@ import {
   IconHome,
   IconBriefcase,
   IconHelp,
-  IconBrightness
+  IconBrightness,
+  IconArchive
 } from "@tabler/icons-react";
 import {
   Badge,
@@ -92,6 +93,11 @@ const mockdata = [
     title: "暗黑模式",
     description: "全页面适配，点击右上角按钮切换暗黑模式。",
     icon: IconBrightness,
+  },
+  {
+    title: "数据安全",
+    description: "每日备份提醒，为你的数据保驾护航。",
+    icon: IconArchive,
   },
 ];
 

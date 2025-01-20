@@ -55,7 +55,7 @@ import logo from "@/public/logo.png";
 import QianDaoPage from "./pages/qian-dao/qian-dao";
 // import XinZiList from "./pages/xin-zi/list";
 // import XinZiShow from "./pages/xin-zi/show";
-import GongShiList from "./pages/gong-shi/list";
+import GongShiList from "./pages/gong-shi/list_table";
 import ZhuYe from "./pages/zhu-ye/zhu-ye";
 import { SampleList,SampleCreate,SampleEdit,SampleShow } from "./pages/Inferencer_example";
 import {
@@ -77,7 +77,7 @@ import {
   IconBriefcase,
   IconCode,
 } from "@tabler/icons-react";
-import { SalaryTypeTestList } from "./pages/xin-zi";
+import { SalaryTypeList,SalaryTypeCreate,SalaryTypeEdit,SalaryTypeShow } from "./pages/xin-zi";
 import { GlobalHelp } from "./components/GlobalHelp";
 const pb = new PocketBase(__BACKEND_API_URL__);
 function get_sample_resource_or_route(type: "resource" | "route",location:"front"|"behind") {
@@ -266,6 +266,8 @@ function App() {
                       name: __SalaryType_TableName,
                       list: "/xinzi",
                       show: "/xinzi/show/:id",
+                      create: "/xinzi/create",
+                      edit: "/xinzi/edit/:id",
                       meta: {
                         label: "薪资设置",
                         icon: <IconCoinYen />,
@@ -372,8 +374,10 @@ function App() {
                         <Route path="show/:id" element={<ShowWorkType />} />
                       </Route>
                       <Route path="/xinzi">
-                        <Route index element={<SalaryTypeTestList />} />
-                        {/* <Route path="show/:id" element={<XinZiShow />} /> */}
+                        <Route index element={<SalaryTypeList />} />
+                        <Route path="show/:id" element={<SalaryTypeShow />} />
+                        <Route path="create" element={<SalaryTypeCreate />} />
+                        <Route path="edit/:id" element={<SalaryTypeEdit />} />
                       </Route>
                       <Route path="/gongshi">
                         <Route index element={<GongShiList />} />
