@@ -10,6 +10,7 @@ import PocketBase from "pocketbase";
 import dayjs from "dayjs";
 import { TestPage2 } from "./test-page-2";
 import { useResource } from "@refinedev/core";
+import { TestPage3 } from "./tp3";
 const pb = new PocketBase(__BACKEND_API_URL__);
 export function TestPage() {
   const [messageApi, contextHolder] = message.useMessage();
@@ -268,10 +269,18 @@ export function TestPage() {
     }
     set_status("数据插入完成");
   };
+  const backend_prepare_database = async () => {
+    const pb = new PocketBase(__BACKEND_API_URL__);
+    await pb.collection("_superusers").authWithPassword(__Backend_UserName__, __Backend_Password__);
+    // 可以通过导出和导入快速创建数据库，所以这个东西就不要了
+    // 另外，文档中没有描述关系型字段如何创建，可以在导出部分看到关系型字段是如何定义的
+  }
+
   return (
     <div>
       {/* <TestPage2 /> */}
       {/* Test Page */}
+      < TestPage3 />
       <h1 className="text-4xl font-bold text-blue-500">
         TailwindCSS 安装检测，此处文字应该是蓝色
       </h1>

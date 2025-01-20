@@ -9,3 +9,5 @@ declare const __WorkHours_Day_ViewName: string;
 declare const __WorkHours_Month_ViewName: string;
 declare const __SalaryType_TableName: string;
 declare const __SystemName__: string;
+declare const __Backend_UserName__: string;
+declare const __Backend_Password__: string;
