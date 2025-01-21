@@ -7,6 +7,7 @@ import {
   EditButton,
   ShowButton,
   DeleteButton,
+  CreateButton,
 } from "@refinedev/antd";
 import { Table, Space, Button, Drawer } from "antd";
 import Paragraph from "antd/es/typography/Paragraph";
@@ -16,7 +17,7 @@ export const SalaryTypeList = () => {
     syncWithLocation: true,
     resource: __SalaryType_TableName,
     meta: {
-      expand: ["work_name", "work_type"],
+      expand: ["worker_name", "work_type"],
     },
   });
   // 重新排序，让["expand", "work_type", "name"]为“基础”的排在第一行
@@ -36,11 +37,11 @@ export const SalaryTypeList = () => {
     return 0;
   });
   return (
-    <List>
+    <List headerButtons={<CreateButton>添加记录</CreateButton>}>
       <Table {...tableProps} rowKey="id">
         <Table.Column dataIndex="id" title="ID" />
         <Table.Column
-          dataIndex={["expand", "work_name", "name"]}
+          dataIndex={["expand", "worker_name", "name"]}
           title="工人"
         />
         <Table.Column

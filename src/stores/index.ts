@@ -9,18 +9,29 @@ interface SomeState {
   DatePickerMode:"single" | "range";
   setDatePickerMode: (mode: "single" | "range") => void;
   setRecordDateRange: (start: string, end: string) => void;
-  setColorMode: (mode: string) => void;
+  setColorMode: (mode: "light" | "dark") => void;
+  GongShiData: string;
+  setGongShiData: (date: string) => void;
 }
 
 export const useSomeStore = create<SomeState>()(
-  devtools((set) => ({
-    colorMode: "light",
-    // recordDateRange: ["2022-01-01", "2022-12-31"],
-    recordDateRange: [dayjs().startOf('month').format('YYYY-MM-DD'), dayjs().endOf('month').format('YYYY-MM-DD')],
-    DatePickerMode: "single",
-    setDatePickerMode: (mode: "single" | "range") => set({ DatePickerMode: mode }),
-    setRecordDateRange: (start: string|null, end: string|null) =>
-      set({ recordDateRange: [start, end] }),
-    setColorMode: (mode: "light" | "dark") => set({ colorMode: mode }),
-  }))
+  devtools(
+    persist(
+      (set) => ({
+        colorMode: "light",
+        recordDateRange: [dayjs().startOf('month').format('YYYY-MM-DD'), dayjs().endOf('month').format('YYYY-MM-DD')],
+        DatePickerMode: "single",
+        setDatePickerMode: (mode: "single" | "range") => set({ DatePickerMode: mode }),
+        setRecordDateRange: (start: string | null, end: string | null) =>
+          set({ recordDateRange: [start ?? dayjs().startOf('month').format('YYYY-MM-DD'), end ?? dayjs().endOf('month').format('YYYY-MM-DD')] }),
+        setColorMode: (mode: "light" | "dark") => set({ colorMode: mode }),
+        // GongShiData:dayjs().startOf('month').format('YYYY-MM'),
+        GongShiData:dayjs("2024-05-05").startOf('month').format('YYYY-MM'),
+        setGongShiData: (date: string) => set({ GongShiData: date }),
+      }),
+      {
+        name: "some-store", // 存储名称，用于标识存储
+      }
+    )
+  )
 );
