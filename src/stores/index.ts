@@ -10,8 +10,8 @@ interface SomeState {
   setDatePickerMode: (mode: "single" | "range") => void;
   setRecordDateRange: (start: string, end: string) => void;
   setColorMode: (mode: "light" | "dark") => void;
-  GongShiData: string;
-  setGongShiData: (date: string) => void;
+  GongShiData: string[];
+  setGongShiData: (data: string[]) => void;
 }
 
 export const useSomeStore = create<SomeState>()(
@@ -26,8 +26,8 @@ export const useSomeStore = create<SomeState>()(
           set({ recordDateRange: [start ?? dayjs().startOf('month').format('YYYY-MM-DD'), end ?? dayjs().endOf('month').format('YYYY-MM-DD')] }),
         setColorMode: (mode: "light" | "dark") => set({ colorMode: mode }),
         // GongShiData:dayjs().startOf('month').format('YYYY-MM'),
-        GongShiData:dayjs("2024-05-05").startOf('month').format('YYYY-MM'),
-        setGongShiData: (date: string) => set({ GongShiData: date }),
+        GongShiData:[dayjs("2024-05-05").startOf('month').format('YYYY-MM')],
+        setGongShiData: (data: string[]) => set({ GongShiData: data }),
       }),
       {
         name: "some-store", // 存储名称，用于标识存储
