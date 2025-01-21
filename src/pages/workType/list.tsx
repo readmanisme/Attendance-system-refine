@@ -7,6 +7,7 @@ import {
     ShowButton,
     DeleteButton,
     DateField,
+    CreateButton,
 } from "@refinedev/antd";
 import { Table, Space, Button, Drawer } from "antd";
 import Paragraph from "antd/es/typography/Paragraph";
@@ -17,7 +18,7 @@ export const ListWorkType = () => {
     });
     return (
         <List
-
+        headerButtons={<CreateButton>添加工作</CreateButton>}
         >
             <Table {...tableProps} rowKey="id">
                 {/* <Table.Column

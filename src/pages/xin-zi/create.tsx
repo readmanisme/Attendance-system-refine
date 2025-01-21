@@ -7,7 +7,7 @@ export const SalaryTypeCreate = () => {
   const { formProps, saveButtonProps, query } = useForm({
     resource: __SalaryType_TableName,
     meta: {
-      expand: ["work_name", "work_type"],
+      expand: ["worker_name", "work_type"],
     },
   });
   const Data = query?.data?.data;
@@ -22,7 +22,7 @@ export const SalaryTypeCreate = () => {
   return (
     <Create saveButtonProps={saveButtonProps}>
       <Form {...formProps} layout="vertical">
-        <Form.Item label="工人" name={["work_name"]}>
+        <Form.Item label="工人" name={["worker_name"]}>
           <Select {...nameSelectProps} />
         </Form.Item>
         <Form.Item label="工种" name={["work_type"]}>

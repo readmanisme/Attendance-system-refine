@@ -1,4 +1,4 @@
-import { Create, useForm, useSelect } from "@refinedev/antd";
+import { Create, CreateButton, useForm, useSelect } from "@refinedev/antd";
 import { DatePicker, Form, Input, Select } from "antd";
 
 export const AttendanceRecordCreate = () => {
@@ -9,7 +9,7 @@ export const AttendanceRecordCreate = () => {
   });
   // console.log("nameSelectProps", nameSelectProps);
   return (
-    <Create saveButtonProps={saveButtonProps}>
+    <Create saveButtonProps={saveButtonProps} >
       <Form {...formProps} layout="vertical">
         <Form.Item
           label={"人员ID"}

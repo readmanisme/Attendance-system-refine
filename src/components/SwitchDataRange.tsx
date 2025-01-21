@@ -2,7 +2,7 @@ import { useSomeStore } from "@/stores";
 import { Segmented, DatePicker, Button } from "antd";
 import dayjs, { Dayjs } from "dayjs";
 import {  useEffect, useState } from "react";
-export const SwitchDataRange = () => {
+export const SwitchDataRange = ({picker="date"}) => {
   const {
     DatePickerMode,
     setDatePickerMode,
@@ -49,6 +49,7 @@ export const SwitchDataRange = () => {
           onChange={(date, dateString) => {
             setRecordDateRange(...date);
           }}
+          picker={picker}
         />
         // </div>
       );
@@ -70,9 +71,9 @@ export const SwitchDataRange = () => {
     }
   }
   return (
-    <div className="flex flex-row justify-end items-center m-4 gap-2">
+    <div className="flex flex-row justify-end items-center mb-2  gap-2">
       <Segmented<string>
-        className="bg-indigo-300"
+        // className="bg-sky-600"
         options={["单月", "区间"]}
         onChange={(value) => {
           if (value === "单月") {

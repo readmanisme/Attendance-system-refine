@@ -7,7 +7,7 @@ export const SalaryTypeEdit = () => {
   const { formProps, saveButtonProps, query } = useForm({
     resource: __SalaryType_TableName,
     meta: {
-      expand: ["work_name", "work_type"],
+      expand: ["worker_name", "work_type"],
     },
   });
 
@@ -36,7 +36,7 @@ export const SalaryTypeEdit = () => {
         </Form.Item>
         <Form.Item
           label="工人"
-          name={["work_name"]}
+          name={["worker_name"]}
         >
           <Select {...nameSelectProps} />
         </Form.Item>

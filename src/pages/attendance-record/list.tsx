@@ -1,4 +1,5 @@
 import {
+  CreateButton,
   DeleteButton,
   EditButton,
   List,
@@ -28,6 +29,9 @@ export const AttendanceRecordList = () => {
   // console.log("datePickerFilter", datePickerFilter);
   const { tableProps, filters, setFilters } = useTable({
     resource: __AttendanceRecord_TableName,
+    meta:{
+      expand:["work","worker_id"],
+    },
     syncWithLocation: true,
     sorters: {
       permanent: [
@@ -65,24 +69,24 @@ export const AttendanceRecordList = () => {
     setFilteredInfo({});
     setSortedInfo({});
   };
-  const {
-    data: names,
-  } = useList({
-    resource: __Workers_TableName,
-    pagination: {
-      mode: "off",
-      // 此处只能是off,client无法获取全部内容
-    },
-  });
-  // 从names中取出id和name，构建字典
-  const nameDict = {};
-  if (names) {
-    names.data.map((item) => {
-      if (item.id && item.name) {
-        nameDict[item.id] = item.name;
-      }
-    });
-  }
+  // const {
+  //   data: names,
+  // } = useList({
+  //   resource: __Workers_TableName,
+  //   pagination: {
+  //     mode: "off",
+  //     // 此处只能是off,client无法获取全部内容
+  //   },
+  // });
+  // // 从names中取出id和name，构建字典
+  // const nameDict = {};
+  // if (names) {
+  //   names.data.map((item) => {
+  //     if (item.id && item.name) {
+  //       nameDict[item.id] = item.name;
+  //     }
+  //   });
+  // }
   // console.log("names", names);
   const handleUnclockoutfilterChange = (checked: boolean) => {
     setUnclockoutfilter(checked);
@@ -110,9 +114,9 @@ export const AttendanceRecordList = () => {
     }
   };
   return (
-    <List>
+    <List headerButtons={<CreateButton>添加记录</CreateButton>}>
       {/* <pre>{JSON.stringify(use_get_date_picker_filter(), null, 2)}</pre> */}
-      <div className="flex flex-row justify-center items-center ">
+      {/* <div className="flex flex-row justify-center items-center ">
         <Typography.Title level={5}>过滤未下班记录</Typography.Title>
         <Switch
           checked={unclockoutfilter}
@@ -145,7 +149,7 @@ export const AttendanceRecordList = () => {
         >
           取消表自带过滤
         </Button>
-      </div>
+      </div> */}
       <Space></Space>
       <SwitchDataRange />
       {/* <Table {...tableProps} rowKey="id" onChange={handleTableChange}> */}
@@ -153,11 +157,8 @@ export const AttendanceRecordList = () => {
         <Table.Column dataIndex="id" title={"ID"} />
         {/* <Table.Column dataIndex="worker_id" title={"人员ID"} /> */}
         <Table.Column
-          dataIndex="worker_id"
+          dataIndex={["expand","worker_id","name"]}
           title={"人员姓名"}
-          render={(_, record: BaseRecord) => {
-            return <div>{nameDict[record.worker_id]}</div>;
-          }}
         />
         <Table.Column
           dataIndex="check_in"
@@ -178,12 +179,12 @@ export const AttendanceRecordList = () => {
         <Table.Column
           dataIndex="check_out"
           title={"下班时间"}
-          filters={[
-            { text: "非空", value: "非空" },
-            { text: "空值", value: "空值" },
-          ]}
-          filteredValue={filteredInfo.check_out || null}
-          filterMultiple={false}
+          // filters={[
+          //   { text: "非空", value: "非空" },
+          //   { text: "空值", value: "空值" },
+          // ]}
+          // filteredValue={filteredInfo.check_out || null}
+          // filterMultiple={false}
           // TODO 这里表自带的筛选有问题
           render={(_, record: BaseRecord) => {
             return (
@@ -195,6 +196,10 @@ export const AttendanceRecordList = () => {
             );
           }}
         />
+        <Table.Column
+        dataIndex={["expand","work","name"]}
+        title={"工作类型"}
+      />
         <Table.Column
           title={"Actions"}
           dataIndex="actions"

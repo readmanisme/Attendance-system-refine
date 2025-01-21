@@ -9,7 +9,7 @@ export const SalaryTypeShow = () => {
   const { query } = useShow({
     resource: __SalaryType_TableName,
     meta: {
-      expand: ["work_name", "work_type"],
+      expand: ["worker_name", "work_type"],
     },
   });
   const { data, isLoading } = query;
@@ -25,7 +25,7 @@ export const SalaryTypeShow = () => {
       <Title level={5}>Id</Title>
       <TextField value={record?.id} />
       <Title level={5}>工人</Title>
-      <TextField value={record?.expand?.work_name?.name } />
+      <TextField value={record?.expand?.worker_name?.name } />
       <Title level={5}>工种</Title>
       <TagField value={record?.expand?.work_type?.name} />
       <Title level={5}>Updated</Title>
