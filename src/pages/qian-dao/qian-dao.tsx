@@ -7,21 +7,16 @@ import {
   Badge,
   Alert,
   Tag,
-  Button,
-  Drawer,
 } from "antd";
 const { Title, Paragraph, Text, Link } = Typography;
 
 import {
   useState,
   useContext,
-  useRef,
 } from "react";
-import { match } from "pinyin-pro";
 import dayjs from "dayjs";
 import {
   Card,
-  Highlight,
 } from "@mantine/core";
 import {
   useCreate,
@@ -193,7 +188,7 @@ export default function QianDaoPage() {
       });
     }
   };
-  const columns: ColumnsType<Employee> = [
+  const columns: ColumnsType = [
     {
       title: "员工姓名",
       dataIndex: "name",
@@ -375,7 +370,7 @@ export default function QianDaoPage() {
                 options={workers?.map((worker) => ({
                   label: worker.name,
                   value: worker.id,
-                }))}
+                }))||[]}
                 />
                 <AntdSelect
                   placeholder="请选择考勤类型"

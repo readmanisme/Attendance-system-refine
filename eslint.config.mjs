@@ -39,5 +39,7 @@ export default [...fixupConfigRules(compat.extends(
     rules: {
         "react-refresh/only-export-components": "warn",
         "react-compiler/react-compiler": "error",
+        "@typescript-eslint/no-unused-vars": "warn",
+        "@typescript-eslint/no-explicit-any": "warn"
     },
 }];

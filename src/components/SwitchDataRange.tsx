@@ -1,8 +1,9 @@
 import { useSomeStore } from "@/stores";
 import { Segmented, DatePicker, Button } from "antd";
 import dayjs, { Dayjs } from "dayjs";
-import {  useEffect, useState } from "react";
-export const SwitchDataRange = ({picker="date"}) => {
+import { useEffect, useState } from "react";
+import { type PickerMode } from "rc-picker/lib/interface";
+export const SwitchDataRange = ({ picker = "date" }) => {
   const {
     DatePickerMode,
     setDatePickerMode,
@@ -45,11 +46,11 @@ export const SwitchDataRange = ({picker="date"}) => {
           allowClear={false}
           key={key}
           className="w-56"
-          defaultValue={getDefaultValue("range")}
+          defaultValue={getDefaultValue("range") as [Dayjs, Dayjs]}
           onChange={(date, dateString) => {
-            setRecordDateRange(...date);
+            setRecordDateRange(...dateString);
           }}
-          picker={picker}
+          picker={picker as PickerMode}
         />
         // </div>
       );
@@ -62,7 +63,7 @@ export const SwitchDataRange = ({picker="date"}) => {
           className="w-56"
           defaultValue={getDefaultValue("single")}
           onChange={(date, dateString) => {
-            setPickMonth(date);
+            setPickMonth(date as Dayjs);
           }}
           picker="month"
         />
@@ -95,5 +96,3 @@ export const SwitchDataRange = ({picker="date"}) => {
     </div>
   );
 };
-
-

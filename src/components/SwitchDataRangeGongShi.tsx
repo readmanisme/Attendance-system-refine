@@ -1,5 +1,5 @@
 import { useSomeStore } from "@/stores";
-import { Segmented, DatePicker, Button } from "antd";
+import { Segmented, DatePicker } from "antd";
 import dayjs, { Dayjs } from "dayjs";
 import { useEffect, useState } from "react";
 export const SwitchDataRangeGongShi = () => {
@@ -27,7 +27,7 @@ export const SwitchDataRangeGongShi = () => {
         // 2022-01-21会识别为2022-01，所以无需额外处理
       } else {
         // return dayjs().startOf("month");
-        return null;
+        return undefined;
       }
     }
   };
@@ -43,7 +43,7 @@ export const SwitchDataRangeGongShi = () => {
           allowClear={false}
           key={key}
           className="w-56"
-          defaultValue={getDefaultValue("range")}
+          defaultValue={getDefaultValue("range") as [Dayjs, Dayjs]}
           onChange={(date, dateString) => {
             setGongShiData(dateString);
           }}
@@ -60,7 +60,7 @@ export const SwitchDataRangeGongShi = () => {
           className="w-56"
           defaultValue={getDefaultValue("single")}
           onChange={(date, dateString) => {
-            setPickMonth(date);
+            setPickMonth(date as Dayjs);
           }}
           picker="month"
         />

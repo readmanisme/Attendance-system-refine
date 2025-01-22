@@ -1,16 +1,13 @@
-import React from "react";
 import { BaseRecord } from "@refinedev/core";
 import {
   useTable,
   List,
-  DateField,
   EditButton,
   ShowButton,
   DeleteButton,
   CreateButton,
 } from "@refinedev/antd";
-import { Table, Space, Button, Drawer } from "antd";
-import Paragraph from "antd/es/typography/Paragraph";
+import { Table, Space } from "antd";
 
 export const SalaryTypeList = () => {
   const { tableProps } = useTable({
@@ -21,7 +18,7 @@ export const SalaryTypeList = () => {
     },
   });
   // 重新排序，让["expand", "work_type", "name"]为“基础”的排在第一行
-  tableProps?.dataSource?.sort((a, b) => {
+  const sortedDataSource = [...tableProps?.dataSource || []].sort((a, b) => {
     if (
       a.expand?.work_type?.name === "基础" &&
       b.expand?.work_type?.name!== "基础"
@@ -38,7 +35,9 @@ export const SalaryTypeList = () => {
   });
   return (
     <List headerButtons={<CreateButton>添加记录</CreateButton>}>
-      <Table {...tableProps} rowKey="id">
+      <Table {...tableProps}
+      dataSource={sortedDataSource}
+      rowKey="id">
         <Table.Column dataIndex="id" title="ID" />
         <Table.Column
           dataIndex={["expand", "worker_name", "name"]}

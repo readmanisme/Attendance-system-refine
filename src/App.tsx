@@ -57,7 +57,12 @@ import QianDaoPage from "./pages/qian-dao/qian-dao";
 // import XinZiShow from "./pages/xin-zi/show";
 import GongShiList from "./pages/gong-shi/list_table";
 import ZhuYe from "./pages/zhu-ye/zhu-ye";
-import { SampleList,SampleCreate,SampleEdit,SampleShow } from "./pages/Inferencer_example";
+import {
+  SampleList,
+  SampleCreate,
+  SampleEdit,
+  SampleShow,
+} from "./pages/Inferencer_example";
 import {
   ShowWorkType,
   EditWorkType,
@@ -77,102 +82,117 @@ import {
   IconBriefcase,
   IconCode,
 } from "@tabler/icons-react";
-import { SalaryTypeList,SalaryTypeCreate,SalaryTypeEdit,SalaryTypeShow } from "./pages/xin-zi";
+import {
+  SalaryTypeList,
+  SalaryTypeCreate,
+  SalaryTypeEdit,
+  SalaryTypeShow,
+} from "./pages/xin-zi";
 import { GlobalHelp } from "./components/GlobalHelp";
 const pb = new PocketBase(__BACKEND_API_URL__);
-function get_sample_resource_or_route(type: "resource" | "route",location:"front"|"behind") {
+function get_sample_resource_or_route(
+  type: "resource" | "route",
+  location: "front" | "behind"
+) {
   if (import.meta.env.PROD) {
     if (type === "resource") {
       return [];
     } else if (type === "route") {
       return;
     }
-    
   } else if (type === "resource") {
-    if (location === "front"){
-    return [
-      {
-        name: "blog_posts",
-        list: "/blog-posts",
-        create: "/blog-posts/create",
-        edit: "/blog-posts/edit/:id",
-        show: "/blog-posts/show/:id",
-        meta: {
-          canDelete: true,
-          dataProviderName: "example",
-          icon: <IconList />,
+    if (location === "front") {
+      return [
+        {
+          name: "blog_posts",
+          list: "/blog-posts",
+          create: "/blog-posts/create",
+          edit: "/blog-posts/edit/:id",
+          show: "/blog-posts/show/:id",
+          meta: {
+            canDelete: true,
+            dataProviderName: "example",
+            icon: <IconList />,
+          },
         },
-      },
-      {
-        name: "categories",
-        list: "/categories",
-        create: "/categories/create",
-        edit: "/categories/edit/:id",
-        show: "/categories/show/:id",
-        meta: {
-          canDelete: true,
-          dataProviderName: "example",
-          icon: <IconList />,
+        {
+          name: "categories",
+          list: "/categories",
+          create: "/categories/create",
+          edit: "/categories/edit/:id",
+          show: "/categories/show/:id",
+          meta: {
+            canDelete: true,
+            dataProviderName: "example",
+            icon: <IconList />,
+          },
         },
-      },
-    ];}
-    else if (location === "behind"){return [                    {
-      name: "测试页面",
-      list: "/test-page",
-      // create: "/test-page/create",
-      meta: {
-        dataProviderName: undefined,
-        icon: <IconMicroscope />,
-        hide: !import.meta.env.DEV,
-      },
-    },
-    {
-      name: "Inferencer生成",
-      list: "/Inferencer_example",
-      create: "/Inferencer_example/create",
-      edit: "/Inferencer_example/edit/:id",
-      show: "/Inferencer_example/show/:id",
-      meta:{
-        icon:<IconCode />,
-        hide: !import.meta.env.DEV,
-      }
-    }]}
+      ];
+    } else if (location === "behind") {
+      return [
+        {
+          name: "测试页面",
+          list: "/test-page",
+          // create: "/test-page/create",
+          meta: {
+            dataProviderName: undefined,
+            icon: <IconMicroscope />,
+            hide: !import.meta.env.DEV,
+          },
+        },
+        {
+          name: "Inferencer生成",
+          list: "/Inferencer_example",
+          create: "/Inferencer_example/create",
+          edit: "/Inferencer_example/edit/:id",
+          show: "/Inferencer_example/show/:id",
+          meta: {
+            icon: <IconCode />,
+            hide: !import.meta.env.DEV,
+          },
+        },
+      ];
+    }
   } else if (type === "route") {
-    if (location === "front"){
-    return (
-      <>
-        <Route path="/blog-posts">
-          <Route index element={<BlogPostList />} />
-          <Route path="create" element={<BlogPostCreate />} />
-          <Route path="edit/:id" element={<BlogPostEdit />} />
-          <Route path="show/:id" element={<BlogPostShow />} />
-        </Route>
-        <Route path="/categories">
-          <Route index element={<CategoryList />} />
-          <Route path="create" element={<CategoryCreate />} />
-          <Route path="edit/:id" element={<CategoryEdit />} />
-          <Route path="show/:id" element={<CategoryShow />} />
-        </Route>
-      </>
-    );}
-    else if (location === "behind"){return(<>                     <Route path="/test-page" element={<TestPage />} />
-      <Route path="/Inferencer_example">
-      <Route index element={<SampleList />} />
-      <Route path="create" element={<SampleCreate />} />
-      <Route path="edit/:id" element={<SampleEdit />} />
-      <Route path="show/:id" element={<SampleShow />} />
-      </Route></>)}
+    if (location === "front") {
+      return (
+        <>
+          <Route path="/blog-posts">
+            <Route index element={<BlogPostList />} />
+            <Route path="create" element={<BlogPostCreate />} />
+            <Route path="edit/:id" element={<BlogPostEdit />} />
+            <Route path="show/:id" element={<BlogPostShow />} />
+          </Route>
+          <Route path="/categories">
+            <Route index element={<CategoryList />} />
+            <Route path="create" element={<CategoryCreate />} />
+            <Route path="edit/:id" element={<CategoryEdit />} />
+            <Route path="show/:id" element={<CategoryShow />} />
+          </Route>
+        </>
+      );
+    } else if (location === "behind") {
+      return (
+        <>
+          {" "}
+          <Route path="/test-page" element={<TestPage />} />
+          <Route path="/Inferencer_example">
+            <Route index element={<SampleList />} />
+            <Route path="create" element={<SampleCreate />} />
+            <Route path="edit/:id" element={<SampleEdit />} />
+            <Route path="show/:id" element={<SampleShow />} />
+          </Route>
+        </>
+      );
+    }
   }
 }
-const customTitleHandler = ({ resource, action, params,pathname, autoGeneratedTitle}:{
-  // DocumentTitleHandler是比useDocumentTitle强大与方便的多的文档标题处理器
+const customTitleHandler = ({
+    // DocumentTitleHandler是比useDocumentTitle强大与方便的多的文档标题处理器
   // https://refine.dev/docs/routing/integrations/react-router/#properties-3
-  resource: IResourceItem;
-  action?: Action;
-  params?: Record<string, string | undefined>;
-  pathname?: string;
-  autoGeneratedTitle: string;
-}) => {
+  resource,
+  action,
+}: { resource?: IResourceItem | undefined; action?: Action | undefined; params?: Record<string, string | undefined> | undefined; pathname?: string | undefined; autoGeneratedTitle: string; }) => {
   let title = __SystemName__; // Default title
 
   const actionPrefixMatcher = {
@@ -182,7 +202,7 @@ const customTitleHandler = ({ resource, action, params,pathname, autoGeneratedTi
     show: `现实中 `,
     list: "",
   };
-  const identifier=resource.meta?.label ?? resource.name;
+  const identifier = resource?.meta?.label ?? resource?.name;
   if (action) {
     title = `${identifier} ${actionPrefixMatcher[action]}| ${__SystemName__}`;
   }
@@ -204,10 +224,11 @@ function App() {
                     default: pocketbaseDataProvider(pb),
                     example: dataProvider("https://api.fake-rest.refine.dev"),
                   }}
+                  // eslint-disable-next-line react-compiler/react-compiler
                   notificationProvider={useNotificationProvider}
                   routerProvider={routerBindings}
                   resources={[
-                    ...get_sample_resource_or_route("resource","front"),
+                    ...get_sample_resource_or_route("resource", "front")  as IResourceItem[],
                     {
                       name: "zhuye",
                       list: "/zhuye",
@@ -291,7 +312,7 @@ function App() {
                         icon: <IconLockSquareRounded />,
                       },
                     },
-                    ...get_sample_resource_or_route("resource","behind"),
+                    ...get_sample_resource_or_route("resource", "behind") as IResourceItem[],
                   ]}
                   options={{
                     syncWithLocation: true,
@@ -339,7 +360,7 @@ function App() {
                         index
                         element={<NavigateToResource resource="zhuye" />}
                       />
-                      {get_sample_resource_or_route("route","front")}
+                      {get_sample_resource_or_route("route", "front") as React.ReactNode}
                       <Route path="/zhuye">
                         <Route index element={<ZhuYe />} />
                       </Route>
@@ -385,7 +406,7 @@ function App() {
                       <Route path="/pocketbase">
                         <Route index element={<PocketBasePage />} />
                       </Route>
-                      {get_sample_resource_or_route("route","behind")}
+                      {get_sample_resource_or_route("route", "behind") as React.ReactNode}
                       <Route path="*" element={<ErrorComponent />} />
                     </Route>
                   </Routes>
@@ -393,8 +414,6 @@ function App() {
                   <RefineKbar />
                   <UnsavedChangesNotifier />
                   <DocumentTitleHandler handler={customTitleHandler} />;
-
-
                 </Refine>
                 <DevtoolsPanel />
               </DevtoolsProvider>

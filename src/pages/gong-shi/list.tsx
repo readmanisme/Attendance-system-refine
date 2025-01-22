@@ -1,31 +1,26 @@
 import { List as LList, useSimpleList } from "@refinedev/antd";
-import { Line } from "@ant-design/plots";
 import {
   Card,
   Collapse,
   CollapseProps,
-  Pagination,
-  Select,
   Tag,
   List,
   Button,
   Space,
-  Drawer,
   Popconfirm,
 } from "antd";
-import { useList } from "@refinedev/core";
+import { CrudFilter, useList } from "@refinedev/core";
 import dayjs from "dayjs";
 import * as XLSX from "xlsx";
 import PocketBase from "pocketbase";
 import PySearchSelect from "@/components/PySearchSelect";
-import { useEffect, useRef, useState } from "react";
-import Paragraph from "antd/es/typography/Paragraph";
+import { useRef, useState } from "react";
 
 export default function GongShiList() {
   const PySearchSelectValue = useRef([]);
-  const get_select_filter = (value) => {
+  const get_select_filter = (value: { value: string; label: string }[]) => {
     const list = value?.map((item) => item?.value);
-    const filters = [];
+    const filters:CrudFilter[] = [];
     list?.forEach((id) => {
       filters.push({
         field: "id",
@@ -47,7 +42,7 @@ export default function GongShiList() {
   const get_month_view_filter = () => {
     const data = listProps.dataSource;
     const ids = data?.map((item) => item.id);
-    const filters = [];
+    const filters:CrudFilter[] = [];
     ids?.forEach((id) => {
       filters.push({
         field: "worker_id",
@@ -140,13 +135,13 @@ export default function GongShiList() {
 
     const workerDetails =
       listProps.dataSource?.reduce((acc, worker) => {
-        acc[worker.id] = worker.name;
+        acc[worker.id!] = worker.name;
         return acc;
       }, {}) ?? {};
 
     const workTypeDetails =
       workType_test_data?.data?.reduce((acc, workType) => {
-        acc[workType.id] = workType.name;
+        acc[workType.id!] = workType.name;
         return acc;
       }, {}) ?? {};
 
@@ -174,17 +169,6 @@ export default function GongShiList() {
       });
     };
 
-    // const nestItems: CollapseProps["items"] = day_records.map((record) => ({
-    //   key: record.work_date,
-    //   label: (
-    //     <p>
-    //       此人在 {record.work_date} 日工作了{" "}
-    //       <Tag color="blue">{record.total_work_hours}</Tag> 小时
-    //     </p>
-    //   ),
-    //   children: <List size="small">{getNestedList(record.work_date)}</List>,
-    //   extra: <p>展开以查看详情</p>,
-    // }));
     const getnestItems = (work_month: string) => {
       const records =
         day_records?.filter((record) =>
@@ -301,7 +285,6 @@ export default function GongShiList() {
     XLSX.writeFile(wb, "工时记录.xlsx");
     setIsExportLoading(false);
   };
-  const [helpOpen, setHelpOpen] = useState(false);
   return (
     <LList
       headerButtons={({ defaultButtons }) => (

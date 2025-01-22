@@ -1,21 +1,12 @@
-import axios from "axios";
-import { useEffect, useState } from "react";
-import { useInterval } from "@mantine/hooks";
-import { Chart } from "@antv/g2";
-import { SwitchDataRange } from "@/components/SwitchDataRange";
+import { useState } from "react";
 import { Alert, Button, message } from "antd";
 import _ from "lodash";
-import { zh_CN, fakerZH_CN as faker } from "@faker-js/faker";
+import { fakerZH_CN as faker } from "@faker-js/faker";
 import PocketBase from "pocketbase";
 import dayjs from "dayjs";
-import { TestPage2 } from "./test-page-2";
-import { useResource } from "@refinedev/core";
 import { TestPage3 } from "./tp3";
 const pb = new PocketBase(__BACKEND_API_URL__);
 export function TestPage() {
-  const [messageApi, contextHolder] = message.useMessage();
-
-  const [health, setHealth] = useState<"good" | "bad" | "unknown">("unknown");
   const 集合 = {
     考勤记录: __AttendanceRecord_TableName,
     工人: __Workers_TableName,
@@ -55,10 +46,10 @@ export function TestPage() {
     const workers_2 = await pb.collection(集合["工人"]).getFullList();
     set_status("开始插入工作类型数据");
     const workType_test_data = () => {
-      let workTypes = ["浇水", "移苗", "加工", "清理", "施肥", "割草"];
-      workTypes = workTypes.map((item) => ({ name: item }));
+      const workTypes = ["浇水", "移苗", "加工", "清理", "施肥", "割草"];
+      const workTypes_new = workTypes.map((item) => ({ name: item }));
       // faker.preson.jobType()还没有本地化
-      return workTypes;
+      return workTypes_new;
     };
     for (const workType of workType_test_data()) {
       const record = await pb.collection(集合["工作类型"]).create(workType);
@@ -121,7 +112,7 @@ export function TestPage() {
             });
             attendance_records.push({
               worker_id: worker_id,
-              work: _.sample(workType_2).id,
+              work: _.sample(workType_2)?.id,
               check_in: check_in,
               check_out: check_out,
             });
@@ -168,13 +159,13 @@ export function TestPage() {
             });
             attendance_records.push({
               worker_id: worker_id,
-              work: _.sample(workType_2).id,
+              work: _.sample(workType_2)?.id,
               check_in: check_in_1,
               check_out: check_out_1,
             });
             attendance_records.push({
               worker_id: worker_id,
-              work: _.sample(workType_2).id,
+              work: _.sample(workType_2)?.id,
               check_in: check_in_2,
               check_out: check_out_2,
             });
@@ -241,19 +232,19 @@ export function TestPage() {
             });
             attendance_records.push({
               worker_id: worker_id,
-              work: _.sample(workType_2).id,
+              work: _.sample(workType_2)?.id,
               check_in: check_in_1,
               check_out: check_out_1,
             });
             attendance_records.push({
               worker_id: worker_id,
-              work: _.sample(workType_2).id,
+              work: _.sample(workType_2)?.id,
               check_in: check_in_2,
               check_out: check_out_2,
             });
             attendance_records.push({
               worker_id: worker_id,
-              work: _.sample(workType_2).id,
+              work: _.sample(workType_2)?.id,
               check_in: check_in_3,
               check_out: check_out_3,
             });
@@ -269,12 +260,7 @@ export function TestPage() {
     }
     set_status("数据插入完成");
   };
-  const backend_prepare_database = async () => {
-    const pb = new PocketBase(__BACKEND_API_URL__);
-    await pb.collection("_superusers").authWithPassword(__Backend_UserName__, __Backend_Password__);
-    // 可以通过导出和导入快速创建数据库，所以这个东西就不要了
-    // 另外，文档中没有描述关系型字段如何创建，可以在导出部分看到关系型字段是如何定义的
-  }
+
 
   return (
     <div>
@@ -284,15 +270,6 @@ export function TestPage() {
       <h1 className="text-4xl font-bold text-blue-500">
         TailwindCSS 安装检测，此处文字应该是蓝色
       </h1>
-      {/* 显示健康状态 */}
-      <div className="mt-4">
-        <p>
-          PocketBase 健康状态：
-          {health === "good" && <span className="text-green-500">健康</span>}
-          {health === "bad" && <span className="text-red-500">不健康</span>}
-          {health === "unknown" && <span className="text-gray-500">未知</span>}
-        </p>
-        <div id="container" />
         <Button onClick={gen_and_push_fake_data}
         disabled={true}
         >
@@ -306,6 +283,5 @@ export function TestPage() {
           showIcon
         />
       </div>
-    </div>
   );
 }

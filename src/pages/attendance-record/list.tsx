@@ -6,13 +6,10 @@ import {
   ShowButton,
   useTable,
 } from "@refinedev/antd";
-import { useList, type BaseRecord } from "@refinedev/core";
+import { CrudFilter, type BaseRecord } from "@refinedev/core";
 import {
   Space,
   Table,
-  Switch,
-  Typography,
-  Button,
   TableProps,
   DatePicker,
 } from "antd";
@@ -43,7 +40,7 @@ export const AttendanceRecordList = () => {
     },
     filters: {
       // 这里operator是null的实际是不等于null，nnull实际上是等于null
-      permanent:datePickerFilter,
+      permanent:datePickerFilter as CrudFilter[],
       defaultBehavior: "replace",
     },
   });
