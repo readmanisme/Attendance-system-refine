@@ -25,3 +25,5 @@ _.njsproj
 _.sln
 \*.sw?
 *.png
+cloc-2.02.exe
+/.VSCodeCounter

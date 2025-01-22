@@ -20,10 +20,12 @@ export const SalaryTypeCreate = () => {
     <Create saveButtonProps={saveButtonProps}>
       <Form {...formProps} layout="vertical">
         <Form.Item label="工人" name={["worker_name"]}>
-          <Select {...nameSelectProps} />
+          <Select {...nameSelectProps} 
+          allowClear
+          />
         </Form.Item>
         <Form.Item label="工种" name={["work_type"]}>
-          <Select {...TypeSelectProps} />
+          <Select {...TypeSelectProps} allowClear />
         </Form.Item>
         <Form.Item label="时薪" name={["SalaryNum"]}>
           <InputNumber />

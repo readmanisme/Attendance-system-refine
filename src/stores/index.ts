@@ -26,7 +26,9 @@ export const useSomeStore = create<SomeState>()(
           set({ recordDateRange: [start ?? dayjs().startOf('month').format('YYYY-MM-DD'), end ?? dayjs().endOf('month').format('YYYY-MM-DD')] }),
         setColorMode: (mode: "light" | "dark") => set({ colorMode: mode }),
         // GongShiData:dayjs().startOf('month').format('YYYY-MM'),
-        GongShiData:[dayjs("2024-05-05").startOf('month').format('YYYY-MM')],
+              GongShiData: import.meta.env.PROD 
+               ? [dayjs().startOf('month').format('YYYY-MM'), dayjs().endOf('month').format('YYYY-MM')] // 生产环境下的初始值
+              : [dayjs("2024-05-05").startOf('month').format('YYYY-MM'), dayjs("2024-05-05").endOf('month').format('YYYY-MM')], // 开发环境下的初始值
         setGongShiData: (data: string[]) => set({ GongShiData: data }),
       }),
       {
