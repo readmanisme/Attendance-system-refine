@@ -1,10 +1,9 @@
 import React from "react";
 import { Create, useForm } from "@refinedev/antd";
-import { Form, Input, DatePicker } from "antd";
-import dayjs from "dayjs";
+import { Form, Input } from "antd";
 
 export const CreateWorkType = () => {
-    const { formProps, saveButtonProps, query } = useForm();
+    const { formProps, saveButtonProps } = useForm();
 
     return (
         <Create saveButtonProps={saveButtonProps}>

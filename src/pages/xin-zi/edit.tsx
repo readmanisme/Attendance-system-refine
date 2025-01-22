@@ -1,17 +1,14 @@
-import React from "react";
 import { Edit, useForm, useSelect } from "@refinedev/antd";
-import { Form, Input, DatePicker, Select, InputNumber } from "antd";
-import dayjs from "dayjs";
+import { Form, Input, Select, InputNumber } from "antd";
 
 export const SalaryTypeEdit = () => {
-  const { formProps, saveButtonProps, query } = useForm({
+  const { formProps, saveButtonProps } = useForm({
     resource: __SalaryType_TableName,
     meta: {
       expand: ["worker_name", "work_type"],
     },
   });
 
-  const Data = query?.data?.data;
     const { selectProps: nameSelectProps } = useSelect({
       resource: __Workers_TableName,
       optionLabel: "name",

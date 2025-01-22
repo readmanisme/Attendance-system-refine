@@ -7,7 +7,7 @@ import { useState } from "react";
 export const GlobalHelp = () => {
   const { resource } = useResource();
   // 值得注意，由于使用到了useResource这个用到react routerdom的hook，所以需要在路由组件包裹下使用，否则无效
-  const helps = {
+  const helps: Record<string, React.ReactNode> = {
     主页: "显示首页",
     人员签到: (
       <>

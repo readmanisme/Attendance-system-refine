@@ -8,10 +8,9 @@ import {
   theme,
   Typography,
 } from "antd";
-import { Switch as ManSwitch } from "@mantine/core";
 import React, { useContext } from "react";
 import { ColorModeContext } from "../../contexts/color-mode";
-import { IconMoon, IconMoonFilled, IconSun, IconSunFilled } from "@tabler/icons-react";
+import {  IconMoonFilled, IconSunFilled } from "@tabler/icons-react";
 
 const { Text } = Typography;
 const { useToken } = theme;

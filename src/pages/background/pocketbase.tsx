@@ -1,14 +1,11 @@
 import React from "react";
 import { List } from "@refinedev/antd";
-import { Button, Drawer } from "antd";
-import Paragraph from "antd/es/typography/Paragraph";
 // import "@iframe-resizer/child";
 // import IframeResizer from '@iframe-resizer/parent'
 
 export default function PocketBasePage() {
   // 这里显示pocketbase的后台，即http://127.0.0.1:8090
   const [iframeUrl, setIframeUrl] = React.useState(__BACKEND_Admin_URL__);
-  const [helpOpen, setHelpOpen] = React.useState(false);
   return (
     <List
 

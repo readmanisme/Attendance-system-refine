@@ -1,12 +1,8 @@
-import React from "react";
 import { Edit, useForm } from "@refinedev/antd";
-import { Form, Input, DatePicker } from "antd";
-import dayjs from "dayjs";
+import { Form, Input } from "antd";
 
 export const EditWorkType = () => {
-    const { formProps, saveButtonProps, query } = useForm();
-
-    const Data = query?.data?.data;
+    const { formProps, saveButtonProps } = useForm();
 
     return (
         <Edit saveButtonProps={saveButtonProps}>

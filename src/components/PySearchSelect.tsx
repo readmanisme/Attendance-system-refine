@@ -13,7 +13,7 @@ export default function PySearchSelect({
   onChangeFn: (value: { value: string; label: string }) => void;
   options: DefaultOptionType[] | null;
   placeholder?: string;
-  onClearFn: () => void;
+  onClearFn?: () => void;
 }) {
   // onChangeFn用于接收选择的选项以做他用
   // options用于提供选项列表,默认是工人列表
@@ -69,11 +69,14 @@ export default function PySearchSelect({
     resource: __Workers_TableName,
     pagination: { mode: "off" },
   });
-  if (options === null) {
+  if (options === null &&raw_workers && raw_workers.data) {
     options = raw_workers?.data.map((worker) => ({
       label: worker.name,
       value: worker.id,
     }));
+  }
+  else{
+    options = [];
   }
   return (
     <Select
@@ -84,7 +87,7 @@ export default function PySearchSelect({
       optionFilterProp="label"
       style={{ width: 180 }}
       filterOption={(input, option) => {
-        return SelectSearchPingying(input, option);
+        return SelectSearchPingying(input, option as{ label: string; value: string });
       }}
       options={options}
       // onChange={(value) => {
@@ -102,7 +105,7 @@ export default function PySearchSelect({
       optionRender={(option) => {
         return (
           <Highlight highlight={HighlightWord.current}>
-            {option.label}
+            {option.label as string}
           </Highlight>
         );
       }}

@@ -1,4 +1,3 @@
-import React from "react";
 import { BaseRecord } from "@refinedev/core";
 import {
     useTable,
@@ -6,11 +5,9 @@ import {
     EditButton,
     ShowButton,
     DeleteButton,
-    DateField,
     CreateButton,
 } from "@refinedev/antd";
-import { Table, Space, Button, Drawer } from "antd";
-import Paragraph from "antd/es/typography/Paragraph";
+import { Table, Space } from "antd";
 
 export const ListWorkType = () => {
     const { tableProps } = useTable({

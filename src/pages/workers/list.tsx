@@ -8,12 +8,13 @@ import {
   SaveButton,
 } from "@refinedev/antd";
 import type { BaseRecord } from "@refinedev/core";
-import { Form, Input, Space, Table,Alert  } from "antd";
+import { Form, Input, Space, Table  } from "antd";
 
 export const WorkersList = () => {
   const { tableProps, searchFormProps } = useTable({
     syncWithLocation: true,
-    onSearch: (values) => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    onSearch: (values:any) => {
       return [
         {
           field: "name",

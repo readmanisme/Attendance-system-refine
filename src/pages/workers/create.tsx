@@ -1,9 +1,7 @@
-import { el } from "@faker-js/faker/.";
 import { Create, SaveButton, useForm } from "@refinedev/antd";
 import { useCreateMany, useGo, useList, useResource } from "@refinedev/core";
 import {
   Alert,
-  Button,
   ConfigProvider,
   Form,
   Input,
@@ -13,11 +11,9 @@ import {
 import { useState } from "react";
 export const WorkersCreate = () => {
   const { formProps, saveButtonProps } = useForm({});
-  const { resources, resource } = useResource();
+  const {  resource } = useResource();
   const {
     data: namelist,
-    isLoading,
-    isError,
   } = useList({
     resource: resource?.name,
     pagination: {
@@ -28,11 +24,11 @@ export const WorkersCreate = () => {
   const go = useGo();
   const { mutate } = useCreateMany({
     resource: resource?.name,
-    successNotification(data, values, resource) {
+    successNotification(_data, _values, resource) {
       // console.log("mutate success", data, values, resource);
       go({
         to: {
-          resource: resource,
+          resource: resource!,
           action: "list",
         },
         type: "push",
@@ -96,7 +92,7 @@ export const WorkersCreate = () => {
   const [status, setStatus] = useState<"success" | "error" | "unknown">(
     "unknown"
   );
-  const [ErrorMsg, setErrorMsg] = useState("");
+  const [ErrorMsg, setErrorMsg] = useState<React.ReactNode|string>("");
   function handle_textarea_change(event: any) {
     let value = "";
     if (event === null) {
@@ -127,7 +123,7 @@ export const WorkersCreate = () => {
       let exist_names = names_list.filter((name) => names.includes(name));
       const new_names = names.filter((name) => !exist_names.includes(name));
       // 检查new_names里面自身有没有重复的名字，有的话加入到exist_names中
-      let duplicates = new_names.filter(
+      const duplicates = new_names.filter(
         (name, index) => new_names.indexOf(name) !== index
       );
       exist_names = exist_names.concat(duplicates);
@@ -274,7 +270,7 @@ export const WorkersCreate = () => {
           value={luru_type}
           onChange={(value) => {
             // console.log(value); // string
-            setLuruType(value);
+            setLuruType(value as "单人录入" | "批量录入");
             setStatus("unknown");
             setErrorMsg("");
             handle_textarea_change(null);

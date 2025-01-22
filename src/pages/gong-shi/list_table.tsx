@@ -9,8 +9,8 @@ import {
   Alert,
 } from "antd";
 const { RangePicker } = DatePicker;
-import { useList } from "@refinedev/core";
-import dayjs from "dayjs";
+import { CrudFilter, useList } from "@refinedev/core";
+import dayjs, { Dayjs } from "dayjs";
 import * as XLSX from "xlsx";
 import PocketBase from "pocketbase";
 import PySearchSelect from "@/components/PySearchSelect";
@@ -23,9 +23,9 @@ export default function GongShiList() {
   const [SalaryLoading, setSalaryLoading] = useState(true);
   const { GongShiData, setGongShiData } = useSomeStore();
   // const [GongShiData, setGongShiData]=useState([dayjs("2024-05-05").startOf('month').format('YYYY-MM')])
-  const get_select_filter = (value) => {
+  const get_select_filter = (value: { value: string; label: string }[]) => {
     const list = value?.map((item) => item?.value);
-    const filters = [];
+    const filters:CrudFilter[] = [];
     list?.forEach((id) => {
       filters.push({
         field: "id",
@@ -42,7 +42,7 @@ export default function GongShiList() {
       defaultBehavior: "replace",
     },
   });
-  const get_month_view_filter = (type) => {
+  const get_month_view_filter = (type: "month" | "day" | "a") => {
     const data = tableProps.dataSource;
     const ids = data?.map((item) => item.id);
 
@@ -165,7 +165,7 @@ export default function GongShiList() {
     queryOptions: {
       enabled: !tableProps.loading,
     },
-    filters: [get_month_view_filter("month")],
+    filters: [get_month_view_filter("month") as CrudFilter],
     pagination: {
       mode: "off",
     },
@@ -179,7 +179,7 @@ export default function GongShiList() {
     queryOptions: {
       enabled: !tableProps.loading,
     },
-    filters: [get_month_view_filter("day")],
+    filters: [get_month_view_filter("day") as CrudFilter],
     pagination: {
       mode: "off",
     },
@@ -193,7 +193,7 @@ export default function GongShiList() {
     queryOptions: {
       enabled: !tableProps.loading,
     },
-    filters: [get_month_view_filter("a")],
+    filters: [get_month_view_filter("a") as CrudFilter],
     pagination: {
       mode: "off",
     },
@@ -211,7 +211,9 @@ export default function GongShiList() {
   const workerDetails = useMemo(() => {
     return (
       tableProps.dataSource?.reduce((acc, worker) => {
-        acc[worker.id] = worker.name;
+        if (worker.id !== undefined) { // 添加条件判断
+          acc[worker.id] = worker.name;
+        }
         return acc;
       }, {}) ?? {}
     );
@@ -220,7 +222,9 @@ export default function GongShiList() {
   const workTypeDetails = useMemo(() => {
     return (
       workType_test_data?.data?.reduce((acc, workType) => {
+        if (workType.id !== undefined) { // 添加条件判断
         acc[workType.id] = workType.name;
+        }
         return acc;
       }, {}) ?? {}
     );
@@ -237,20 +241,12 @@ export default function GongShiList() {
   const listProps_work_type = listProps?.dataSource?.map(
     (item) => item.expand.work_type.name
   );
-  if (!listProps.loading&&!listProps_work_type?.includes("基础")) {
-    return (
-      <Alert
-        message="基础工资类型不存在，请添加"
-        type="error"
-        showIcon
-        description="如果基础工作类型不存在，请添加基础工作类型，并设置其对应的工资。"
-      />
-    );
-  }
+
   // const dataSource = listProps?.dataSource;
   // console.log("dataSource", listProps?.dataSource);
   // const SalaryLoading=useRef(false);
   // const [SalaryLoading, setSalaryLoading] = useState(false);
+
   const SalaryDict = useMemo(() => {
     // setSalaryLoading(true);
     // SalaryLoading.current=true;
@@ -277,7 +273,7 @@ export default function GongShiList() {
   }, [listProps?.dataSource]);
   // const SalaryDict = GetSalaryDict();
   // console.dir(SalaryDict);
-  const MatchSalary = useMemo(() => ({}), []);
+  const MatchSalary:{[key:string]:string} = useMemo(() => ({}), []);
   const DayDuringSalaryDict = useMemo(() => {
     if (_.isEmpty(SalaryDict)) return {};
     return (
@@ -301,8 +297,8 @@ export default function GongShiList() {
             : "基础";
         const matchValue = salaryKey + ":" + SalaryDict[salaryKey];
         // 如果不在MatchSalary中，就添加
-        if (!MatchSalary[dbID]) {
-          MatchSalary[dbID] = matchValue;
+        if (!MatchSalary[dbID!]) {
+          MatchSalary[dbID!] = matchValue;
         }
 
         dict[key] = Decimal.mul(duration, SalaryDict[salaryKey]);
@@ -317,10 +313,10 @@ export default function GongShiList() {
     workerDetails,
   ]);
   // const day_during_SalaryDict = Get_day_during_SalaryDict();
-  const DaySalaryDict = useMemo(() => {
+  const DaySalaryDict:{[key:string]:{[key:string]:Decimal}} = useMemo(() => {
     if (_.isEmpty(DayDuringSalaryDict)) return {};
     return Object.entries(DayDuringSalaryDict).reduce(
-      (aggregatedDict, [key, salary]) => {
+      (aggregatedDict: {[key:string]:{[key:string]:Decimal}}, [key, salary]) => {
         const [workerName, workName, day] = key.split("_");
         aggregatedDict[workerName] = aggregatedDict[workerName] || {};
         aggregatedDict[workerName][day] =
@@ -336,7 +332,7 @@ export default function GongShiList() {
   const MonthSalaryDict = useMemo(() => {
     if (_.isEmpty(DaySalaryDict)) return {};
     return Object.entries(DaySalaryDict).reduce(
-      (monthlySalaryDict, [workerName, dailySalaries]) => {
+      (monthlySalaryDict: {[key:string]:{[key:string]:Decimal}}, [workerName, dailySalaries]) => {
         monthlySalaryDict[workerName] = Object.entries(dailySalaries).reduce(
           (monthlySalaries, [day, salary]) => {
             const month = day.slice(0, 7);
@@ -361,6 +357,7 @@ export default function GongShiList() {
     // if (!tableProps.loading){
     //   console.log("别的",listProps)
     // }
+    // @ts-expect-error,这里MonthSalaryDict在不知道什么情况下会存在undefined的key
     if (!_.isEmpty(MonthSalaryDict) && !(undefined in MonthSalaryDict)) {
       // console.log("MonthSalaryDict", MonthSalaryDict)
       setSalaryLoading(false);
@@ -395,11 +392,11 @@ export default function GongShiList() {
     });
     const workers = await pb.collection(集合.工人).getFullList();
     const workTypes = await pb.collection(集合.工作类型).getFullList();
-    const workerDetails = workers.reduce((acc, worker) => {
+    const workerDetails = workers.reduce((acc: Record<string, string>, worker) => {
       acc[worker.id] = worker.name;
       return acc;
     }, {});
-    const workTypeDetails = workTypes.reduce((acc, workType) => {
+    const workTypeDetails = workTypes.reduce((acc: Record<string, string>, workType) => {
       acc[workType.id] = workType.name;
       return acc;
     }, {});
@@ -465,7 +462,7 @@ export default function GongShiList() {
       // );
       const xinzi = attendance_records.reduce(
         (acc, record) => Decimal.add(acc, record.薪资),
-        0
+        new Decimal(0)
       );
       return {
         序号: record.id,
@@ -491,7 +488,7 @@ export default function GongShiList() {
       // );
       const xinzi = work_hours_day_records.reduce(
         (acc, record) => Decimal.add(acc, record.薪资),
-        0
+        new Decimal(0)
       );
       return {
         序号: record.id,
@@ -519,8 +516,7 @@ export default function GongShiList() {
     XLSX.writeFile(wb, "工时记录.xlsx");
     setIsExportLoading(false);
   };
-  const [helpOpen, setHelpOpen] = useState(false);
-  const TableExpandedRowRender = (record, index, indent, expanded) => {
+  const TableExpandedRowRender = (record: { id: string,name:string }, index:number, indent:number, expanded:boolean) => {
     const item = record;
     // 这里的item是worker
     const month_records =
@@ -567,7 +563,7 @@ export default function GongShiList() {
         key: "xinzi",
       },
     ];
-    const expandedRowRender_d2 = (record, index, indent, expanded) => {
+    const expandedRowRender_d2 = (record:{worker:string,month:string,total_work_hours:string,xinzi:string}, index:number, indent:number, expanded:boolean) => {
       // d2,表示depth 2，第二层
       const item = record;
       const work_month = item.month;
@@ -615,7 +611,7 @@ export default function GongShiList() {
           key: "xinzi",
         },
       ];
-      const expandedRowRender_d3 = (record, index, indent, expanded) => {
+      const expandedRowRender_d3 = (record:{worker:string,date:string,total_work_hours:string,xinzi:string}, index:number, indent:number, expanded:boolean) => {
         const work_date = record.date;
         const records =
           attendance_records?.filter((record) =>
@@ -637,7 +633,7 @@ export default function GongShiList() {
               check_out.diff(check_in),
               1000 * 60 * 60
             ).toString(),
-            matchvalue: MatchSalary[dbID],
+            matchvalue: MatchSalary[dbID!],
             xinzi:
               DayDuringSalaryDict[
                 worker_name +
@@ -680,7 +676,7 @@ export default function GongShiList() {
             title: "薪资",
             dataIndex: "xinzi",
             key: "xinzi",
-            render: (value, record, index) => {
+            render: (value:any, record:any, index:number) => {
               return (
                 <Tooltip title={record.matchvalue}>
                   <span>{value}</span>
@@ -724,7 +720,18 @@ export default function GongShiList() {
       />
     );
   };
+  
   const [exportRange,setExportRange]=useState([dayjs().startOf("year"),dayjs().endOf("year")])
+  if (!listProps.loading&&!listProps_work_type?.includes("基础")) {
+    return (
+      <Alert
+        message="基础工资类型不存在，请添加"
+        type="error"
+        showIcon
+        description="如果基础工作类型不存在，请添加基础工作类型，并设置其对应的工资。"
+      />
+    );
+  }
   return (
     <LList
       headerButtons={({ defaultButtons }) => (
@@ -751,8 +758,9 @@ export default function GongShiList() {
                   <RangePicker
                     size="small"
                     picker="month"
-                    defaultValue={export_range.current}
-                    onChange={(date, dateString: string) => {
+                    defaultValue={export_range.current as [Dayjs, Dayjs]}
+                    // @ts-expect-error,有个看不太懂的错误，不管了
+                    onChange={(date: [Dayjs, Dayjs], dateString: string) => {
                       export_range.current = date;
                       setExportRange(date)
                     }}
@@ -794,8 +802,9 @@ export default function GongShiList() {
       /> */}
       {/* <Pagination defaultCurrent={1} total={50} /> */}
       <Table
-        key={GongShiData}
+        key={JSON.stringify(GongShiData)}
         // !!!通过强制重渲染避免在还未计算完成的时候取值导致错误
+        // 不加JSON.stringify似乎也能跑，他会自动转换
         {...tableProps}
         pagination={{
           ...tableProps.pagination,
@@ -809,6 +818,7 @@ export default function GongShiList() {
         rowKey="id"
         size="small"
         expandable={{
+          // @ts-expect-error,这里泛型很不好搞
           expandedRowRender: TableExpandedRowRender,
           expandRowByClick: true,
         }}
