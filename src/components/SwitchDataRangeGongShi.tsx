@@ -14,7 +14,6 @@ export const SwitchDataRangeGongShi = () => {
     ]);
   }
   const getDefaultValue = (type: "range" | "single") => {
-    console.log(type,GongShiData);
     if (type === "range") {
       if (GongShiData.length > 0) {
         return [dayjs(GongShiData[0]), dayjs(GongShiData[1])];

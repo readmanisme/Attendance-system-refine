@@ -48,6 +48,7 @@ export default function QianDaoPage() {
 
   const {
     data: raw_workers,
+    isLoading: loading_workers,
   } = useList({ resource: __Workers_TableName, pagination: { mode: "off" } });
   //   const workers = raw_workers?.data.map((item) => item.name);
   const workers = raw_workers?.data;
@@ -64,7 +65,7 @@ export default function QianDaoPage() {
     ],
   });
 
-  const { data: raw_todayRecord } = useList({
+  const { data: raw_todayRecord, isLoading: loading_todayRecord } = useList({
     resource: __AttendanceRecord_TableName,
     filters: [
       {
@@ -243,7 +244,7 @@ export default function QianDaoPage() {
       checkOutTime: worker.check_out,
       key: worker.id,
       worker_id: worker.worker_id,
-      workType: worker.expand.work.name,
+      workType: worker?.expand?.work?.name,
     };
   });
   const A_div_color = colorMode === "dark" ? "dark:bg-gray-800" : "bg-gray-50";
@@ -367,10 +368,11 @@ export default function QianDaoPage() {
                   setSelectValue(value?.label);
                   setSelectID(value?.value);
                 }}
-                options={workers?.map((worker) => ({
-                  label: worker.name,
-                  value: worker.id,
-                }))||[]}
+                options={null}
+                // options={workers?.map((worker) => ({
+                //   label: worker.name,
+                //   value: worker.id,
+                // }))||[]}
                 />
                 <AntdSelect
                   placeholder="请选择考勤类型"

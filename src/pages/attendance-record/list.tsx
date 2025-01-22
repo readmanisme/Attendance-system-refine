@@ -12,6 +12,8 @@ import {
   Table,
   TableProps,
   DatePicker,
+  Typography,
+  Switch,
 } from "antd";
 import dayjs from "dayjs";
 import { useEffect, useState } from "react";
@@ -66,25 +68,6 @@ export const AttendanceRecordList = () => {
     setFilteredInfo({});
     setSortedInfo({});
   };
-  // const {
-  //   data: names,
-  // } = useList({
-  //   resource: __Workers_TableName,
-  //   pagination: {
-  //     mode: "off",
-  //     // 此处只能是off,client无法获取全部内容
-  //   },
-  // });
-  // // 从names中取出id和name，构建字典
-  // const nameDict = {};
-  // if (names) {
-  //   names.data.map((item) => {
-  //     if (item.id && item.name) {
-  //       nameDict[item.id] = item.name;
-  //     }
-  //   });
-  // }
-  // console.log("names", names);
   const handleUnclockoutfilterChange = (checked: boolean) => {
     setUnclockoutfilter(checked);
   };
@@ -112,14 +95,13 @@ export const AttendanceRecordList = () => {
   };
   return (
     <List headerButtons={<CreateButton>添加记录</CreateButton>}>
-      {/* <pre>{JSON.stringify(use_get_date_picker_filter(), null, 2)}</pre> */}
-      {/* <div className="flex flex-row justify-center items-center ">
-        <Typography.Title level={5}>过滤未下班记录</Typography.Title>
+      <div className="flex flex-row justify-center items-center gap-2">
+        <div className="text-center">过滤未下班记录</div>
         <Switch
           checked={unclockoutfilter}
           onChange={handleUnclockoutfilterChange}
         />
-        <Button
+        {/* <Button
           onClick={() => {
             setFilters([
               {
@@ -145,8 +127,8 @@ export const AttendanceRecordList = () => {
           }}
         >
           取消表自带过滤
-        </Button>
-      </div> */}
+        </Button> */}
+      </div>
       <Space></Space>
       <SwitchDataRange />
       {/* <Table {...tableProps} rowKey="id" onChange={handleTableChange}> */}

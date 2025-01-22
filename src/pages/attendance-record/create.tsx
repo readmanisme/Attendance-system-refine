@@ -7,6 +7,10 @@ export const AttendanceRecordCreate = () => {
     resource: __Workers_TableName,
     optionLabel: "name",
   });
+  const { selectProps: workSelectProps } = useSelect({
+    resource: __WorkTypes_TableName,
+    optionLabel: "name",
+  });
   // console.log("nameSelectProps", nameSelectProps);
   return (
     <Create saveButtonProps={saveButtonProps} >
@@ -52,6 +56,17 @@ export const AttendanceRecordCreate = () => {
               // console.log('onOk: ', value);
             }}
           />
+        </Form.Item>
+        <Form.Item
+          label={"工作类型"}
+          name={["work"]}
+          rules={[
+            {
+              required: true,
+            },
+          ]}
+        >
+          <Select {...workSelectProps} allowClear />
         </Form.Item>
         <Form.Item
           label={"签出时间"}

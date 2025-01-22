@@ -17,8 +17,10 @@ export default defineConfig({
   //   setupFiles: './vitest.setup.mjs',
   // },
   define:{
-    __BACKEND_API_URL__: JSON.stringify('http://localhost:8090'),
-    __BACKEND_Admin_URL__: JSON.stringify('http://localhost:8090/_/'),
+    // __BACKEND_API_URL__: JSON.stringify('http://localhost:8090'),
+    // __BACKEND_Admin_URL__: JSON.stringify('http://localhost:8090/_/'),
+    __BACKEND_API_URL__: JSON.stringify('http://localhost:29401'),
+    __BACKEND_Admin_URL__: JSON.stringify('http://localhost:29401/_/'),
     __AttendanceRecord_TableName: JSON.stringify('attendance_record_test'),
     __Workers_TableName: JSON.stringify('workers_test'),
     __WorkTypes_TableName: JSON.stringify('workType_test'),

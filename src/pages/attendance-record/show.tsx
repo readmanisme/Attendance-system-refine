@@ -1,11 +1,16 @@
 import { Show, TextField, DateField } from "@refinedev/antd";
 import { useOne, useShow } from "@refinedev/core";
 import { Typography } from "antd";
+import { T } from "react-router/dist/development/fog-of-war-Ckdfl79L";
 
 const { Title } = Typography;
 
 export const AttendanceRecordShow = () => {
-  const { queryResult } = useShow({});
+  const { queryResult } = useShow({
+    meta:{
+      expand:["work"]
+    }
+  });
   const { data, isLoading } = queryResult;
 
   const record = data?.data;
@@ -29,6 +34,8 @@ export const AttendanceRecordShow = () => {
       <Title level={5}>{"上班时间"}</Title>
       {/* <DateField value={record?.check_in} /> */}
       <TextField value={record?.check_in} />
+      <Title level={5}>{"工作类型"}</Title>
+      <TextField value={record?.expand?.work?.name} />
       <Title level={5}>{"下班时间"}</Title>
       {/* <DateField value={record?.check_out} /> */}
       <TextField value={record?.check_out} />

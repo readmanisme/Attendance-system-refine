@@ -239,7 +239,7 @@ export default function GongShiList() {
     },
   });
   const listProps_work_type = listProps?.dataSource?.map(
-    (item) => item.expand.work_type.name
+    (item) => item.expand?.work_type?.name
   );
 
   // const dataSource = listProps?.dataSource;
@@ -722,6 +722,15 @@ export default function GongShiList() {
   };
   
   const [exportRange,setExportRange]=useState([dayjs().startOf("year"),dayjs().endOf("year")])
+  if (!Object.values(workTypeDetails).includes("基础")){
+    return (
+      <Alert
+        message="基础工作类型不存在，请添加"
+        type="error"
+        showIcon
+        description="如果基础工资类型不存在，也请添加基础工作后添加"
+      />)
+  }
   if (!listProps.loading&&!listProps_work_type?.includes("基础")) {
     return (
       <Alert
