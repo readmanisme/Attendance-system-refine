@@ -17,7 +17,7 @@ import routerBindings, {
   UnsavedChangesNotifier,
 } from "@refinedev/react-router";
 import dataProvider from "@refinedev/simple-rest";
-import { App as AntdApp } from "antd";
+import { App as AntdApp, Avatar, Space } from "antd";
 import { BrowserRouter, Outlet, Route, Routes } from "react-router";
 import { Header } from "./components/header";
 import { ColorModeContextProvider } from "./contexts/color-mode";
@@ -331,22 +331,32 @@ function App() {
                               collapsed={collapsed}
                               icon={
                                 collapsed ? (
-                                  <img
+                                  <Space
+                                  >
+                                  <Avatar
                                     src={logo}
                                     alt="Company Logo"
-                                    width={64}
-                                    height={64}
+                                    size="default"
+                                    // width={64}
+                                    // height={64}
                                   />
+                                  <div className="whitespace-nowrap text-zinc-700">{__SystemName__}</div>
+                                  </Space>
                                 ) : (
-                                  <img
+                                  <Space
+                                  >
+                                  <Avatar
                                     src={logo}
                                     alt="Company Logo"
-                                    width={64}
-                                    height={64}
+                                    size="large"
+                                    // width={64}
+                                    // height={64}
                                   />
+                                  <div className="whitespace-nowrap text-zinc-700">{__SystemName__}</div>
+                                  </Space>
                                 )
                               }
-                              text={__SystemName__}
+                              text={null}
                             />
                           )}
                           Header={() => <Header sticky />}

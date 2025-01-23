@@ -75,9 +75,9 @@ export default function PySearchSelect({
       value: worker.id,
     }));
   }
-  else{
-    options = [];
-  }
+  // else{
+  //   options = [];
+  // }
   return (
     <Select
       placeholder={placeholder}
@@ -89,7 +89,7 @@ export default function PySearchSelect({
       filterOption={(input, option) => {
         return SelectSearchPingying(input, option as{ label: string; value: string });
       }}
-      options={options}
+      options={options!}
       // onChange={(value) => {
       onChange={(value: { value: string; label: string }) => {
         HighlightWord.current = [];
