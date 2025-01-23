@@ -50,7 +50,7 @@ import {
   AttendanceRecordList,
   AttendanceRecordShow,
 } from "./pages/attendance-record";
-import { MantineProvider } from "@mantine/core";
+import { Badge, MantineProvider } from "@mantine/core";
 import logo from "@/public/logo.png";
 import QianDaoPage from "./pages/qian-dao/qian-dao";
 // import XinZiList from "./pages/xin-zi/list";
@@ -341,6 +341,7 @@ function App() {
                                     // height={64}
                                   />
                                   <div className="whitespace-nowrap text-zinc-700">{__SystemName__}</div>
+                                  <Badge color="blue" variant="light" style={{ width: 100 }}>v2025.1.23.10</Badge>
                                   </Space>
                                 ) : (
                                   <Space
@@ -353,6 +354,7 @@ function App() {
                                     // height={64}
                                   />
                                   <div className="whitespace-nowrap text-zinc-700">{__SystemName__}</div>
+                                  <Badge color="blue" variant="light" style={{ width: 100 }}>v2025.1.23.10</Badge>
                                   </Space>
                                 )
                               }
