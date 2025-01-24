@@ -27,3 +27,5 @@ _.sln
 *.png
 cloc-2.02.exe
 /.VSCodeCounter
+/.yarn
+.yarn/install-state.gz
