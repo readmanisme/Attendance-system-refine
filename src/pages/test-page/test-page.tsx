@@ -1,10 +1,9 @@
 import { useState } from "react";
-import { Alert, Button, message } from "antd";
+import { Alert, Button } from "antd";
 import _ from "lodash";
 import { fakerZH_CN as faker } from "@faker-js/faker";
 import PocketBase from "pocketbase";
 import dayjs from "dayjs";
-import { TestPage3 } from "./tp3";
 const pb = new PocketBase(__BACKEND_API_URL__);
 export function TestPage() {
   const 集合 = {
@@ -264,9 +263,6 @@ export function TestPage() {
 
   return (
     <div>
-      {/* <TestPage2 /> */}
-      {/* Test Page */}
-      < TestPage3 />
       <h1 className="text-4xl font-bold text-blue-500">
         TailwindCSS 安装检测，此处文字应该是蓝色
       </h1>
