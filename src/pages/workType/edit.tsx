@@ -44,7 +44,7 @@ export const EditWorkType = () => {
                     <Input readOnly disabled />
                 </Form.Item>
                 <Form.Item
-                    label="Type"
+                    label="工作名称"
                     name={["name"]}
                     rules={[
                         {

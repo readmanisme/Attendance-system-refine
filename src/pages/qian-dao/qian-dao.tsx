@@ -1,5 +1,4 @@
 import {
-  Select as AntdSelect,
   Space,
   Typography,
   Button as AntdButton,
@@ -523,7 +522,7 @@ export default function QianDaoPage() {
                 //   value: worker.id,
                 // }))||[]}
               />
-              <AntdSelect
+              <Select
                 placeholder="请选择考勤类型"
                 {...workTypeSelectProps}
                 style={{ width: 150 }}
@@ -581,6 +580,7 @@ export default function QianDaoPage() {
               {...WorkersSelectProps}
               // style={{ width: 200 }}
               className="w-full"
+              value={PiLiangNames}
               mode="multiple"
               allowClear
               labelInValue
@@ -591,12 +591,13 @@ export default function QianDaoPage() {
             />
             <Space>
               <Space direction="vertical">
-                <AntdSelect
+                <Select
                   placeholder="请选择考勤类型"
                   {...workTypeSelectProps}
                   style={{ width: 150 }}
                   allowClear
                   labelInValue
+                  value={work_type_value ? { value: work_type_value, label: work_type_value } : undefined}
                   onChange={(value: { value: string; label: string }) => {
                     set_work_type_value(value?.label);
                     set_work_type_id(value?.value);
@@ -605,6 +606,7 @@ export default function QianDaoPage() {
                 <DatePicker
                   showTime
                   style={{ width: 150 }}
+                  value={PiliangTime}
                   onChange={(date, dateString) => {
                     setPiliangTime(date);
                   }}
@@ -614,7 +616,13 @@ export default function QianDaoPage() {
                 <AntdButton
                   type="primary"
                   icon={<CheckOutlined />}
-                  onClick={() => handleQiandao_PILIANG("上班")}
+                  onClick={() => {handleQiandao_PILIANG("上班");
+                    setPiLiangNames([]);
+                    setPiliangTime(undefined);
+                    set_work_type_value("");
+                    set_work_type_id("");
+                    set_buttons_disabled();
+                  }}
                   disabled={ShangBanButtonDisabled}
                 >
                   上班打卡
@@ -623,7 +631,13 @@ export default function QianDaoPage() {
                 <AntdButton
                   danger
                   icon={<LogoutOutlined />}
-                  onClick={() => handleQiandao_PILIANG("下班")}
+                  onClick={() => {handleQiandao_PILIANG("下班");
+                    setPiLiangNames([]);
+                    setPiliangTime(undefined);
+                    set_work_type_value("");
+                    set_work_type_id("");
+                    set_buttons_disabled();
+                  }}
                   disabled={XiaBanButtonDisabled}
                 >
                   下班打卡
@@ -653,7 +667,7 @@ export default function QianDaoPage() {
             </AntdTitle>
             {/* 显示批量time */}
             <SegmentedControl
-              className="mb-2"
+              className="mb-2 -z-0"
               fullWidth
               color="blue"
               value={QiandaoMode}
