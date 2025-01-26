@@ -18,8 +18,10 @@ export function BackupDatabase() {
         <Button type="primary" size="small" onClick={() => backup_database()}>
           备份
         </Button>
-        <Button type="link" size="small" onClick={() => api.destroy(key)}>
-          取消备份
+        <Button type="link" size="small" onClick={() => {api.destroy(key);
+          localStorage.setItem("backupAlertDismissed", today)
+        }}>
+          今日不再提醒
         </Button>
       </Space>
     );
@@ -29,7 +31,7 @@ export function BackupDatabase() {
         "今天的数据库尚未备份，为了数据安全，请点击下方按钮备份数据库。",
       btn,
       key,
-      closeIcon: null,
+      // closeIcon: null,
       duration: 0,
     });
   };
@@ -80,7 +82,7 @@ export function BackupDatabase() {
   useEffect(() => {
     const checkForBackup = async () => {
       const backups = await list_backups();
-      if (backups.length === 0) {
+      if (backups.length === 0 && localStorage.getItem('backupAlertDismissed') !== today) {
         //   needBackup.current = true;
         setneedBackup(true);
         openBackupNotification();

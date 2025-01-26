@@ -11,3 +11,4 @@ declare const __SalaryType_TableName: string;
 declare const __SystemName__: string;
 declare const __Backend_UserName__: string;
 declare const __Backend_Password__: string;
+declare const __VERSION__: string;

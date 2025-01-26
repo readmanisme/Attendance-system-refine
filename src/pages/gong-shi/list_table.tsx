@@ -25,7 +25,7 @@ export default function GongShiList() {
   // const [GongShiData, setGongShiData]=useState([dayjs("2024-05-05").startOf('month').format('YYYY-MM')])
   const get_select_filter = (value: { value: string; label: string }[]) => {
     const list = value?.map((item) => item?.value);
-    const filters:CrudFilter[] = [];
+    const filters: CrudFilter[] = [];
     list?.forEach((id) => {
       filters.push({
         field: "id",
@@ -69,16 +69,16 @@ export default function GongShiList() {
             value: [
               {
                 field: "work_month",
-                operator:"gte",
+                operator: "gte",
                 value: GongShiData[0],
               },
               {
                 field: "work_month",
-                operator:"lte",
+                operator: "lte",
                 value: GongShiData[1],
-              }
+              },
             ],
-          }
+          },
         ],
       };
     } else if (type === "day") {
@@ -101,19 +101,23 @@ export default function GongShiList() {
           // },
           {
             operator: "and",
-            value:[
+            value: [
               {
                 field: "work_date",
-                operator:"gte",
-                value: dayjs(GongShiData[0]).startOf("month").format("YYYY-MM-DD"),
+                operator: "gte",
+                value: dayjs(GongShiData[0])
+                  .startOf("month")
+                  .format("YYYY-MM-DD"),
               },
               {
                 field: "work_date",
-                operator:"lt",
-                value: dayjs(GongShiData[1]).endOf("month").format("YYYY-MM-DD"),
-              }
-            ]
-          }
+                operator: "lt",
+                value: dayjs(GongShiData[1])
+                  .endOf("month")
+                  .format("YYYY-MM-DD"),
+              },
+            ],
+          },
         ],
       };
     } else if (type === "a") {
@@ -211,7 +215,8 @@ export default function GongShiList() {
   const workerDetails = useMemo(() => {
     return (
       tableProps.dataSource?.reduce((acc, worker) => {
-        if (worker.id !== undefined) { // 添加条件判断
+        if (worker.id !== undefined) {
+          // 添加条件判断
           acc[worker.id] = worker.name;
         }
         return acc;
@@ -222,8 +227,9 @@ export default function GongShiList() {
   const workTypeDetails = useMemo(() => {
     return (
       workType_test_data?.data?.reduce((acc, workType) => {
-        if (workType.id !== undefined) { // 添加条件判断
-        acc[workType.id] = workType.name;
+        if (workType.id !== undefined) {
+          // 添加条件判断
+          acc[workType.id] = workType.name;
         }
         return acc;
       }, {}) ?? {}
@@ -273,14 +279,14 @@ export default function GongShiList() {
   }, [listProps?.dataSource]);
   // const SalaryDict = GetSalaryDict();
   // console.dir(SalaryDict);
-  const MatchSalary:{[key:string]:string} = useMemo(() => ({}), []);
+  const MatchSalary: { [key: string]: string } = useMemo(() => ({}), []);
   const DayDuringSalaryDict = useMemo(() => {
     if (_.isEmpty(SalaryDict)) return {};
     return (
       attendance_record_data?.data?.reduce((dict, item) => {
         const workerName = workerDetails[item.worker_id];
         const workName = workTypeDetails[item.work];
-        const day = item.check_in.slice(0, 10);
+        const day = dayjs(item.check_in).format("YYYY-MM-DD").slice(0, 10);
         const dbID = item.id;
         const check_in = dayjs(item.check_in);
         const check_out = dayjs(item.check_out);
@@ -313,26 +319,33 @@ export default function GongShiList() {
     workerDetails,
   ]);
   // const day_during_SalaryDict = Get_day_during_SalaryDict();
-  const DaySalaryDict:{[key:string]:{[key:string]:Decimal}} = useMemo(() => {
-    if (_.isEmpty(DayDuringSalaryDict)) return {};
-    return Object.entries(DayDuringSalaryDict).reduce(
-      (aggregatedDict: {[key:string]:{[key:string]:Decimal}}, [key, salary]) => {
-        const [workerName, workName, day] = key.split("_");
-        aggregatedDict[workerName] = aggregatedDict[workerName] || {};
-        aggregatedDict[workerName][day] =
-          // (aggregatedDict[workerName][day] || 0) + salary;
-          Decimal.add(aggregatedDict[workerName][day] || 0, salary);
+  const DaySalaryDict: { [key: string]: { [key: string]: Decimal } } =
+    useMemo(() => {
+      if (_.isEmpty(DayDuringSalaryDict)) return {};
+      return Object.entries(DayDuringSalaryDict).reduce(
+        (
+          aggregatedDict: { [key: string]: { [key: string]: Decimal } },
+          [key, salary]
+        ) => {
+          const [workerName, workName, day] = key.split("_");
+          aggregatedDict[workerName] = aggregatedDict[workerName] || {};
+          aggregatedDict[workerName][day] =
+            // (aggregatedDict[workerName][day] || 0) + salary;
+            Decimal.add(aggregatedDict[workerName][day] || 0, salary);
 
-        return aggregatedDict;
-      },
-      {}
-    );
-  }, [DayDuringSalaryDict]);
+          return aggregatedDict;
+        },
+        {}
+      );
+    }, [DayDuringSalaryDict]);
   // const day_SalaryDict = Get_day_SalaryDict();
   const MonthSalaryDict = useMemo(() => {
     if (_.isEmpty(DaySalaryDict)) return {};
     return Object.entries(DaySalaryDict).reduce(
-      (monthlySalaryDict: {[key:string]:{[key:string]:Decimal}}, [workerName, dailySalaries]) => {
+      (
+        monthlySalaryDict: { [key: string]: { [key: string]: Decimal } },
+        [workerName, dailySalaries]
+      ) => {
         monthlySalaryDict[workerName] = Object.entries(dailySalaries).reduce(
           (monthlySalaries, [day, salary]) => {
             const month = day.slice(0, 7);
@@ -358,7 +371,8 @@ export default function GongShiList() {
     //   console.log("别的",listProps)
     // }
     // @ts-expect-error,这里MonthSalaryDict在不知道什么情况下会存在undefined的key
-    if (!_.isEmpty(MonthSalaryDict) && !(undefined in MonthSalaryDict)) {
+    // if (!_.isEmpty(MonthSalaryDict) && !(undefined in MonthSalaryDict)) {
+    if (!(undefined in MonthSalaryDict)) {
       // console.log("MonthSalaryDict", MonthSalaryDict)
       setSalaryLoading(false);
     }
@@ -377,7 +391,10 @@ export default function GongShiList() {
       日工时: __WorkHours_Day_ViewName,
     };
     const start = export_range.current[0].toISOString().replace("T", " ");
-    const end = export_range.current[1].endOf("month").toISOString().replace("T", " ");
+    const end = export_range.current[1]
+      .endOf("month")
+      .toISOString()
+      .replace("T", " ");
     const start_day = export_range.current[0].format("YYYY-MM-DD");
     const end_day = export_range.current[1].endOf("month").format("YYYY-MM-DD");
     const start_month = export_range.current[0].format("YYYY-MM");
@@ -392,14 +409,20 @@ export default function GongShiList() {
     });
     const workers = await pb.collection(集合.工人).getFullList();
     const workTypes = await pb.collection(集合.工作类型).getFullList();
-    const workerDetails = workers.reduce((acc: Record<string, string>, worker) => {
-      acc[worker.id] = worker.name;
-      return acc;
-    }, {});
-    const workTypeDetails = workTypes.reduce((acc: Record<string, string>, workType) => {
-      acc[workType.id] = workType.name;
-      return acc;
-    }, {});
+    const workerDetails = workers.reduce(
+      (acc: Record<string, string>, worker) => {
+        acc[worker.id] = worker.name;
+        return acc;
+      },
+      {}
+    );
+    const workTypeDetails = workTypes.reduce(
+      (acc: Record<string, string>, workType) => {
+        acc[workType.id] = workType.name;
+        return acc;
+      },
+      {}
+    );
     const workHoursMonth = await pb.collection(集合.月工时).getFullList({
       filter:
         "work_month >= '" +
@@ -516,7 +539,12 @@ export default function GongShiList() {
     XLSX.writeFile(wb, "工时记录.xlsx");
     setIsExportLoading(false);
   };
-  const TableExpandedRowRender = (record: { id: string,name:string }, index:number, indent:number, expanded:boolean) => {
+  const TableExpandedRowRender = (
+    record: { id: string; name: string },
+    index: number,
+    indent: number,
+    expanded: boolean
+  ) => {
     const item = record;
     // 这里的item是worker
     const month_records =
@@ -563,7 +591,17 @@ export default function GongShiList() {
         key: "xinzi",
       },
     ];
-    const expandedRowRender_d2 = (record:{worker:string,month:string,total_work_hours:string,xinzi:string}, index:number, indent:number, expanded:boolean) => {
+    const expandedRowRender_d2 = (
+      record: {
+        worker: string;
+        month: string;
+        total_work_hours: string;
+        xinzi: string;
+      },
+      index: number,
+      indent: number,
+      expanded: boolean
+    ) => {
       // d2,表示depth 2，第二层
       const item = record;
       const work_month = item.month;
@@ -574,6 +612,7 @@ export default function GongShiList() {
         ) ?? [];
       const dataSource_d2 = records.map((record) => {
         const worker_name = workerDetails[record.worker_id];
+        // const date=dayjs(record.work_date).format("YYYY-MM-DD");
         // const work_name = workTypeDetails[record.work];
         return {
           key: record.work_date,
@@ -611,11 +650,21 @@ export default function GongShiList() {
           key: "xinzi",
         },
       ];
-      const expandedRowRender_d3 = (record:{worker:string,date:string,total_work_hours:string,xinzi:string}, index:number, indent:number, expanded:boolean) => {
+      const expandedRowRender_d3 = (
+        record: {
+          worker: string;
+          date: string;
+          total_work_hours: string;
+          xinzi: string;
+        },
+        index: number,
+        indent: number,
+        expanded: boolean
+      ) => {
         const work_date = record.date;
         const records =
           attendance_records?.filter((record) =>
-            record.check_in.startsWith(work_date)
+            dayjs(record.check_in).format("YYYY-MM-DD").startsWith(work_date)
           ) ?? [];
         const dataSource_d3 = records.map((record) => {
           const worker_name = workerDetails[record.worker_id];
@@ -676,7 +725,7 @@ export default function GongShiList() {
             title: "薪资",
             dataIndex: "xinzi",
             key: "xinzi",
-            render: (value:any, record:any, index:number) => {
+            render: (value: any, record: any, index: number) => {
               return (
                 <Tooltip title={record.matchvalue}>
                   <span>{value}</span>
@@ -720,18 +769,33 @@ export default function GongShiList() {
       />
     );
   };
-  
-  const [exportRange,setExportRange]=useState([dayjs().startOf("year"),dayjs().endOf("year")])
-  if (!Object.values(workTypeDetails).includes("基础")){
+
+  const [exportRange, setExportRange] = useState([
+    dayjs().startOf("year"),
+    dayjs().endOf("year"),
+  ]);
+  if (!Object.values(workTypeDetails).includes("基础")) {
     return (
       <Alert
         message="基础工作类型不存在，请添加"
         type="error"
         showIcon
         description="如果基础工资类型不存在，也请添加基础工作后添加"
-      />)
+      />
+    );
   }
-  if (!listProps.loading&&!listProps_work_type?.includes("基础")) {
+  const get_un_salary_work = () => {
+    // 找出没有设置工资的工作
+    const work_types = Object.values(workTypeDetails);
+    const un_salary_work_types = work_types.filter((item) => !SalaryDict[item]);
+    if (_.isEmpty(un_salary_work_types)) return "";
+    return (
+      "未设置工资的工作类型：" +
+      un_salary_work_types.join(",") +
+      "，请设置其对应的工资,否则按照基础工资计算。"
+    );
+  };
+  if (!listProps.loading && !listProps_work_type?.includes("基础")) {
     return (
       <Alert
         message="基础工资类型不存在，请添加"
@@ -763,7 +827,10 @@ export default function GongShiList() {
                 <div className="flex flex-col items-center justify-start gap-2">
                   选择导出时间范围
                   <br />
-                  <div>{exportRange[0].format("YYYY-MM-DD")} 至 {exportRange[1].endOf("month").format("YYYY-MM-DD")}</div>
+                  <div>
+                    {exportRange[0].format("YYYY-MM-DD")} 至{" "}
+                    {exportRange[1].endOf("month").format("YYYY-MM-DD")}
+                  </div>
                   <RangePicker
                     size="small"
                     picker="month"
@@ -771,7 +838,7 @@ export default function GongShiList() {
                     // @ts-expect-error,有个看不太懂的错误，不管了
                     onChange={(date: [Dayjs, Dayjs], dateString: string) => {
                       export_range.current = date;
-                      setExportRange(date)
+                      setExportRange(date);
                     }}
                   />
                 </div>
@@ -788,17 +855,15 @@ export default function GongShiList() {
       )}
     >
       <div className="flex items-center justify-end mb-2">
-        {/* <DatePicker
-          picker="month"
-          allowClear={false}
-          className="w-56"
-          defaultValue={dayjs(GongShiData)}
-          onChange={(date, dateString) => {
-            setSalaryLoading(true);
-            setGongShiData(dateString);
-          }}
-        /> */}
-        <SwitchDataRangeGongShi/>
+        {get_un_salary_work() !== "" && (
+          <Alert
+            message={get_un_salary_work()}
+            type="warning"
+            showIcon
+            className="mb-2 mr-2 w-full"
+          />
+        )}
+        <SwitchDataRangeGongShi />
       </div>
       {/* <List
         {...listProps}

@@ -1,20 +1,11 @@
 import { Create, SaveButton, useForm } from "@refinedev/antd";
 import { useCreateMany, useGo, useList, useResource } from "@refinedev/core";
-import {
-  Alert,
-  ConfigProvider,
-  Form,
-  Input,
-  Segmented,
-  Tag,
-} from "antd";
+import { Alert, ConfigProvider, Form, Input, Segmented, Tag } from "antd";
 import { useState } from "react";
 export const WorkersCreate = () => {
   const { formProps, saveButtonProps } = useForm({});
-  const {  resource } = useResource();
-  const {
-    data: namelist,
-  } = useList({
+  const { resource } = useResource();
+  const { data: namelist } = useList({
     resource: resource?.name,
     pagination: {
       mode: "off",
@@ -65,17 +56,10 @@ export const WorkersCreate = () => {
   const [Textareavalue, setTextareaValue] = useState("");
   const [Inputvalue, setInputValue] = useState("");
   const process_value = async () => {
-    // console.log(value);
     const names = Textareavalue.split("\n");
-    // const names_list=await pb.collection("workers").getFullList();
-    // 找出已经存在于数据库中的人名
-    // const exist_names = names_list.map(item => item.name);
-    // 提交其他人名到数据库
-    // const new_names = names.filter(name => !exist_names.includes(name));
-    // new_names.forEach(async name => {
-    // await pb.collection("workers").create({"name": name});
-    // });
-    const data = names.map((name) => ({ name: name }));
+    const data = names
+      .filter((name) => name.trim() !== "") // 过滤掉空行
+      .map((name) => ({ name: name }));
     mutate({
       values: data,
       // errorNotification: (data, values, resource) => {
@@ -92,7 +76,7 @@ export const WorkersCreate = () => {
   const [status, setStatus] = useState<"success" | "error" | "unknown">(
     "unknown"
   );
-  const [ErrorMsg, setErrorMsg] = useState<React.ReactNode|string>("");
+  const [ErrorMsg, setErrorMsg] = useState<React.ReactNode | string>("");
   function handle_textarea_change(event: any) {
     let value = "";
     if (event === null) {
@@ -210,7 +194,7 @@ export const WorkersCreate = () => {
         <>
           <Input.TextArea
             // TODO ant design的普遍缺少label，如果有必要，可以更换到mantine ui中
-            rows={4}
+            rows={20}
             value={Textareavalue}
             onChange={handle_textarea_change}
             placeholder="请输入批量录入的姓名，每行一个"
