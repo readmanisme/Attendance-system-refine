@@ -34,7 +34,7 @@ export const CreateWorkType = () => {
                     <DatePicker />
                 </Form.Item> */}
                 <Form.Item
-                    label="Type"
+                    label="工作名称"
                     name={["name"]}
                     rules={[
                         {
