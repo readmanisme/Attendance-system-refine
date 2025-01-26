@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import dayjs from 'dayjs';
 
 const RealTimeClock = () => {
-  const [currentTime, setCurrentTime] = useState(dayjs().format('HH:mm:ss'));
+  const [currentTime, setCurrentTime] = useState(dayjs().format('YYYY-MM-DD HH:mm:ss'));
 
   useEffect(() => {
     const intervalId = setInterval(() => {

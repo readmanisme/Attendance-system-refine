@@ -15,7 +15,8 @@ import {
   IconBriefcase,
   IconHelp,
   IconBrightness,
-  IconArchive
+  IconArchive,
+  IconSquareArrowUp
 } from "@tabler/icons-react";
 import {
   Badge,
@@ -34,7 +35,7 @@ const mockdata = [
   {
     title: "签到",
     description:
-      "选择人员，选择工作，点击按钮即可签到和签退，并可以表格中浏览今日签到记录。",
+      "选择人员，选择工作，点击按钮即可签到和签退，并可以表格中浏览今日签到记录。并拥有批量模式",
     icon: IconChecks,
   },
   {
@@ -98,6 +99,11 @@ const mockdata = [
     title: "数据安全",
     description: "每日备份提醒，为你的数据保驾护航。",
     icon: IconArchive,
+  },
+  {
+    title: "一键回顶",
+    description: "点击右下角回到顶部按钮，即可快速回到页面顶部。",
+    icon: IconSquareArrowUp,
   },
 ];
 

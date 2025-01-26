@@ -341,7 +341,7 @@ function App() {
                                     // height={64}
                                   />
                                   <div className="whitespace-nowrap text-zinc-700">{__SystemName__}</div>
-                                  <Badge color="blue" variant="light" style={{ width: 100 }}>v2025.1.23.10</Badge>
+                                  <Badge color="blue" variant="light" style={{ width: 120 }}>{__VERSION__}</Badge>
                                   </Space>
                                 ) : (
                                   <Space
@@ -354,7 +354,7 @@ function App() {
                                     // height={64}
                                   />
                                   <div className="whitespace-nowrap text-zinc-700">{__SystemName__}</div>
-                                  <Badge color="blue" variant="light" style={{ width: 100 }}>v2025.1.23.10</Badge>
+                                  <Badge color="blue" variant="light" style={{ width: 120 }}>{__VERSION__}</Badge>
                                   </Space>
                                 )
                               }
