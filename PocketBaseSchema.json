@@ -1,0 +1,1885 @@
+[
+    {
+        "id": "pbc_3142635823",
+        "listRule": null,
+        "viewRule": null,
+        "createRule": null,
+        "updateRule": null,
+        "deleteRule": null,
+        "name": "_superusers",
+        "type": "auth",
+        "fields": [
+            {
+                "autogeneratePattern": "[a-z0-9]{15}",
+                "hidden": false,
+                "id": "text3208210256",
+                "max": 15,
+                "min": 15,
+                "name": "id",
+                "pattern": "^[a-z0-9]+$",
+                "presentable": false,
+                "primaryKey": true,
+                "required": true,
+                "system": true,
+                "type": "text"
+            },
+            {
+                "cost": 0,
+                "hidden": true,
+                "id": "password901924565",
+                "max": 0,
+                "min": 8,
+                "name": "password",
+                "pattern": "",
+                "presentable": false,
+                "required": true,
+                "system": true,
+                "type": "password"
+            },
+            {
+                "autogeneratePattern": "[a-zA-Z0-9]{50}",
+                "hidden": true,
+                "id": "text2504183744",
+                "max": 60,
+                "min": 30,
+                "name": "tokenKey",
+                "pattern": "",
+                "presentable": false,
+                "primaryKey": false,
+                "required": true,
+                "system": true,
+                "type": "text"
+            },
+            {
+                "exceptDomains": null,
+                "hidden": false,
+                "id": "email3885137012",
+                "name": "email",
+                "onlyDomains": null,
+                "presentable": false,
+                "required": true,
+                "system": true,
+                "type": "email"
+            },
+            {
+                "hidden": false,
+                "id": "bool1547992806",
+                "name": "emailVisibility",
+                "presentable": false,
+                "required": false,
+                "system": true,
+                "type": "bool"
+            },
+            {
+                "hidden": false,
+                "id": "bool256245529",
+                "name": "verified",
+                "presentable": false,
+                "required": false,
+                "system": true,
+                "type": "bool"
+            },
+            {
+                "hidden": false,
+                "id": "autodate2990389176",
+                "name": "created",
+                "onCreate": true,
+                "onUpdate": false,
+                "presentable": false,
+                "system": true,
+                "type": "autodate"
+            },
+            {
+                "hidden": false,
+                "id": "autodate3332085495",
+                "name": "updated",
+                "onCreate": true,
+                "onUpdate": true,
+                "presentable": false,
+                "system": true,
+                "type": "autodate"
+            }
+        ],
+        "indexes": [
+            "CREATE UNIQUE INDEX `idx_tokenKey_pbc_3142635823` ON `_superusers` (`tokenKey`)",
+            "CREATE UNIQUE INDEX `idx_email_pbc_3142635823` ON `_superusers` (`email`) WHERE `email` != ''"
+        ],
+        "system": true,
+        "authRule": "",
+        "manageRule": null,
+        "authAlert": {
+            "enabled": true,
+            "emailTemplate": {
+                "subject": "Login from a new location",
+                "body": "<p>Hello,</p>\n<p>We noticed a login to your {APP_NAME} account from a new location.</p>\n<p>If this was you, you may disregard this email.</p>\n<p><strong>If this wasn't you, you should immediately change your {APP_NAME} account password to revoke access from all other locations.</strong></p>\n<p>\n  Thanks,<br/>\n  {APP_NAME} team\n</p>"
+            }
+        },
+        "oauth2": {
+            "mappedFields": {
+                "id": "",
+                "name": "",
+                "username": "",
+                "avatarURL": ""
+            },
+            "enabled": false
+        },
+        "passwordAuth": {
+            "enabled": true,
+            "identityFields": [
+                "email"
+            ]
+        },
+        "mfa": {
+            "enabled": false,
+            "duration": 1800,
+            "rule": ""
+        },
+        "otp": {
+            "enabled": false,
+            "duration": 180,
+            "length": 8,
+            "emailTemplate": {
+                "subject": "OTP for {APP_NAME}",
+                "body": "<p>Hello,</p>\n<p>Your one-time password is: <strong>{OTP}</strong></p>\n<p><i>If you didn't ask for the one-time password, you can ignore this email.</i></p>\n<p>\n  Thanks,<br/>\n  {APP_NAME} team\n</p>"
+            }
+        },
+        "authToken": {
+            "duration": 86400
+        },
+        "passwordResetToken": {
+            "duration": 1800
+        },
+        "emailChangeToken": {
+            "duration": 1800
+        },
+        "verificationToken": {
+            "duration": 259200
+        },
+        "fileToken": {
+            "duration": 180
+        },
+        "verificationTemplate": {
+            "subject": "Verify your {APP_NAME} email",
+            "body": "<p>Hello,</p>\n<p>Thank you for joining us at {APP_NAME}.</p>\n<p>Click on the button below to verify your email address.</p>\n<p>\n  <a class=\"btn\" href=\"{APP_URL}/_/#/auth/confirm-verification/{TOKEN}\" target=\"_blank\" rel=\"noopener\">Verify</a>\n</p>\n<p>\n  Thanks,<br/>\n  {APP_NAME} team\n</p>"
+        },
+        "resetPasswordTemplate": {
+            "subject": "Reset your {APP_NAME} password",
+            "body": "<p>Hello,</p>\n<p>Click on the button below to reset your password.</p>\n<p>\n  <a class=\"btn\" href=\"{APP_URL}/_/#/auth/confirm-password-reset/{TOKEN}\" target=\"_blank\" rel=\"noopener\">Reset password</a>\n</p>\n<p><i>If you didn't ask to reset your password, you can ignore this email.</i></p>\n<p>\n  Thanks,<br/>\n  {APP_NAME} team\n</p>"
+        },
+        "confirmEmailChangeTemplate": {
+            "subject": "Confirm your {APP_NAME} new email address",
+            "body": "<p>Hello,</p>\n<p>Click on the button below to confirm your new email address.</p>\n<p>\n  <a class=\"btn\" href=\"{APP_URL}/_/#/auth/confirm-email-change/{TOKEN}\" target=\"_blank\" rel=\"noopener\">Confirm new email</a>\n</p>\n<p><i>If you didn't ask to change your email address, you can ignore this email.</i></p>\n<p>\n  Thanks,<br/>\n  {APP_NAME} team\n</p>"
+        }
+    },
+    {
+        "id": "_pb_users_auth_",
+        "listRule": "id = @request.auth.id",
+        "viewRule": "id = @request.auth.id",
+        "createRule": "",
+        "updateRule": "id = @request.auth.id",
+        "deleteRule": "id = @request.auth.id",
+        "name": "users",
+        "type": "auth",
+        "fields": [
+            {
+                "autogeneratePattern": "[a-z0-9]{15}",
+                "hidden": false,
+                "id": "text3208210256",
+                "max": 15,
+                "min": 15,
+                "name": "id",
+                "pattern": "^[a-z0-9]+$",
+                "presentable": false,
+                "primaryKey": true,
+                "required": true,
+                "system": true,
+                "type": "text"
+            },
+            {
+                "cost": 0,
+                "hidden": true,
+                "id": "password901924565",
+                "max": 0,
+                "min": 8,
+                "name": "password",
+                "pattern": "",
+                "presentable": false,
+                "required": true,
+                "system": true,
+                "type": "password"
+            },
+            {
+                "autogeneratePattern": "[a-zA-Z0-9]{50}",
+                "hidden": true,
+                "id": "text2504183744",
+                "max": 60,
+                "min": 30,
+                "name": "tokenKey",
+                "pattern": "",
+                "presentable": false,
+                "primaryKey": false,
+                "required": true,
+                "system": true,
+                "type": "text"
+            },
+            {
+                "exceptDomains": null,
+                "hidden": false,
+                "id": "email3885137012",
+                "name": "email",
+                "onlyDomains": null,
+                "presentable": false,
+                "required": true,
+                "system": true,
+                "type": "email"
+            },
+            {
+                "hidden": false,
+                "id": "bool1547992806",
+                "name": "emailVisibility",
+                "presentable": false,
+                "required": false,
+                "system": true,
+                "type": "bool"
+            },
+            {
+                "hidden": false,
+                "id": "bool256245529",
+                "name": "verified",
+                "presentable": false,
+                "required": false,
+                "system": true,
+                "type": "bool"
+            },
+            {
+                "autogeneratePattern": "",
+                "hidden": false,
+                "id": "text1579384326",
+                "max": 255,
+                "min": 0,
+                "name": "name",
+                "pattern": "",
+                "presentable": false,
+                "primaryKey": false,
+                "required": false,
+                "system": false,
+                "type": "text"
+            },
+            {
+                "hidden": false,
+                "id": "file376926767",
+                "maxSelect": 1,
+                "maxSize": 0,
+                "mimeTypes": [
+                    "image/jpeg",
+                    "image/png",
+                    "image/svg+xml",
+                    "image/gif",
+                    "image/webp"
+                ],
+                "name": "avatar",
+                "presentable": false,
+                "protected": false,
+                "required": false,
+                "system": false,
+                "thumbs": null,
+                "type": "file"
+            },
+            {
+                "hidden": false,
+                "id": "autodate2990389176",
+                "name": "created",
+                "onCreate": true,
+                "onUpdate": false,
+                "presentable": false,
+                "system": false,
+                "type": "autodate"
+            },
+            {
+                "hidden": false,
+                "id": "autodate3332085495",
+                "name": "updated",
+                "onCreate": true,
+                "onUpdate": true,
+                "presentable": false,
+                "system": false,
+                "type": "autodate"
+            }
+        ],
+        "indexes": [
+            "CREATE UNIQUE INDEX `idx_tokenKey__pb_users_auth_` ON `users` (`tokenKey`)",
+            "CREATE UNIQUE INDEX `idx_email__pb_users_auth_` ON `users` (`email`) WHERE `email` != ''"
+        ],
+        "system": false,
+        "authRule": "",
+        "manageRule": null,
+        "authAlert": {
+            "enabled": true,
+            "emailTemplate": {
+                "subject": "Login from a new location",
+                "body": "<p>Hello,</p>\n<p>We noticed a login to your {APP_NAME} account from a new location.</p>\n<p>If this was you, you may disregard this email.</p>\n<p><strong>If this wasn't you, you should immediately change your {APP_NAME} account password to revoke access from all other locations.</strong></p>\n<p>\n  Thanks,<br/>\n  {APP_NAME} team\n</p>"
+            }
+        },
+        "oauth2": {
+            "mappedFields": {
+                "id": "",
+                "name": "name",
+                "username": "",
+                "avatarURL": "avatar"
+            },
+            "enabled": false
+        },
+        "passwordAuth": {
+            "enabled": true,
+            "identityFields": [
+                "email"
+            ]
+        },
+        "mfa": {
+            "enabled": false,
+            "duration": 1800,
+            "rule": ""
+        },
+        "otp": {
+            "enabled": false,
+            "duration": 180,
+            "length": 8,
+            "emailTemplate": {
+                "subject": "OTP for {APP_NAME}",
+                "body": "<p>Hello,</p>\n<p>Your one-time password is: <strong>{OTP}</strong></p>\n<p><i>If you didn't ask for the one-time password, you can ignore this email.</i></p>\n<p>\n  Thanks,<br/>\n  {APP_NAME} team\n</p>"
+            }
+        },
+        "authToken": {
+            "duration": 604800
+        },
+        "passwordResetToken": {
+            "duration": 1800
+        },
+        "emailChangeToken": {
+            "duration": 1800
+        },
+        "verificationToken": {
+            "duration": 259200
+        },
+        "fileToken": {
+            "duration": 180
+        },
+        "verificationTemplate": {
+            "subject": "Verify your {APP_NAME} email",
+            "body": "<p>Hello,</p>\n<p>Thank you for joining us at {APP_NAME}.</p>\n<p>Click on the button below to verify your email address.</p>\n<p>\n  <a class=\"btn\" href=\"{APP_URL}/_/#/auth/confirm-verification/{TOKEN}\" target=\"_blank\" rel=\"noopener\">Verify</a>\n</p>\n<p>\n  Thanks,<br/>\n  {APP_NAME} team\n</p>"
+        },
+        "resetPasswordTemplate": {
+            "subject": "Reset your {APP_NAME} password",
+            "body": "<p>Hello,</p>\n<p>Click on the button below to reset your password.</p>\n<p>\n  <a class=\"btn\" href=\"{APP_URL}/_/#/auth/confirm-password-reset/{TOKEN}\" target=\"_blank\" rel=\"noopener\">Reset password</a>\n</p>\n<p><i>If you didn't ask to reset your password, you can ignore this email.</i></p>\n<p>\n  Thanks,<br/>\n  {APP_NAME} team\n</p>"
+        },
+        "confirmEmailChangeTemplate": {
+            "subject": "Confirm your {APP_NAME} new email address",
+            "body": "<p>Hello,</p>\n<p>Click on the button below to confirm your new email address.</p>\n<p>\n  <a class=\"btn\" href=\"{APP_URL}/_/#/auth/confirm-email-change/{TOKEN}\" target=\"_blank\" rel=\"noopener\">Confirm new email</a>\n</p>\n<p><i>If you didn't ask to change your email address, you can ignore this email.</i></p>\n<p>\n  Thanks,<br/>\n  {APP_NAME} team\n</p>"
+        }
+    },
+    {
+        "id": "pbc_285477776",
+        "listRule": "",
+        "viewRule": "",
+        "createRule": "SalaryNum!=\"\" && (work_type!=\"\" || worker_name!=\"\" )",
+        "updateRule": "SalaryNum!=\"\" && (work_type!=\"\" || worker_name!=\"\" )",
+        "deleteRule": "",
+        "name": "SalaryType",
+        "type": "base",
+        "fields": [
+            {
+                "autogeneratePattern": "[a-z0-9]{15}",
+                "hidden": false,
+                "id": "text3208210256",
+                "max": 15,
+                "min": 15,
+                "name": "id",
+                "pattern": "^[a-z0-9]+$",
+                "presentable": false,
+                "primaryKey": true,
+                "required": true,
+                "system": true,
+                "type": "text"
+            },
+            {
+                "cascadeDelete": false,
+                "collectionId": "pbc_696123946",
+                "hidden": false,
+                "id": "relation2816528190",
+                "maxSelect": 1,
+                "minSelect": 0,
+                "name": "worker_name",
+                "presentable": false,
+                "required": false,
+                "system": false,
+                "type": "relation"
+            },
+            {
+                "cascadeDelete": false,
+                "collectionId": "pbc_993135821",
+                "hidden": false,
+                "id": "relation1964893713",
+                "maxSelect": 1,
+                "minSelect": 0,
+                "name": "work_type",
+                "presentable": false,
+                "required": false,
+                "system": false,
+                "type": "relation"
+            },
+            {
+                "hidden": false,
+                "id": "number2957205363",
+                "max": null,
+                "min": null,
+                "name": "SalaryNum",
+                "onlyInt": false,
+                "presentable": false,
+                "required": false,
+                "system": false,
+                "type": "number"
+            },
+            {
+                "hidden": false,
+                "id": "autodate2990389176",
+                "name": "created",
+                "onCreate": true,
+                "onUpdate": false,
+                "presentable": false,
+                "system": false,
+                "type": "autodate"
+            },
+            {
+                "hidden": false,
+                "id": "autodate3332085495",
+                "name": "updated",
+                "onCreate": true,
+                "onUpdate": true,
+                "presentable": false,
+                "system": false,
+                "type": "autodate"
+            }
+        ],
+        "indexes": [],
+        "system": false
+    },
+    {
+        "id": "pbc_3616351690",
+        "listRule": "",
+        "viewRule": "",
+        "createRule": "SalaryNum!=\"\" && (work_type!=\"\" || worker_name!=\"\" )",
+        "updateRule": "SalaryNum!=\"\" && (work_type!=\"\" || worker_name!=\"\" )",
+        "deleteRule": "",
+        "name": "SalaryType_test",
+        "type": "base",
+        "fields": [
+            {
+                "autogeneratePattern": "[a-z0-9]{15}",
+                "hidden": false,
+                "id": "text3208210256",
+                "max": 15,
+                "min": 15,
+                "name": "id",
+                "pattern": "^[a-z0-9]+$",
+                "presentable": false,
+                "primaryKey": true,
+                "required": true,
+                "system": true,
+                "type": "text"
+            },
+            {
+                "cascadeDelete": false,
+                "collectionId": "pbc_3188403080",
+                "hidden": false,
+                "id": "relation2816528190",
+                "maxSelect": 1,
+                "minSelect": 0,
+                "name": "worker_name",
+                "presentable": false,
+                "required": false,
+                "system": false,
+                "type": "relation"
+            },
+            {
+                "cascadeDelete": false,
+                "collectionId": "pbc_3310633731",
+                "hidden": false,
+                "id": "relation1964893713",
+                "maxSelect": 1,
+                "minSelect": 0,
+                "name": "work_type",
+                "presentable": false,
+                "required": false,
+                "system": false,
+                "type": "relation"
+            },
+            {
+                "hidden": false,
+                "id": "number2957205363",
+                "max": null,
+                "min": null,
+                "name": "SalaryNum",
+                "onlyInt": false,
+                "presentable": false,
+                "required": false,
+                "system": false,
+                "type": "number"
+            },
+            {
+                "hidden": false,
+                "id": "autodate2990389176",
+                "name": "created",
+                "onCreate": true,
+                "onUpdate": false,
+                "presentable": false,
+                "system": false,
+                "type": "autodate"
+            },
+            {
+                "hidden": false,
+                "id": "autodate3332085495",
+                "name": "updated",
+                "onCreate": true,
+                "onUpdate": true,
+                "presentable": false,
+                "system": false,
+                "type": "autodate"
+            }
+        ],
+        "indexes": [],
+        "system": false
+    },
+    {
+        "id": "pbc_4275539003",
+        "listRule": "@request.auth.id != '' && recordRef = @request.auth.id && collectionRef = @request.auth.collectionId",
+        "viewRule": "@request.auth.id != '' && recordRef = @request.auth.id && collectionRef = @request.auth.collectionId",
+        "createRule": null,
+        "updateRule": null,
+        "deleteRule": "@request.auth.id != '' && recordRef = @request.auth.id && collectionRef = @request.auth.collectionId",
+        "name": "_authOrigins",
+        "type": "base",
+        "fields": [
+            {
+                "autogeneratePattern": "[a-z0-9]{15}",
+                "hidden": false,
+                "id": "text3208210256",
+                "max": 15,
+                "min": 15,
+                "name": "id",
+                "pattern": "^[a-z0-9]+$",
+                "presentable": false,
+                "primaryKey": true,
+                "required": true,
+                "system": true,
+                "type": "text"
+            },
+            {
+                "autogeneratePattern": "",
+                "hidden": false,
+                "id": "text455797646",
+                "max": 0,
+                "min": 0,
+                "name": "collectionRef",
+                "pattern": "",
+                "presentable": false,
+                "primaryKey": false,
+                "required": true,
+                "system": true,
+                "type": "text"
+            },
+            {
+                "autogeneratePattern": "",
+                "hidden": false,
+                "id": "text127846527",
+                "max": 0,
+                "min": 0,
+                "name": "recordRef",
+                "pattern": "",
+                "presentable": false,
+                "primaryKey": false,
+                "required": true,
+                "system": true,
+                "type": "text"
+            },
+            {
+                "autogeneratePattern": "",
+                "hidden": false,
+                "id": "text4228609354",
+                "max": 0,
+                "min": 0,
+                "name": "fingerprint",
+                "pattern": "",
+                "presentable": false,
+                "primaryKey": false,
+                "required": true,
+                "system": true,
+                "type": "text"
+            },
+            {
+                "hidden": false,
+                "id": "autodate2990389176",
+                "name": "created",
+                "onCreate": true,
+                "onUpdate": false,
+                "presentable": false,
+                "system": true,
+                "type": "autodate"
+            },
+            {
+                "hidden": false,
+                "id": "autodate3332085495",
+                "name": "updated",
+                "onCreate": true,
+                "onUpdate": true,
+                "presentable": false,
+                "system": true,
+                "type": "autodate"
+            }
+        ],
+        "indexes": [
+            "CREATE UNIQUE INDEX `idx_authOrigins_unique_pairs` ON `_authOrigins` (collectionRef, recordRef, fingerprint)"
+        ],
+        "system": true
+    },
+    {
+        "id": "pbc_2281828961",
+        "listRule": "@request.auth.id != '' && recordRef = @request.auth.id && collectionRef = @request.auth.collectionId",
+        "viewRule": "@request.auth.id != '' && recordRef = @request.auth.id && collectionRef = @request.auth.collectionId",
+        "createRule": null,
+        "updateRule": null,
+        "deleteRule": "@request.auth.id != '' && recordRef = @request.auth.id && collectionRef = @request.auth.collectionId",
+        "name": "_externalAuths",
+        "type": "base",
+        "fields": [
+            {
+                "autogeneratePattern": "[a-z0-9]{15}",
+                "hidden": false,
+                "id": "text3208210256",
+                "max": 15,
+                "min": 15,
+                "name": "id",
+                "pattern": "^[a-z0-9]+$",
+                "presentable": false,
+                "primaryKey": true,
+                "required": true,
+                "system": true,
+                "type": "text"
+            },
+            {
+                "autogeneratePattern": "",
+                "hidden": false,
+                "id": "text455797646",
+                "max": 0,
+                "min": 0,
+                "name": "collectionRef",
+                "pattern": "",
+                "presentable": false,
+                "primaryKey": false,
+                "required": true,
+                "system": true,
+                "type": "text"
+            },
+            {
+                "autogeneratePattern": "",
+                "hidden": false,
+                "id": "text127846527",
+                "max": 0,
+                "min": 0,
+                "name": "recordRef",
+                "pattern": "",
+                "presentable": false,
+                "primaryKey": false,
+                "required": true,
+                "system": true,
+                "type": "text"
+            },
+            {
+                "autogeneratePattern": "",
+                "hidden": false,
+                "id": "text2462348188",
+                "max": 0,
+                "min": 0,
+                "name": "provider",
+                "pattern": "",
+                "presentable": false,
+                "primaryKey": false,
+                "required": true,
+                "system": true,
+                "type": "text"
+            },
+            {
+                "autogeneratePattern": "",
+                "hidden": false,
+                "id": "text1044722854",
+                "max": 0,
+                "min": 0,
+                "name": "providerId",
+                "pattern": "",
+                "presentable": false,
+                "primaryKey": false,
+                "required": true,
+                "system": true,
+                "type": "text"
+            },
+            {
+                "hidden": false,
+                "id": "autodate2990389176",
+                "name": "created",
+                "onCreate": true,
+                "onUpdate": false,
+                "presentable": false,
+                "system": true,
+                "type": "autodate"
+            },
+            {
+                "hidden": false,
+                "id": "autodate3332085495",
+                "name": "updated",
+                "onCreate": true,
+                "onUpdate": true,
+                "presentable": false,
+                "system": true,
+                "type": "autodate"
+            }
+        ],
+        "indexes": [
+            "CREATE UNIQUE INDEX `idx_externalAuths_record_provider` ON `_externalAuths` (collectionRef, recordRef, provider)",
+            "CREATE UNIQUE INDEX `idx_externalAuths_collection_provider` ON `_externalAuths` (collectionRef, provider, providerId)"
+        ],
+        "system": true
+    },
+    {
+        "id": "pbc_2279338944",
+        "listRule": "@request.auth.id != '' && recordRef = @request.auth.id && collectionRef = @request.auth.collectionId",
+        "viewRule": "@request.auth.id != '' && recordRef = @request.auth.id && collectionRef = @request.auth.collectionId",
+        "createRule": null,
+        "updateRule": null,
+        "deleteRule": null,
+        "name": "_mfas",
+        "type": "base",
+        "fields": [
+            {
+                "autogeneratePattern": "[a-z0-9]{15}",
+                "hidden": false,
+                "id": "text3208210256",
+                "max": 15,
+                "min": 15,
+                "name": "id",
+                "pattern": "^[a-z0-9]+$",
+                "presentable": false,
+                "primaryKey": true,
+                "required": true,
+                "system": true,
+                "type": "text"
+            },
+            {
+                "autogeneratePattern": "",
+                "hidden": false,
+                "id": "text455797646",
+                "max": 0,
+                "min": 0,
+                "name": "collectionRef",
+                "pattern": "",
+                "presentable": false,
+                "primaryKey": false,
+                "required": true,
+                "system": true,
+                "type": "text"
+            },
+            {
+                "autogeneratePattern": "",
+                "hidden": false,
+                "id": "text127846527",
+                "max": 0,
+                "min": 0,
+                "name": "recordRef",
+                "pattern": "",
+                "presentable": false,
+                "primaryKey": false,
+                "required": true,
+                "system": true,
+                "type": "text"
+            },
+            {
+                "autogeneratePattern": "",
+                "hidden": false,
+                "id": "text1582905952",
+                "max": 0,
+                "min": 0,
+                "name": "method",
+                "pattern": "",
+                "presentable": false,
+                "primaryKey": false,
+                "required": true,
+                "system": true,
+                "type": "text"
+            },
+            {
+                "hidden": false,
+                "id": "autodate2990389176",
+                "name": "created",
+                "onCreate": true,
+                "onUpdate": false,
+                "presentable": false,
+                "system": true,
+                "type": "autodate"
+            },
+            {
+                "hidden": false,
+                "id": "autodate3332085495",
+                "name": "updated",
+                "onCreate": true,
+                "onUpdate": true,
+                "presentable": false,
+                "system": true,
+                "type": "autodate"
+            }
+        ],
+        "indexes": [
+            "CREATE INDEX `idx_mfas_collectionRef_recordRef` ON `_mfas` (collectionRef,recordRef)"
+        ],
+        "system": true
+    },
+    {
+        "id": "pbc_1638494021",
+        "listRule": "@request.auth.id != '' && recordRef = @request.auth.id && collectionRef = @request.auth.collectionId",
+        "viewRule": "@request.auth.id != '' && recordRef = @request.auth.id && collectionRef = @request.auth.collectionId",
+        "createRule": null,
+        "updateRule": null,
+        "deleteRule": null,
+        "name": "_otps",
+        "type": "base",
+        "fields": [
+            {
+                "autogeneratePattern": "[a-z0-9]{15}",
+                "hidden": false,
+                "id": "text3208210256",
+                "max": 15,
+                "min": 15,
+                "name": "id",
+                "pattern": "^[a-z0-9]+$",
+                "presentable": false,
+                "primaryKey": true,
+                "required": true,
+                "system": true,
+                "type": "text"
+            },
+            {
+                "autogeneratePattern": "",
+                "hidden": false,
+                "id": "text455797646",
+                "max": 0,
+                "min": 0,
+                "name": "collectionRef",
+                "pattern": "",
+                "presentable": false,
+                "primaryKey": false,
+                "required": true,
+                "system": true,
+                "type": "text"
+            },
+            {
+                "autogeneratePattern": "",
+                "hidden": false,
+                "id": "text127846527",
+                "max": 0,
+                "min": 0,
+                "name": "recordRef",
+                "pattern": "",
+                "presentable": false,
+                "primaryKey": false,
+                "required": true,
+                "system": true,
+                "type": "text"
+            },
+            {
+                "cost": 8,
+                "hidden": true,
+                "id": "password901924565",
+                "max": 0,
+                "min": 0,
+                "name": "password",
+                "pattern": "",
+                "presentable": false,
+                "required": true,
+                "system": true,
+                "type": "password"
+            },
+            {
+                "autogeneratePattern": "",
+                "hidden": true,
+                "id": "text3866985172",
+                "max": 0,
+                "min": 0,
+                "name": "sentTo",
+                "pattern": "",
+                "presentable": false,
+                "primaryKey": false,
+                "required": false,
+                "system": true,
+                "type": "text"
+            },
+            {
+                "hidden": false,
+                "id": "autodate2990389176",
+                "name": "created",
+                "onCreate": true,
+                "onUpdate": false,
+                "presentable": false,
+                "system": true,
+                "type": "autodate"
+            },
+            {
+                "hidden": false,
+                "id": "autodate3332085495",
+                "name": "updated",
+                "onCreate": true,
+                "onUpdate": true,
+                "presentable": false,
+                "system": true,
+                "type": "autodate"
+            }
+        ],
+        "indexes": [
+            "CREATE INDEX `idx_otps_collectionRef_recordRef` ON `_otps` (collectionRef, recordRef)"
+        ],
+        "system": true
+    },
+    {
+        "id": "pbc_2899483780",
+        "listRule": "",
+        "viewRule": "",
+        "createRule": "check_in!=\"\"",
+        "updateRule": "check_in!=\"\"",
+        "deleteRule": "",
+        "name": "attendance_record",
+        "type": "base",
+        "fields": [
+            {
+                "autogeneratePattern": "[a-z0-9]{15}",
+                "hidden": false,
+                "id": "text3208210256",
+                "max": 15,
+                "min": 15,
+                "name": "id",
+                "pattern": "^[a-z0-9]+$",
+                "presentable": false,
+                "primaryKey": true,
+                "required": true,
+                "system": true,
+                "type": "text"
+            },
+            {
+                "cascadeDelete": false,
+                "collectionId": "pbc_3188403080",
+                "hidden": false,
+                "id": "relation1797306934",
+                "maxSelect": 1,
+                "minSelect": 0,
+                "name": "worker_id",
+                "presentable": false,
+                "required": false,
+                "system": false,
+                "type": "relation"
+            },
+            {
+                "hidden": false,
+                "id": "date2420534521",
+                "max": "",
+                "min": "",
+                "name": "check_in",
+                "presentable": false,
+                "required": false,
+                "system": false,
+                "type": "date"
+            },
+            {
+                "hidden": false,
+                "id": "date3961577812",
+                "max": "",
+                "min": "",
+                "name": "check_out",
+                "presentable": false,
+                "required": false,
+                "system": false,
+                "type": "date"
+            },
+            {
+                "cascadeDelete": false,
+                "collectionId": "pbc_993135821",
+                "hidden": false,
+                "id": "relation1397647488",
+                "maxSelect": 1,
+                "minSelect": 0,
+                "name": "work",
+                "presentable": false,
+                "required": false,
+                "system": false,
+                "type": "relation"
+            },
+            {
+                "hidden": false,
+                "id": "autodate2990389176",
+                "name": "created",
+                "onCreate": true,
+                "onUpdate": false,
+                "presentable": false,
+                "system": false,
+                "type": "autodate"
+            },
+            {
+                "hidden": false,
+                "id": "autodate3332085495",
+                "name": "updated",
+                "onCreate": true,
+                "onUpdate": true,
+                "presentable": false,
+                "system": false,
+                "type": "autodate"
+            }
+        ],
+        "indexes": [],
+        "system": false
+    },
+    {
+        "id": "pbc_3121960162",
+        "listRule": "",
+        "viewRule": "",
+        "createRule": "check_in!=\"\"",
+        "updateRule": "check_in!=\"\"",
+        "deleteRule": "",
+        "name": "attendance_record_test",
+        "type": "base",
+        "fields": [
+            {
+                "autogeneratePattern": "[a-z0-9]{15}",
+                "hidden": false,
+                "id": "text3208210256",
+                "max": 15,
+                "min": 15,
+                "name": "id",
+                "pattern": "^[a-z0-9]+$",
+                "presentable": false,
+                "primaryKey": true,
+                "required": true,
+                "system": true,
+                "type": "text"
+            },
+            {
+                "cascadeDelete": false,
+                "collectionId": "pbc_3188403080",
+                "hidden": false,
+                "id": "relation1797306934",
+                "maxSelect": 1,
+                "minSelect": 0,
+                "name": "worker_id",
+                "presentable": false,
+                "required": false,
+                "system": false,
+                "type": "relation"
+            },
+            {
+                "hidden": false,
+                "id": "date2420534521",
+                "max": "",
+                "min": "",
+                "name": "check_in",
+                "presentable": false,
+                "required": false,
+                "system": false,
+                "type": "date"
+            },
+            {
+                "hidden": false,
+                "id": "date3961577812",
+                "max": "",
+                "min": "",
+                "name": "check_out",
+                "presentable": false,
+                "required": false,
+                "system": false,
+                "type": "date"
+            },
+            {
+                "cascadeDelete": false,
+                "collectionId": "pbc_3310633731",
+                "hidden": false,
+                "id": "relation1397647488",
+                "maxSelect": 1,
+                "minSelect": 0,
+                "name": "work",
+                "presentable": false,
+                "required": false,
+                "system": false,
+                "type": "relation"
+            },
+            {
+                "hidden": false,
+                "id": "autodate2990389176",
+                "name": "created",
+                "onCreate": true,
+                "onUpdate": false,
+                "presentable": false,
+                "system": false,
+                "type": "autodate"
+            },
+            {
+                "hidden": false,
+                "id": "autodate3332085495",
+                "name": "updated",
+                "onCreate": true,
+                "onUpdate": true,
+                "presentable": false,
+                "system": false,
+                "type": "autodate"
+            }
+        ],
+        "indexes": [],
+        "system": false
+    },
+    {
+        "id": "pbc_993135821",
+        "listRule": "",
+        "viewRule": "",
+        "createRule": "",
+        "updateRule": "",
+        "deleteRule": "name !=\"基础\"",
+        "name": "workType",
+        "type": "base",
+        "fields": [
+            {
+                "autogeneratePattern": "[a-z0-9]{15}",
+                "hidden": false,
+                "id": "text3208210256",
+                "max": 15,
+                "min": 15,
+                "name": "id",
+                "pattern": "^[a-z0-9]+$",
+                "presentable": false,
+                "primaryKey": true,
+                "required": true,
+                "system": true,
+                "type": "text"
+            },
+            {
+                "autogeneratePattern": "",
+                "hidden": false,
+                "id": "text2363381545",
+                "max": 0,
+                "min": 0,
+                "name": "name",
+                "pattern": "",
+                "presentable": false,
+                "primaryKey": false,
+                "required": false,
+                "system": false,
+                "type": "text"
+            },
+            {
+                "hidden": false,
+                "id": "autodate2990389176",
+                "name": "created",
+                "onCreate": true,
+                "onUpdate": false,
+                "presentable": false,
+                "system": false,
+                "type": "autodate"
+            },
+            {
+                "hidden": false,
+                "id": "autodate3332085495",
+                "name": "updated",
+                "onCreate": true,
+                "onUpdate": true,
+                "presentable": false,
+                "system": false,
+                "type": "autodate"
+            }
+        ],
+        "indexes": [],
+        "system": false
+    },
+    {
+        "id": "pbc_3310633731",
+        "listRule": "",
+        "viewRule": "",
+        "createRule": "",
+        "updateRule": "",
+        "deleteRule": "name !=\"基础\"",
+        "name": "workType_test",
+        "type": "base",
+        "fields": [
+            {
+                "autogeneratePattern": "[a-z0-9]{15}",
+                "hidden": false,
+                "id": "text3208210256",
+                "max": 15,
+                "min": 15,
+                "name": "id",
+                "pattern": "^[a-z0-9]+$",
+                "presentable": false,
+                "primaryKey": true,
+                "required": true,
+                "system": true,
+                "type": "text"
+            },
+            {
+                "autogeneratePattern": "",
+                "hidden": false,
+                "id": "text2363381545",
+                "max": 0,
+                "min": 0,
+                "name": "name",
+                "pattern": "",
+                "presentable": false,
+                "primaryKey": false,
+                "required": false,
+                "system": false,
+                "type": "text"
+            },
+            {
+                "hidden": false,
+                "id": "autodate2990389176",
+                "name": "created",
+                "onCreate": true,
+                "onUpdate": false,
+                "presentable": false,
+                "system": false,
+                "type": "autodate"
+            },
+            {
+                "hidden": false,
+                "id": "autodate3332085495",
+                "name": "updated",
+                "onCreate": true,
+                "onUpdate": true,
+                "presentable": false,
+                "system": false,
+                "type": "autodate"
+            }
+        ],
+        "indexes": [],
+        "system": false
+    },
+    {
+        "id": "pbc_696123946",
+        "listRule": "",
+        "viewRule": "",
+        "createRule": "name ~ \"_\"",
+        "updateRule": "name ~ \"_\"",
+        "deleteRule": "",
+        "name": "workers",
+        "type": "base",
+        "fields": [
+            {
+                "autogeneratePattern": "[a-z0-9]{15}",
+                "hidden": false,
+                "id": "text3208210256",
+                "max": 15,
+                "min": 15,
+                "name": "id",
+                "pattern": "^[a-z0-9]+$",
+                "presentable": false,
+                "primaryKey": true,
+                "required": true,
+                "system": true,
+                "type": "text"
+            },
+            {
+                "autogeneratePattern": "",
+                "hidden": false,
+                "id": "text1579384326",
+                "max": 0,
+                "min": 0,
+                "name": "name",
+                "pattern": "",
+                "presentable": false,
+                "primaryKey": false,
+                "required": false,
+                "system": false,
+                "type": "text"
+            },
+            {
+                "hidden": false,
+                "id": "autodate2990389176",
+                "name": "created",
+                "onCreate": true,
+                "onUpdate": false,
+                "presentable": false,
+                "system": false,
+                "type": "autodate"
+            },
+            {
+                "hidden": false,
+                "id": "autodate3332085495",
+                "name": "updated",
+                "onCreate": true,
+                "onUpdate": true,
+                "presentable": false,
+                "system": false,
+                "type": "autodate"
+            }
+        ],
+        "indexes": [],
+        "system": false
+    },
+    {
+        "id": "pbc_3188403080",
+        "listRule": "",
+        "viewRule": "",
+        "createRule": "name ~ \"_\"",
+        "updateRule": "name ~ \"_\"",
+        "deleteRule": "",
+        "name": "workers_test",
+        "type": "base",
+        "fields": [
+            {
+                "autogeneratePattern": "[a-z0-9]{15}",
+                "hidden": false,
+                "id": "text3208210256",
+                "max": 15,
+                "min": 15,
+                "name": "id",
+                "pattern": "^[a-z0-9]+$",
+                "presentable": false,
+                "primaryKey": true,
+                "required": true,
+                "system": true,
+                "type": "text"
+            },
+            {
+                "autogeneratePattern": "",
+                "hidden": false,
+                "id": "text1579384326",
+                "max": 0,
+                "min": 0,
+                "name": "name",
+                "pattern": "",
+                "presentable": false,
+                "primaryKey": false,
+                "required": false,
+                "system": false,
+                "type": "text"
+            },
+            {
+                "hidden": false,
+                "id": "autodate2990389176",
+                "name": "created",
+                "onCreate": true,
+                "onUpdate": false,
+                "presentable": false,
+                "system": false,
+                "type": "autodate"
+            },
+            {
+                "hidden": false,
+                "id": "autodate3332085495",
+                "name": "updated",
+                "onCreate": true,
+                "onUpdate": true,
+                "presentable": false,
+                "system": false,
+                "type": "autodate"
+            }
+        ],
+        "indexes": [
+            "CREATE UNIQUE INDEX `idx_5IMNDpkM4d` ON `workers_test` (`name`)"
+        ],
+        "system": false
+    },
+    {
+        "id": "pbc_1160659843",
+        "listRule": null,
+        "viewRule": null,
+        "createRule": null,
+        "updateRule": null,
+        "deleteRule": null,
+        "name": "salary_day_seg_view_test",
+        "type": "view",
+        "fields": [
+            {
+                "autogeneratePattern": "",
+                "hidden": false,
+                "id": "text3208210256",
+                "max": 0,
+                "min": 0,
+                "name": "id",
+                "pattern": "^[a-z0-9]+$",
+                "presentable": false,
+                "primaryKey": true,
+                "required": true,
+                "system": true,
+                "type": "text"
+            },
+            {
+                "hidden": false,
+                "id": "json1797306934",
+                "maxSize": 1,
+                "name": "worker_id",
+                "presentable": false,
+                "required": false,
+                "system": false,
+                "type": "json"
+            },
+            {
+                "hidden": false,
+                "id": "json1397647488",
+                "maxSize": 1,
+                "name": "work",
+                "presentable": false,
+                "required": false,
+                "system": false,
+                "type": "json"
+            },
+            {
+                "hidden": false,
+                "id": "json1970585429",
+                "maxSize": 1,
+                "name": "hours_worked",
+                "presentable": false,
+                "required": false,
+                "system": false,
+                "type": "json"
+            },
+            {
+                "hidden": false,
+                "id": "json1380456031",
+                "maxSize": 1,
+                "name": "salary_type_id",
+                "presentable": false,
+                "required": false,
+                "system": false,
+                "type": "json"
+            },
+            {
+                "hidden": false,
+                "id": "json2957205363",
+                "maxSize": 1,
+                "name": "SalaryNum",
+                "presentable": false,
+                "required": false,
+                "system": false,
+                "type": "json"
+            },
+            {
+                "hidden": false,
+                "id": "json2420534521",
+                "maxSize": 1,
+                "name": "check_in",
+                "presentable": false,
+                "required": false,
+                "system": false,
+                "type": "json"
+            },
+            {
+                "hidden": false,
+                "id": "json3961577812",
+                "maxSize": 1,
+                "name": "check_out",
+                "presentable": false,
+                "required": false,
+                "system": false,
+                "type": "json"
+            },
+            {
+                "hidden": false,
+                "id": "json2484321137",
+                "maxSize": 1,
+                "name": "salary",
+                "presentable": false,
+                "required": false,
+                "system": false,
+                "type": "json"
+            }
+        ],
+        "indexes": [],
+        "system": false,
+        "viewQuery": "WITH WorkHours AS (\n    SELECT\n        id,\n        worker_id,\n        work,\n\t\t\t\tcheck_in,\n\t\t\t\tcheck_out,\n        (strftime('%s', check_out) - strftime('%s', check_in)) / 3600.0 AS hours_worked\n    FROM\n        attendance_record_test\n),\nMatchedSalary AS (\n    SELECT\n        wh.id,\n        wh.worker_id,\n        wh.work,\n        wh.hours_worked,\n\t\t\t\twh.check_in,\n\t\t\t\twh.check_out,\n        COALESCE(\n            -- 优先匹配 worker_name 和 work_type 都有的条目\n            (SELECT st.id\n             FROM SalaryType_test st\n             WHERE st.worker_name = wh.worker_id\n               AND st.work_type = wh.work\n             LIMIT 1),\n            -- 然后匹配只有 worker_name 的条目\n            (SELECT st.id\n             FROM SalaryType_test st\n             WHERE st.worker_name = wh.worker_id\n             LIMIT 1),\n            -- 接着匹配只有 work_type 的条目\n            (SELECT st.id\n             FROM SalaryType_test st\n             WHERE st.work_type = wh.work\n             LIMIT 1),\n            -- 最后匹配 work_type 为 \"基础\" 的条目\n            (SELECT st.id\n             FROM SalaryType_test st\n             JOIN workType_test wt ON st.work_type = wt.id\n             WHERE wt.name = '基础'\n             LIMIT 1)\n        ) AS salary_type_id,\n        COALESCE(\n            -- 优先匹配 worker_name 和 work_type 都有的条目\n            (SELECT st.SalaryNum\n             FROM SalaryType_test st\n             WHERE st.worker_name = wh.worker_id\n               AND st.work_type = wh.work\n             LIMIT 1),\n            -- 然后匹配只有 worker_name 的条目\n            (SELECT st.SalaryNum\n             FROM SalaryType_test st\n             WHERE st.worker_name = wh.worker_id\n             LIMIT 1),\n            -- 接着匹配只有 work_type 的条目\n            (SELECT st.SalaryNum\n             FROM SalaryType_test st\n             WHERE st.work_type = wh.work\n             LIMIT 1),\n            -- 最后匹配 work_type 为 \"基础\" 的条目\n            (SELECT st.SalaryNum\n             FROM SalaryType_test st\n             JOIN workType_test wt ON st.work_type = wt.id\n             WHERE wt.name = '基础'\n             LIMIT 1)\n        ) AS SalaryNum\n    FROM\n        WorkHours wh\n)\nSELECT\n    id,\n    worker_id,\n    work,\n    hours_worked,\n    salary_type_id,\n    SalaryNum,\n\t\tcheck_in,\n\t\tcheck_out,\n    (hours_worked * SalaryNum) AS salary\nFROM\n    MatchedSalary"
+    },
+    {
+        "id": "pbc_2584241968",
+        "listRule": null,
+        "viewRule": null,
+        "createRule": null,
+        "updateRule": null,
+        "deleteRule": null,
+        "name": "salary_day_view_test",
+        "type": "view",
+        "fields": [
+            {
+                "autogeneratePattern": "",
+                "hidden": false,
+                "id": "text3208210256",
+                "max": 0,
+                "min": 0,
+                "name": "id",
+                "pattern": "^[a-z0-9]+$",
+                "presentable": false,
+                "primaryKey": true,
+                "required": true,
+                "system": true,
+                "type": "text"
+            },
+            {
+                "hidden": false,
+                "id": "_clone_LbJM",
+                "maxSize": 1,
+                "name": "worker_id",
+                "presentable": false,
+                "required": false,
+                "system": false,
+                "type": "json"
+            },
+            {
+                "hidden": false,
+                "id": "json1398638146",
+                "maxSize": 1,
+                "name": "work_date",
+                "presentable": false,
+                "required": false,
+                "system": false,
+                "type": "json"
+            },
+            {
+                "hidden": false,
+                "id": "json1717374007",
+                "maxSize": 1,
+                "name": "total_hours_worked",
+                "presentable": false,
+                "required": false,
+                "system": false,
+                "type": "json"
+            },
+            {
+                "hidden": false,
+                "id": "json1544001639",
+                "maxSize": 1,
+                "name": "total_salary",
+                "presentable": false,
+                "required": false,
+                "system": false,
+                "type": "json"
+            }
+        ],
+        "indexes": [],
+        "system": false,
+        "viewQuery": "SELECT\n  (ROW_NUMBER() OVER()) as id,\n    worker_id,\n    DATE(check_in) AS work_date,  -- 提取日期部分\n    SUM(hours_worked) AS total_hours_worked,  -- 每天总工时\n    SUM(salary) AS total_salary  -- 每天总薪酬\nFROM\n    salary_day_seg_view_test\nGROUP BY\n    worker_id,\n    DATE(check_in);"
+    },
+    {
+        "id": "pbc_2268713216",
+        "listRule": null,
+        "viewRule": null,
+        "createRule": null,
+        "updateRule": null,
+        "deleteRule": null,
+        "name": "salary_month_view_test",
+        "type": "view",
+        "fields": [
+            {
+                "autogeneratePattern": "",
+                "hidden": false,
+                "id": "text3208210256",
+                "max": 0,
+                "min": 0,
+                "name": "id",
+                "pattern": "^[a-z0-9]+$",
+                "presentable": false,
+                "primaryKey": true,
+                "required": true,
+                "system": true,
+                "type": "text"
+            },
+            {
+                "hidden": false,
+                "id": "_clone_1iLG",
+                "maxSize": 1,
+                "name": "worker_id",
+                "presentable": false,
+                "required": false,
+                "system": false,
+                "type": "json"
+            },
+            {
+                "hidden": false,
+                "id": "json2790091561",
+                "maxSize": 1,
+                "name": "work_month",
+                "presentable": false,
+                "required": false,
+                "system": false,
+                "type": "json"
+            },
+            {
+                "hidden": false,
+                "id": "json1717374007",
+                "maxSize": 1,
+                "name": "total_hours_worked",
+                "presentable": false,
+                "required": false,
+                "system": false,
+                "type": "json"
+            },
+            {
+                "hidden": false,
+                "id": "json1544001639",
+                "maxSize": 1,
+                "name": "total_salary",
+                "presentable": false,
+                "required": false,
+                "system": false,
+                "type": "json"
+            }
+        ],
+        "indexes": [],
+        "system": false,
+        "viewQuery": "SELECT\n  (ROW_NUMBER() OVER()) as id,\n    worker_id,\n    STRFTIME('%Y-%m', work_date) AS work_month,  -- 提取年月部分\n    SUM(total_hours_worked) AS total_hours_worked,  -- 每月总工时\n    SUM(total_salary) AS total_salary  -- 每月总薪酬\nFROM\n    salary_day_view_test\nGROUP BY\n    worker_id,\n    STRFTIME('%Y-%m', work_date);"
+    },
+    {
+        "id": "pbc_4133725226",
+        "listRule": "",
+        "viewRule": "",
+        "createRule": null,
+        "updateRule": null,
+        "deleteRule": null,
+        "name": "workHour_day_view",
+        "type": "view",
+        "fields": [
+            {
+                "cascadeDelete": false,
+                "collectionId": "pbc_3188403080",
+                "hidden": false,
+                "id": "_clone_rml6",
+                "maxSelect": 1,
+                "minSelect": 0,
+                "name": "worker_id",
+                "presentable": false,
+                "required": false,
+                "system": false,
+                "type": "relation"
+            },
+            {
+                "hidden": false,
+                "id": "json1398638146",
+                "maxSize": 1,
+                "name": "work_date",
+                "presentable": false,
+                "required": false,
+                "system": false,
+                "type": "json"
+            },
+            {
+                "hidden": false,
+                "id": "json1451862927",
+                "maxSize": 1,
+                "name": "total_work_hours",
+                "presentable": false,
+                "required": false,
+                "system": false,
+                "type": "json"
+            },
+            {
+                "autogeneratePattern": "",
+                "hidden": false,
+                "id": "text3208210256",
+                "max": 0,
+                "min": 0,
+                "name": "id",
+                "pattern": "^[a-z0-9]+$",
+                "presentable": false,
+                "primaryKey": true,
+                "required": true,
+                "system": true,
+                "type": "text"
+            }
+        ],
+        "indexes": [],
+        "system": false,
+        "viewQuery": "SELECT\n    ar.worker_id,\n    DATE(ar.check_in) AS work_date,\n    (SUM(STRFTIME('%s', ar.check_out) - STRFTIME('%s', ar.check_in)) / 3600.0) AS total_work_hours,\n  (ROW_NUMBER() OVER()) as id\nFROM\n    attendance_record ar\nWHERE check_in IS NOT NULL AND check_out IS NOT NULL\nGROUP BY\n    ar.worker_id,\n    DATE(ar.check_in)\nORDER BY\n    ar.worker_id,\n    work_date;\n"
+    },
+    {
+        "id": "pbc_2282062390",
+        "listRule": "",
+        "viewRule": "",
+        "createRule": null,
+        "updateRule": null,
+        "deleteRule": null,
+        "name": "workHour_day_view_test",
+        "type": "view",
+        "fields": [
+            {
+                "cascadeDelete": false,
+                "collectionId": "pbc_3188403080",
+                "hidden": false,
+                "id": "_clone_ZFef",
+                "maxSelect": 1,
+                "minSelect": 0,
+                "name": "worker_id",
+                "presentable": false,
+                "required": false,
+                "system": false,
+                "type": "relation"
+            },
+            {
+                "hidden": false,
+                "id": "json1398638146",
+                "maxSize": 1,
+                "name": "work_date",
+                "presentable": false,
+                "required": false,
+                "system": false,
+                "type": "json"
+            },
+            {
+                "hidden": false,
+                "id": "json1451862927",
+                "maxSize": 1,
+                "name": "total_work_hours",
+                "presentable": false,
+                "required": false,
+                "system": false,
+                "type": "json"
+            },
+            {
+                "autogeneratePattern": "",
+                "hidden": false,
+                "id": "text3208210256",
+                "max": 0,
+                "min": 0,
+                "name": "id",
+                "pattern": "^[a-z0-9]+$",
+                "presentable": false,
+                "primaryKey": true,
+                "required": true,
+                "system": true,
+                "type": "text"
+            }
+        ],
+        "indexes": [],
+        "system": false,
+        "viewQuery": "SELECT\n    ar.worker_id,\nDATE(ar.check_in,'localtime') AS work_date,\n    (SUM(STRFTIME('%s', ar.check_out) - STRFTIME('%s', ar.check_in)) / 3600.0) AS total_work_hours,\n  (ROW_NUMBER() OVER()) as id\nFROM\n    attendance_record_test ar\nWHERE check_in IS NOT NULL AND check_out IS NOT NULL\nGROUP BY\n    ar.worker_id,\n    DATE(ar.check_in)\nORDER BY\n    ar.worker_id,\n    work_date;\n"
+    },
+    {
+        "id": "pbc_38478013302",
+        "listRule": "",
+        "viewRule": "",
+        "createRule": null,
+        "updateRule": null,
+        "deleteRule": null,
+        "name": "workHour_month_view",
+        "type": "view",
+        "fields": [
+            {
+                "cascadeDelete": false,
+                "collectionId": "pbc_3188403080",
+                "hidden": false,
+                "id": "_clone_byLo",
+                "maxSelect": 1,
+                "minSelect": 0,
+                "name": "worker_id",
+                "presentable": false,
+                "required": false,
+                "system": false,
+                "type": "relation"
+            },
+            {
+                "hidden": false,
+                "id": "json2790091561",
+                "maxSize": 1,
+                "name": "work_month",
+                "presentable": false,
+                "required": false,
+                "system": false,
+                "type": "json"
+            },
+            {
+                "hidden": false,
+                "id": "json1451862927",
+                "maxSize": 1,
+                "name": "total_work_hours",
+                "presentable": false,
+                "required": false,
+                "system": false,
+                "type": "json"
+            },
+            {
+                "autogeneratePattern": "",
+                "hidden": false,
+                "id": "text3208210256",
+                "max": 0,
+                "min": 0,
+                "name": "id",
+                "pattern": "^[a-z0-9]+$",
+                "presentable": false,
+                "primaryKey": true,
+                "required": true,
+                "system": true,
+                "type": "text"
+            }
+        ],
+        "indexes": [],
+        "system": false,
+        "viewQuery": "SELECT \n    ar.worker_id,\n    STRFTIME('%Y-%m', ar.check_in) AS work_month,\n    (SUM(STRFTIME('%s', ar.check_out) - STRFTIME('%s', ar.check_in)) / 3600.0) AS total_work_hours,\n\t\t(ROW_NUMBER() OVER()) as id\nFROM \n    attendance_record ar\nWHERE check_in IS NOT NULL AND check_out IS NOT NULL\nGROUP BY \n    ar.worker_id, \n    STRFTIME('%Y-%m', ar.check_in)\nORDER BY\n\tar.worker_id,\n\twork_month;"
+    },
+    {
+        "id": "pbc_3847801330",
+        "listRule": "",
+        "viewRule": "",
+        "createRule": null,
+        "updateRule": null,
+        "deleteRule": null,
+        "name": "workHour_month_view_test",
+        "type": "view",
+        "fields": [
+            {
+                "cascadeDelete": false,
+                "collectionId": "pbc_3188403080",
+                "hidden": false,
+                "id": "_clone_IbG0",
+                "maxSelect": 1,
+                "minSelect": 0,
+                "name": "worker_id",
+                "presentable": false,
+                "required": false,
+                "system": false,
+                "type": "relation"
+            },
+            {
+                "hidden": false,
+                "id": "json2790091561",
+                "maxSize": 1,
+                "name": "work_month",
+                "presentable": false,
+                "required": false,
+                "system": false,
+                "type": "json"
+            },
+            {
+                "hidden": false,
+                "id": "json1451862927",
+                "maxSize": 1,
+                "name": "total_work_hours",
+                "presentable": false,
+                "required": false,
+                "system": false,
+                "type": "json"
+            },
+            {
+                "autogeneratePattern": "",
+                "hidden": false,
+                "id": "text3208210256",
+                "max": 0,
+                "min": 0,
+                "name": "id",
+                "pattern": "^[a-z0-9]+$",
+                "presentable": false,
+                "primaryKey": true,
+                "required": true,
+                "system": true,
+                "type": "text"
+            }
+        ],
+        "indexes": [],
+        "system": false,
+        "viewQuery": "SELECT \n    ar.worker_id,\n    STRFTIME('%Y-%m', ar.check_in) AS work_month,\n    (SUM(STRFTIME('%s', ar.check_out) - STRFTIME('%s', ar.check_in)) / 3600.0) AS total_work_hours,\n\t\t(ROW_NUMBER() OVER()) as id\nFROM \n    attendance_record_test ar\nWHERE check_in IS NOT NULL AND check_out IS NOT NULL\nGROUP BY \n    ar.worker_id, \n    STRFTIME('%Y-%m', ar.check_in)\nORDER BY\n\tar.worker_id,\n\twork_month;"
+    }
+]

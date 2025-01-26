@@ -584,6 +584,13 @@ export default function QianDaoPage() {
               mode="multiple"
               allowClear
               labelInValue
+              optionRender={(option)=>(
+                <Space>
+                  {/* 添加待上班和待下班Tag */}
+                  {UnCheckOutNames?.includes(option.data.label) ? <Tag color="red">待下班</Tag> : <Tag color="green">待上班</Tag>}
+                  {option.data.label}
+                </Space>
+      )}
               onChange={(value: any) => {
                 // 这里写any，不然会有一堆类型错误
                 setPiLiangNames(value);
