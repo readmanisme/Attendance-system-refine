@@ -30,7 +30,7 @@ export default defineConfig({
     __SystemName__: JSON.stringify('工人考勤系统'),
     __Backend_UserName__: JSON.stringify('shed2705@outlook.com'),
     __Backend_Password__: JSON.stringify('bPWU8GCMuqwKF9z'),
-    __VERSION__: JSON.stringify('v2025.1.26.1025'),
+    __VERSION__: JSON.stringify('v2025.1.27.1524'),
   },
   // define:{
   //   __BACKEND_API_URL__: JSON.stringify('http://localhost:8090'),

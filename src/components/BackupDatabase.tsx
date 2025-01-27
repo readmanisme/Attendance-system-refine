@@ -18,9 +18,15 @@ export function BackupDatabase() {
         <Button type="primary" size="small" onClick={() => backup_database()}>
           备份
         </Button>
-        <Button type="link" size="small" onClick={() => {api.destroy(key);
-          localStorage.setItem("backupAlertDismissed", today)
-        }}>
+        <Button
+          type="link"
+          size="small"
+          onClick={() => {
+            api.destroy(key);
+            localStorage.setItem("backupAlertDismissed", today);
+            localStorage.setItem("forceBackup", "false");
+          }}
+        >
           今日不再提醒
         </Button>
       </Space>
@@ -54,56 +60,59 @@ export function BackupDatabase() {
       key: Notifi_key,
       duration: 0,
     });
-    const result=await pb.backups.create(`pocketbase-${today}-backup.zip`);
-    // 不能有大写字母，否则会报错
-    setBackuping(false);
-    if (result){
-        api.success({
-            message: "备份成功",
-            description: "数据库备份成功，此通知即将关闭",
-            key: Notifi_key,
-            showProgress: true,
-            // pauseOnHover: true,
-            duration: 3,
-          });
-    }
-    else{
-        api.error({
-            message: "备份失败",
-            description: `"数据库备份失败"`,
-            key: Notifi_key,
-            showProgress: true,
-            // pauseOnHover: true,
-            duration: 3,
-          }); 
+    let result;
+    if (localStorage.getItem("forceBackup") === "true") {
+      result = await pb.backups.create(
+        dayjs().format("YYYY-MM-DD-HH-mm-ss-SSS") + "-backup.zip"
+      );
+      localStorage.setItem("forceBackup", "false");
+    } else {
+      result = await pb.backups.create(`pocketbase-${today}-backup.zip`);
     }
 
+    // 不能有大写字母，否则会报错
+    setBackuping(false);
+    if (result) {
+      api.success({
+        message: "备份成功",
+        description: "数据库备份成功，此通知即将关闭",
+        key: Notifi_key,
+        showProgress: true,
+        // pauseOnHover: true,
+        duration: 3,
+      });
+    } else {
+      api.error({
+        message: "备份失败",
+        description: `"数据库备份失败"`,
+        key: Notifi_key,
+        showProgress: true,
+        // pauseOnHover: true,
+        duration: 3,
+      });
+    }
   };
   useEffect(() => {
     const checkForBackup = async () => {
       const backups = await list_backups();
-      if (backups.length === 0 && localStorage.getItem('backupAlertDismissed') !== today) {
-        //   needBackup.current = true;
+      if (
+        localStorage.getItem("forceBackup") === "true" ||
+        (backups.length === 0 &&
+          localStorage.getItem("backupAlertDismissed") !== today)
+      ) {
         setneedBackup(true);
         openBackupNotification();
       }
     };
     checkForBackup();
   }, []);
-  //   const checkForBackup = async () => {
-  //     const backups = await list_backups();
-  //     console.log("调用了")
-  //     if (backups.length === 0) {
-  //       //   needBackup.current = true;
-  //       setneedBackup(true);
-  //       openBackupNotification();
-  //     }
-  //   };
   return (
     // <div onLoad={checkForBackup()}>{contextHolder}这里是备份数据库的组件</div>
     <div>
       {contextHolder}
-      {backuping && <Spin size="large" fullscreen={true} tip="正在备份数据库..." />}
+      {backuping && (
+        <Spin size="large" fullscreen={true} tip="正在备份数据库..." />
+      )}
     </div>
   );
 }
