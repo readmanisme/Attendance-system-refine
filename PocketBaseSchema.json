@@ -1412,24 +1412,30 @@
                 "type": "text"
             },
             {
+                "cascadeDelete": false,
+                "collectionId": "pbc_3188403080",
                 "hidden": false,
-                "id": "json1797306934",
-                "maxSize": 1,
+                "id": "_clone_oRH0",
+                "maxSelect": 1,
+                "minSelect": 0,
                 "name": "worker_id",
                 "presentable": false,
                 "required": false,
                 "system": false,
-                "type": "json"
+                "type": "relation"
             },
             {
+                "cascadeDelete": false,
+                "collectionId": "pbc_3310633731",
                 "hidden": false,
-                "id": "json1397647488",
-                "maxSize": 1,
+                "id": "_clone_dNqV",
+                "maxSelect": 1,
+                "minSelect": 0,
                 "name": "work",
                 "presentable": false,
                 "required": false,
                 "system": false,
-                "type": "json"
+                "type": "relation"
             },
             {
                 "hidden": false,
@@ -1442,14 +1448,17 @@
                 "type": "json"
             },
             {
+                "cascadeDelete": false,
+                "collectionId": "pbc_3616351690",
                 "hidden": false,
-                "id": "json1380456031",
-                "maxSize": 1,
+                "id": "relation1380456031",
+                "maxSelect": 1,
+                "minSelect": 0,
                 "name": "salary_type_id",
                 "presentable": false,
                 "required": false,
                 "system": false,
-                "type": "json"
+                "type": "relation"
             },
             {
                 "hidden": false,
@@ -1463,23 +1472,25 @@
             },
             {
                 "hidden": false,
-                "id": "json2420534521",
-                "maxSize": 1,
+                "id": "_clone_ppeX",
+                "max": "",
+                "min": "",
                 "name": "check_in",
                 "presentable": false,
                 "required": false,
                 "system": false,
-                "type": "json"
+                "type": "date"
             },
             {
                 "hidden": false,
-                "id": "json3961577812",
-                "maxSize": 1,
+                "id": "_clone_pBW1",
+                "max": "",
+                "min": "",
                 "name": "check_out",
                 "presentable": false,
                 "required": false,
                 "system": false,
-                "type": "json"
+                "type": "date"
             },
             {
                 "hidden": false,
@@ -1494,7 +1505,7 @@
         ],
         "indexes": [],
         "system": false,
-        "viewQuery": "WITH WorkHours AS (\n    SELECT\n        id,\n        worker_id,\n        work,\n\t\t\t\tcheck_in,\n\t\t\t\tcheck_out,\n        (strftime('%s', check_out) - strftime('%s', check_in)) / 3600.0 AS hours_worked\n    FROM\n        attendance_record_test\n),\nMatchedSalary AS (\n    SELECT\n        wh.id,\n        wh.worker_id,\n        wh.work,\n        wh.hours_worked,\n\t\t\t\twh.check_in,\n\t\t\t\twh.check_out,\n        COALESCE(\n            -- 优先匹配 worker_name 和 work_type 都有的条目\n            (SELECT st.id\n             FROM SalaryType_test st\n             WHERE st.worker_name = wh.worker_id\n               AND st.work_type = wh.work\n             LIMIT 1),\n            -- 然后匹配只有 worker_name 的条目\n            (SELECT st.id\n             FROM SalaryType_test st\n             WHERE st.worker_name = wh.worker_id\n             LIMIT 1),\n            -- 接着匹配只有 work_type 的条目\n            (SELECT st.id\n             FROM SalaryType_test st\n             WHERE st.work_type = wh.work\n             LIMIT 1),\n            -- 最后匹配 work_type 为 \"基础\" 的条目\n            (SELECT st.id\n             FROM SalaryType_test st\n             JOIN workType_test wt ON st.work_type = wt.id\n             WHERE wt.name = '基础'\n             LIMIT 1)\n        ) AS salary_type_id,\n        COALESCE(\n            -- 优先匹配 worker_name 和 work_type 都有的条目\n            (SELECT st.SalaryNum\n             FROM SalaryType_test st\n             WHERE st.worker_name = wh.worker_id\n               AND st.work_type = wh.work\n             LIMIT 1),\n            -- 然后匹配只有 worker_name 的条目\n            (SELECT st.SalaryNum\n             FROM SalaryType_test st\n             WHERE st.worker_name = wh.worker_id\n             LIMIT 1),\n            -- 接着匹配只有 work_type 的条目\n            (SELECT st.SalaryNum\n             FROM SalaryType_test st\n             WHERE st.work_type = wh.work\n             LIMIT 1),\n            -- 最后匹配 work_type 为 \"基础\" 的条目\n            (SELECT st.SalaryNum\n             FROM SalaryType_test st\n             JOIN workType_test wt ON st.work_type = wt.id\n             WHERE wt.name = '基础'\n             LIMIT 1)\n        ) AS SalaryNum\n    FROM\n        WorkHours wh\n)\nSELECT\n    id,\n    worker_id,\n    work,\n    hours_worked,\n    salary_type_id,\n    SalaryNum,\n\t\tcheck_in,\n\t\tcheck_out,\n    (hours_worked * SalaryNum) AS salary\nFROM\n    MatchedSalary"
+        "viewQuery": "WITH WorkHours AS (\n    SELECT\n        ar.id,\n        ar.worker_id,\n        ar.work,\n        ar.check_in,\n        ar.check_out,\n        (strftime('%s', ar.check_out) - strftime('%s', ar.check_in)) / 3600.0 AS hours_worked\n    FROM\n        attendance_record_test ar\n),\nMatchedSalary AS (\n    SELECT\n        wh.id,\n        wh.worker_id,\n        wh.work,\n        wh.hours_worked,\n        wh.check_in,\n        wh.check_out,\n        COALESCE(\n            -- 优先匹配 worker_name 和 work_type 都有的条目\n            (SELECT st.id\n             FROM SalaryType_test st\n             WHERE st.worker_name = wh.worker_id\n               AND st.work_type = wh.work\n             LIMIT 1),\n            -- 然后匹配只有 worker_name 的条目\n            (SELECT st.id\n             FROM SalaryType_test st\n             WHERE st.worker_name = wh.worker_id\n             LIMIT 1),\n            -- 接着匹配只有 work_type 的条目\n            (SELECT st.id\n             FROM SalaryType_test st\n             WHERE st.work_type = wh.work\n             LIMIT 1),\n            -- 最后匹配 work_type 为 \"基础\" 的条目\n            (SELECT st.id\n             FROM SalaryType_test st\n             JOIN workType_test wt ON st.work_type = wt.id\n             WHERE wt.name = '基础'\n             LIMIT 1)\n        ) AS salary_type_id,\n        COALESCE(\n            -- 优先匹配 worker_name 和 work_type 都有的条目\n            (SELECT st.SalaryNum\n             FROM SalaryType_test st\n             WHERE st.worker_name = wh.worker_id\n               AND st.work_type = wh.work\n             LIMIT 1),\n            -- 然后匹配只有 worker_name 的条目\n            (SELECT st.SalaryNum\n             FROM SalaryType_test st\n             WHERE st.worker_name = wh.worker_id\n             LIMIT 1),\n            -- 接着匹配只有 work_type 的条目\n            (SELECT st.SalaryNum\n             FROM SalaryType_test st\n             WHERE st.work_type = wh.work\n             LIMIT 1),\n            -- 最后匹配 work_type 为 \"基础\" 的条目\n            (SELECT st.SalaryNum\n             FROM SalaryType_test st\n             JOIN workType_test wt ON st.work_type = wt.id\n             WHERE wt.name = '基础'\n             LIMIT 1)\n        ) AS SalaryNum\n    FROM\n        WorkHours wh\n)\nSELECT\n    ar.id,\n    ar.worker_id,\n    ar.work,\n    wh.hours_worked,\n    st.id AS salary_type_id,  -- 直接从 SalaryType_test 获取\n    ms.SalaryNum,\n    ar.check_in,\n    ar.check_out,\n    (wh.hours_worked * ms.SalaryNum) AS salary\nFROM\n    attendance_record_test ar\nJOIN WorkHours wh ON ar.id = wh.id\nJOIN MatchedSalary ms ON ar.id = ms.id\nLEFT JOIN SalaryType_test st ON st.id = ms.salary_type_id;"
     },
     {
         "id": "pbc_2584241968",
@@ -1521,14 +1532,17 @@
                 "type": "text"
             },
             {
+                "cascadeDelete": false,
+                "collectionId": "pbc_3188403080",
                 "hidden": false,
-                "id": "_clone_LbJM",
-                "maxSize": 1,
+                "id": "_clone_8ggS",
+                "maxSelect": 1,
+                "minSelect": 0,
                 "name": "worker_id",
                 "presentable": false,
                 "required": false,
                 "system": false,
-                "type": "json"
+                "type": "relation"
             },
             {
                 "hidden": false,
@@ -1590,14 +1604,17 @@
                 "type": "text"
             },
             {
+                "cascadeDelete": false,
+                "collectionId": "pbc_3188403080",
                 "hidden": false,
-                "id": "_clone_1iLG",
-                "maxSize": 1,
+                "id": "_clone_cgHn",
+                "maxSelect": 1,
+                "minSelect": 0,
                 "name": "worker_id",
                 "presentable": false,
                 "required": false,
                 "system": false,
-                "type": "json"
+                "type": "relation"
             },
             {
                 "hidden": false,

@@ -854,6 +854,12 @@ export default function GongShiList() {
         </>
       )}
     >
+            <Alert
+        message="未下班记录将不被计入"
+        type="info"
+        showIcon
+        className="mb-2"
+      />
       <div className="flex items-center justify-end mb-2">
         {get_un_salary_work() !== "" && (
           <Alert
@@ -865,6 +871,7 @@ export default function GongShiList() {
         )}
         <SwitchDataRangeGongShi />
       </div>
+
       {/* <List
         {...listProps}
         pagination={{

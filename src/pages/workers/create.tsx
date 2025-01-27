@@ -193,7 +193,6 @@ export const WorkersCreate = () => {
       return (
         <>
           <Input.TextArea
-            // TODO ant design的普遍缺少label，如果有必要，可以更换到mantine ui中
             rows={20}
             value={Textareavalue}
             onChange={handle_textarea_change}
