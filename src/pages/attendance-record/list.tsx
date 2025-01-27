@@ -2,34 +2,50 @@ import {
   CreateButton,
   DeleteButton,
   EditButton,
+  FilterDropdown,
   List,
+  SaveButton,
   ShowButton,
+  useSelect,
   useTable,
 } from "@refinedev/antd";
-import { CrudFilter, type BaseRecord } from "@refinedev/core";
-import {
-  Space,
-  Table,
-  TableProps,
-  DatePicker,
-  Typography,
-  Switch,
-} from "antd";
+import { CrudFilter, CrudFilters, type BaseRecord } from "@refinedev/core";
+import { Space, Table, Switch, Select, Form } from "antd";
 import dayjs from "dayjs";
 import { useEffect, useState } from "react";
 import { useSomeStore } from "@/stores";
 import { SwitchDataRange } from "@/components/SwitchDataRange";
 import { useGetDatePickerFilter } from "@/utils/get_data_picker_filter";
+import _ from "lodash";
 export const AttendanceRecordList = () => {
   const datePickerFilter = useGetDatePickerFilter();
   const { recordDateRange, setRecordDateRange } = useSomeStore();
-  const { RangePicker } = DatePicker;
-  
-  // console.log("datePickerFilter", datePickerFilter);
-  const { tableProps, filters, setFilters } = useTable({
+  const { selectProps: workerSelectProps } = useSelect({
+    resource: __Workers_TableName,
+    optionLabel: "name",
+    optionValue: "id",
+  });
+  const get_filter = (values: any) => {
+    // console.log(values)
+    let names = values.name;
+    if (!_.isArray(names)) {
+      names = [names];
+    }
+    return [
+      {
+        operator: "or",
+        value: names.map((name: string) => ({
+          field: "worker_id",
+          operator: "eq",
+          value: name,
+        })),
+      },
+    ];
+  };
+  const { tableProps, filters, setFilters, searchFormProps } = useTable({
     resource: __AttendanceRecord_TableName,
-    meta:{
-      expand:["work","worker_id"],
+    meta: {
+      expand: ["work", "worker_id"],
     },
     syncWithLocation: true,
     sorters: {
@@ -42,32 +58,17 @@ export const AttendanceRecordList = () => {
     },
     filters: {
       // 这里operator是null的实际是不等于null，nnull实际上是等于null
-      permanent:datePickerFilter as CrudFilter[],
+      permanent: datePickerFilter as CrudFilter[],
       defaultBehavior: "replace",
     },
+    onSearch: (values: any) => {
+      // console.log(get_filter(values))
+      return get_filter(values) as CrudFilters;
+      // return get_filter(values) as any;
+    },
   });
-  interface DataType {
-    id: string;
-    worker_id: string;
-    check_in: string;
-    check_out: string;
-  }
-  type OnChange = NonNullable<TableProps<DataType>["onChange"]>;
-  type Filters = Parameters<OnChange>[1];
 
-  type GetSingle<T> = T extends (infer U)[] ? U : never;
-  type Sorts = GetSingle<Parameters<OnChange>[2]>;
   const [unclockoutfilter, setUnclockoutfilter] = useState(false);
-  const [filteredInfo, setFilteredInfo] = useState<Filters>({});
-  const [sortedInfo, setSortedInfo] = useState<Sorts>({});
-  const clearFilters = () => {
-    setFilteredInfo({});
-  };
-
-  const clearAll = () => {
-    setFilteredInfo({});
-    setSortedInfo({});
-  };
   const handleUnclockoutfilterChange = (checked: boolean) => {
     setUnclockoutfilter(checked);
   };
@@ -95,48 +96,37 @@ export const AttendanceRecordList = () => {
   };
   return (
     <List headerButtons={<CreateButton>添加记录</CreateButton>}>
-      <div className="flex flex-row justify-center items-center gap-2">
-        <div className="text-center">过滤未下班记录</div>
-        <Switch
-          checked={unclockoutfilter}
-          onChange={handleUnclockoutfilterChange}
-        />
-        {/* <Button
-          onClick={() => {
-            setFilters([
-              {
-                field: "check_out",
-                operator: "eq",
-                value: "",
-              },
-            ]);
-          }}
-        >
-          过滤
-        </Button>
-        <Button
-          onClick={() => {
-            setFilters([]);
-          }}
-        >
-          取消过滤
-        </Button>
-        <Button
-          onClick={() => {
-            clearFilters();
-          }}
-        >
-          取消表自带过滤
-        </Button> */}
+      <div className="flex flex-row justify-between items-center">
+        <div className="flex flex-row gap-2 items-center">
+          <div className="text-center">过滤未下班记录</div>
+          <Switch
+            checked={unclockoutfilter}
+            onChange={handleUnclockoutfilterChange}
+          />
+        </div>
+        <SwitchDataRange />
       </div>
-      <Space></Space>
-      <SwitchDataRange />
+      <Form {...searchFormProps} layout="inline" className="mb-2">
+        <Form.Item name="name" label="搜索人名">
+          <Select
+            className="min-w-52"
+            mode="multiple"
+            {...workerSelectProps}
+            allowClear
+            placeholder="不支持拼音"
+            onClear={() => {
+              searchFormProps.form?.submit();
+            }}
+          />
+        </Form.Item>
+        <SaveButton onClick={searchFormProps.form?.submit}>搜索</SaveButton>
+      </Form>
       {/* <Table {...tableProps} rowKey="id" onChange={handleTableChange}> */}
       <Table {...tableProps} rowKey="id">
         <Table.Column dataIndex="id" title={"ID"} />
         {/* <Table.Column dataIndex="worker_id" title={"人员ID"} /> */}
         <Table.Column
-          dataIndex={["expand","worker_id","name"]}
+          dataIndex={["expand", "worker_id", "name"]}
           title={"人员姓名"}
         />
         <Table.Column
@@ -158,13 +148,23 @@ export const AttendanceRecordList = () => {
         <Table.Column
           dataIndex="check_out"
           title={"下班时间"}
-          // filters={[
-          //   { text: "非空", value: "非空" },
-          //   { text: "空值", value: "空值" },
-          // ]}
-          // filteredValue={filteredInfo.check_out || null}
-          // filterMultiple={false}
-          // TODO 这里表自带的筛选有问题
+          // filterDropdown={(props) => (
+          //   <FilterDropdown {...props}
+          //   mapValue={(value)=>{
+          //     if(value===""){
+          //   }}}
+          //   >
+          //     <Select
+          //     className="min-w-52"
+          //       mode="multiple"
+          //       placeholder="Select Category"
+          //       options={[
+          //         { label: "空值", value: "0" },
+          //         { label: "非空", value: "1" },
+          //       ]}
+          //     />
+          //   </FilterDropdown>
+          // )}
           render={(_, record: BaseRecord) => {
             return (
               <>
@@ -176,9 +176,9 @@ export const AttendanceRecordList = () => {
           }}
         />
         <Table.Column
-        dataIndex={["expand","work","name"]}
-        title={"工作类型"}
-      />
+          dataIndex={["expand", "work", "name"]}
+          title={"工作类型"}
+        />
         <Table.Column
           title={"Actions"}
           dataIndex="actions"

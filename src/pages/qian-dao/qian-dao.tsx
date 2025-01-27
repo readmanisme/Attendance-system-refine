@@ -8,6 +8,7 @@ import {
   Tag,
   Select,
   DatePicker,
+  Popconfirm,
 } from "antd";
 const { Title, Paragraph, Text, Link } = Typography;
 
@@ -298,17 +299,6 @@ export default function QianDaoPage() {
         </>
       );
     }
-    //   const { name, checkInTime, checkOutTime, status } = record;
-    //   if (status === "pending") {
-    //     // TODO 应该将pending更换为cheched-in
-    //     // return `${name}已签到，签到时间：${checkInTime}`;
-    //     return <>{name} <Tag color="green">已签到</Tag>，签到时间：{checkInTime}</>;
-    //   } else if (status === "checked-out") {
-    //     // return `${name}已签退，签退时间：${checkOutTime}`;
-    //     return <>{name} <Tag color="red">已签退</Tag>，签退时间：{checkOutTime}</>;
-    //   } else {
-    //     return `${name}未签到，请先签到`;
-    // }
 
     return records.map((record, index) => {
       const { name, checkInTime, checkOutTime, status } = record;
@@ -545,7 +535,6 @@ export default function QianDaoPage() {
               >
                 上班打卡
               </AntdButton>
-              {/* TODO 可以添加一些tooltip，例如需要选择工作然后才能打卡 */}
               <AntdButton
                 danger
                 icon={<LogoutOutlined />}
@@ -620,35 +609,63 @@ export default function QianDaoPage() {
                 />
               </Space>
               <Space direction="vertical">
-                <AntdButton
-                  type="primary"
-                  icon={<CheckOutlined />}
-                  onClick={() => {handleQiandao_PILIANG("上班");
+                <Popconfirm
+                  title="确认要上班打卡吗？"
+                  description="确保信息准确"
+                  okText="确认"
+                  cancelText="取消"
+                  onConfirm={() => {
+                    handleQiandao_PILIANG("上班");
                     setPiLiangNames([]);
                     setPiliangTime(undefined);
                     set_work_type_value("");
                     set_work_type_id("");
                     set_buttons_disabled();
                   }}
+                >
+                <AntdButton
+                  type="primary"
+                  icon={<CheckOutlined />}
+                  // onClick={() => {handleQiandao_PILIANG("上班");
+                  //   setPiLiangNames([]);
+                  //   setPiliangTime(undefined);
+                  //   set_work_type_value("");
+                  //   set_work_type_id("");
+                  //   set_buttons_disabled();
+                  // }}
                   disabled={ShangBanButtonDisabled}
                 >
                   上班打卡
                 </AntdButton>
-                {/* TODO 可以添加一些tooltip，例如需要选择工作然后才能打卡 */}
-                <AntdButton
-                  danger
-                  icon={<LogoutOutlined />}
-                  onClick={() => {handleQiandao_PILIANG("下班");
+                </Popconfirm>
+                <Popconfirm
+                  title="确认要下班打卡吗？"
+                  description="确保信息准确"
+                  okText="确认"
+                  cancelText="取消"
+                  onConfirm={() => {
+                    handleQiandao_PILIANG("下班");
                     setPiLiangNames([]);
                     setPiliangTime(undefined);
                     set_work_type_value("");
                     set_work_type_id("");
                     set_buttons_disabled();
-                  }}
+                  }}>
+                <AntdButton
+                  danger
+                  icon={<LogoutOutlined />}
+                  // onClick={() => {handleQiandao_PILIANG("下班");
+                  //   setPiLiangNames([]);
+                  //   setPiliangTime(undefined);
+                  //   set_work_type_value("");
+                  //   set_work_type_id("");
+                  //   set_buttons_disabled();
+                  // }}
                   disabled={XiaBanButtonDisabled}
                 >
                   下班打卡
                 </AntdButton>
+                </Popconfirm>
               </Space>
             </Space>
           </div>
