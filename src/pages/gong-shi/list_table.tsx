@@ -19,6 +19,7 @@ import Decimal from "decimal.js";
 import _ from "lodash";
 import { useSomeStore } from "@/stores";
 import { SwitchDataRangeGongShi } from "@/components/SwitchDataRangeGongShi";
+import { fi } from "@faker-js/faker/.";
 export default function GongShiList() {
   const [SalaryLoading, setSalaryLoading] = useState(true);
   const { GongShiData, setGongShiData } = useSomeStore();
@@ -153,6 +154,11 @@ export default function GongShiList() {
                   .toISOString()
                   .replace("T", " "),
               },
+              {
+                field: "check_out",
+                operator: "ne",
+                value: ""
+              }
             ],
           },
         ],
@@ -465,6 +471,7 @@ export default function GongShiList() {
         工作类型: work_name,
         总工时: duration,
         薪资: Decimal.mul(duration, SalaryDict[salaryKey]).toString(),
+        依据: matchValue,
         // 创建时间: record.created,
         // 更新时间: record.updated
       };
