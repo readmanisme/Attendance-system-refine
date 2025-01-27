@@ -10,7 +10,6 @@ import {
   DatePicker,
   Popconfirm,
 } from "antd";
-const { Title, Paragraph, Text, Link } = Typography;
 
 import { useState, useContext, useEffect, useCallback } from "react";
 import dayjs, { Dayjs } from "dayjs";
@@ -32,7 +31,6 @@ import { ColorModeContext } from "../../contexts/color-mode";
 import { List, useSelect } from "@refinedev/antd";
 import { ColumnsType } from "antd/es/table";
 import PySearchSelect from "@/components/PySearchSelect";
-import { set } from "lodash";
 
 const { Title: AntdTitle } = Typography;
 export default function QianDaoPage() {
@@ -49,21 +47,8 @@ export default function QianDaoPage() {
     resource: __Workers_TableName,
     pagination: { mode: "off" },
   });
-  //   const workers = raw_workers?.data.map((item) => item.name);
   const workers = raw_workers?.data;
   // 定义变量，用于确定当前选择是上班还是下班
-  const [workOrOff, setWorkOrOff] = useState("上班");
-  const { data: raw_unClockOutWorkers } = useList({
-    resource: __AttendanceRecord_TableName,
-    filters: [
-      {
-        field: "check_out",
-        operator: "eq",
-        value: "",
-      },
-    ],
-  });
-
   const { data: raw_todayRecord, isLoading: loading_todayRecord } = useList({
     resource: __AttendanceRecord_TableName,
     pagination: {
@@ -122,6 +107,16 @@ export default function QianDaoPage() {
             field: "worker_id",
             operator: "eq",
             value: selectID,
+          },
+          {
+            field: "check_in",
+            operator: "gte",
+            value: dayjs().startOf("day").toISOString().replace("T", " "),
+          },
+          {
+            field: "check_in",
+            operator: "lte",
+            value: dayjs().endOf("day").toISOString().replace("T", " "),
           },
         ],
       },
@@ -372,11 +367,56 @@ export default function QianDaoPage() {
             operator: "eq",
             value: "",
           },
+          {
+            field: "check_in",
+            operator: "gte",
+            value: dayjs().startOf("day").toISOString().replace("T", " "),
+          },
+          {
+            field: "check_in",
+            operator: "lte",
+            value: dayjs().endOf("day").toISOString().replace("T", " "),
+          },
           get_last_records_workers_filter() as LogicalFilter,
         ],
       },
     ],
   });
+  const { data: full_records } = useList({
+    resource: __AttendanceRecord_TableName,
+    pagination: {
+      mode: "off",
+    },
+    sorters: [
+      {
+        field: "check_in",
+        order: "desc",
+      },
+    ],
+    filters: [
+      {
+        operator: "and",
+        value: [
+          {
+            field: "check_out",
+            operator: "ne",
+            value: "",
+          },
+          {
+            field: "check_in",
+            operator: "gte",
+            value: dayjs().startOf("day").toISOString().replace("T", " "),
+          },
+          {
+            field: "check_in",
+            operator: "lte",
+            value: dayjs().endOf("day").toISOString().replace("T", " "),
+          },
+        ],
+      },
+    ],
+  });
+  // console.log("full_records", full_records);
   const [ShangBanButtonDisabled, setShangBanButtonDisabled] = useState(true);
   const [XiaBanButtonDisabled, setXiaBanButtonDisabled] = useState(true);
   const [AlertDescription, setAlertDescription] =
@@ -406,12 +446,59 @@ export default function QianDaoPage() {
     );
     if (missingKeys.length === 0) {
       // 所有人都没下班，那就可以下班
+      // 需要确保下班时间（PiliangTime）对每个人来说都小于其上班时间
+      const Descriptions: React.ReactNode[] = [];
+      PiLiangNames.forEach((name) => {
+        const record = last_records?.data.find(
+          (item) => item.worker_id === name.key
+        );
+        if (dayjs(record?.check_in).isAfter(PiliangTime)) {
+          Descriptions.push(
+            <div key={name.key}>
+              {name.label} 下班时间{PiliangTime.format("YYYY-MM-DD HH:mm:ss")}{" "}
+              早于上班时间
+              {dayjs(record?.check_in).format("YYYY-MM-DD HH:mm:ss")}
+            </div>
+          );
+        }
+      });
+      if (Descriptions.length > 0) {
+        setShangBanButtonDisabled(true);
+        setXiaBanButtonDisabled(true);
+        setAlertDescription(Descriptions);
+        setAlertType("error");
+        return;
+      }
+
       setXiaBanButtonDisabled(false);
       setAlertDescription("可以下班");
       setAlertType("success");
       return;
     } else if (missingKeys.length === PiLiangNames.length) {
       // 所有人都下班了，那就可以上班
+      // 需要确保上班时间（PiliangTime）对每个人来说都大于其上一个记录的下班时间
+      const Descriptions: React.ReactNode[] = [];
+      PiLiangNames.forEach((name) => {
+        const record = full_records?.data.find(
+          (item) => item.worker_id === name.key
+        );
+        if (record && dayjs(record?.check_out).isAfter(PiliangTime)) {
+          Descriptions.push(
+            <div key={name.key}>
+              {name.label} 上班时间{PiliangTime.format("YYYY-MM-DD HH:mm:ss")}{" "}
+              早于上一个记录的下班时间
+              {dayjs(record?.check_out).format("YYYY-MM-DD HH:mm:ss")}
+            </div>
+          );
+        }
+      });
+      if (Descriptions.length > 0) {
+        setShangBanButtonDisabled(true);
+        setXiaBanButtonDisabled(true);
+        setAlertDescription(Descriptions);
+        setAlertType("error");
+        return;
+      }
       setAlertDescription("选择工作");
       setAlertType("warning");
       if (work_type_id) {
@@ -439,28 +526,6 @@ export default function QianDaoPage() {
       );
       setAlertType("error");
     }
-    // const can_check_in = last_records?.data.every(
-    //   (record) => record.check_out !== ""
-    // );
-    // const has_checked_out = last_records?.data.some(
-    //   // 检查是否存在未签退
-    //   (record) => record.check_out === ""
-    // );
-    // if (has_checked_in && has_checked_out) {
-    //   setShangBanButtonDisabled(false);
-    //   setXiaBanButtonDisabled(false);
-    //   return;
-    // }
-    // if (has_checked_in) {
-    //   setShangBanButtonDisabled(true);
-    //   setXiaBanButtonDisabled(false);
-    //   return;
-    // }
-    // if (has_checked_out) {
-    //   setShangBanButtonDisabled(false);
-    //   setXiaBanButtonDisabled(true);
-    //   return;
-    // }
   }, [PiLiangNames, PiliangTime, last_records, work_type_id]);
   useEffect(() => {
     set_buttons_disabled();
@@ -573,13 +638,17 @@ export default function QianDaoPage() {
               mode="multiple"
               allowClear
               labelInValue
-              optionRender={(option)=>(
+              optionRender={(option) => (
                 <Space>
                   {/* 添加待上班和待下班Tag */}
-                  {UnCheckOutNames?.includes(option.data.label) ? <Tag color="red">待下班</Tag> : <Tag color="green">待上班</Tag>}
+                  {UnCheckOutNames?.includes(option.data.label) ? (
+                    <Tag color="red">待下班</Tag>
+                  ) : (
+                    <Tag color="green">待上班</Tag>
+                  )}
                   {option.data.label}
                 </Space>
-      )}
+              )}
               onChange={(value: any) => {
                 // 这里写any，不然会有一堆类型错误
                 setPiLiangNames(value);
@@ -593,7 +662,11 @@ export default function QianDaoPage() {
                   style={{ width: 150 }}
                   allowClear
                   labelInValue
-                  value={work_type_value ? { value: work_type_value, label: work_type_value } : undefined}
+                  value={
+                    work_type_value
+                      ? { value: work_type_value, label: work_type_value }
+                      : undefined
+                  }
                   onChange={(value: { value: string; label: string }) => {
                     set_work_type_value(value?.label);
                     set_work_type_id(value?.value);
@@ -623,20 +696,20 @@ export default function QianDaoPage() {
                     set_buttons_disabled();
                   }}
                 >
-                <AntdButton
-                  type="primary"
-                  icon={<CheckOutlined />}
-                  // onClick={() => {handleQiandao_PILIANG("上班");
-                  //   setPiLiangNames([]);
-                  //   setPiliangTime(undefined);
-                  //   set_work_type_value("");
-                  //   set_work_type_id("");
-                  //   set_buttons_disabled();
-                  // }}
-                  disabled={ShangBanButtonDisabled}
-                >
-                  上班打卡
-                </AntdButton>
+                  <AntdButton
+                    type="primary"
+                    icon={<CheckOutlined />}
+                    // onClick={() => {handleQiandao_PILIANG("上班");
+                    //   setPiLiangNames([]);
+                    //   setPiliangTime(undefined);
+                    //   set_work_type_value("");
+                    //   set_work_type_id("");
+                    //   set_buttons_disabled();
+                    // }}
+                    disabled={ShangBanButtonDisabled}
+                  >
+                    上班打卡
+                  </AntdButton>
                 </Popconfirm>
                 <Popconfirm
                   title="确认要下班打卡吗？"
@@ -650,21 +723,22 @@ export default function QianDaoPage() {
                     set_work_type_value("");
                     set_work_type_id("");
                     set_buttons_disabled();
-                  }}>
-                <AntdButton
-                  danger
-                  icon={<LogoutOutlined />}
-                  // onClick={() => {handleQiandao_PILIANG("下班");
-                  //   setPiLiangNames([]);
-                  //   setPiliangTime(undefined);
-                  //   set_work_type_value("");
-                  //   set_work_type_id("");
-                  //   set_buttons_disabled();
-                  // }}
-                  disabled={XiaBanButtonDisabled}
+                  }}
                 >
-                  下班打卡
-                </AntdButton>
+                  <AntdButton
+                    danger
+                    icon={<LogoutOutlined />}
+                    // onClick={() => {handleQiandao_PILIANG("下班");
+                    //   setPiLiangNames([]);
+                    //   setPiliangTime(undefined);
+                    //   set_work_type_value("");
+                    //   set_work_type_id("");
+                    //   set_buttons_disabled();
+                    // }}
+                    disabled={XiaBanButtonDisabled}
+                  >
+                    下班打卡
+                  </AntdButton>
                 </Popconfirm>
               </Space>
             </Space>

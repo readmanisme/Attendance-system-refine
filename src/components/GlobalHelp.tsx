@@ -1,14 +1,80 @@
 import { QuestionCircleOutlined } from "@ant-design/icons";
 import { useResource } from "@refinedev/core";
-import { FloatButton, Drawer } from "antd";
+import { FloatButton, Drawer, Button, Space, notification } from "antd";
 import Paragraph from "antd/es/typography/Paragraph";
 import { useState } from "react";
+import PocketBase from "pocketbase";
+import dayjs from "dayjs";
 
 export const GlobalHelp = () => {
+  const pb = new PocketBase(__BACKEND_API_URL__);
+  const [api, contextHolder] = notification.useNotification();
+  const backup_database = async () => {
+    await pb
+      .collection("_superusers")
+      .authWithPassword(__Backend_UserName__, __Backend_Password__);
+    const result = await pb.backups.create(
+      dayjs().format("YYYY-MM-DD-HH-mm-ss-SSS") + "-backup.zip"
+    );
+    if (result) {
+      // notification在drawer之上，不用担心遮挡。
+      api.success({
+        message: "备份成功",
+        description: "数据库备份成功，此通知即将关闭",
+        showProgress: true,
+        duration: 3,
+      });
+    } else {
+      api.error({
+        message: "备份失败",
+        description: `"数据库备份失败"`,
+        showProgress: true,
+        duration: 3,
+      });
+    }
+  };
   const { resource } = useResource();
   // 值得注意，由于使用到了useResource这个用到react routerdom的hook，所以需要在路由组件包裹下使用，否则无效
   const helps: Record<string, React.ReactNode> = {
-    主页: "显示首页",
+    主页: (
+      <>
+        <Paragraph>
+          1、如果需要备份，但是今天又点击了“今日不再提醒”，那么请点击下列“激活备份”按钮并刷新页面，备份弹窗会重新出现。
+          <br />
+          如果今日已经备份，但是你又需要进行备份，请点击下面的“强制激活备份”按钮，然后刷新页面，备份弹窗会重新出现。
+          <br />
+          你也可以直接点击下面的“手动备份”按钮，然后就会直接进行备份。
+        </Paragraph>
+        <Space>
+          <Button
+            type="primary"
+            onClick={() => {
+              localStorage.setItem("backupAlertDismissed", "");
+              window.location.reload();
+            }}
+          >
+            激活备份
+          </Button>
+          <Button
+            type="primary"
+            onClick={() => {
+              localStorage.setItem("forceBackup", "true");
+              window.location.reload();
+            }}
+          >
+            强制激活备份
+          </Button>
+          <Button
+            type="primary"
+            onClick={async () => {
+              await backup_database();
+            }}
+          >
+            手动备份
+          </Button>
+        </Space>
+      </>
+    ),
     人员签到: (
       <>
         <Paragraph>
@@ -20,16 +86,20 @@ export const GlobalHelp = () => {
         <Paragraph>3、此页面显示当天签到记录</Paragraph>
       </>
     ),
-    考勤记录: (<>
-    <Paragraph>
-      1、！不要有签到和签退为空的记录，会导致薪资计算和工时显示出现错误。
-    </Paragraph>
-    </>),
-    人员管理: (<>
-            <Paragraph>
+    考勤记录: (
+      <>
+        <Paragraph>
+          1、！不要有签到和签退为空的记录，会导致薪资计算和工时显示出现错误。
+        </Paragraph>
+      </>
+    ),
+    人员管理: (
+      <>
+        <Paragraph>
           1、人员名字中不可含有下划线"_" ！，否则会影响到薪资计算。
         </Paragraph>
-    </>),
+      </>
+    ),
     工作管理: (
       <>
         {" "}
@@ -41,10 +111,10 @@ export const GlobalHelp = () => {
     薪资设置: (
       <>
         {" "}
+        <Paragraph>1、此处可设置不同人员或不同工作的时薪。</Paragraph>
         <Paragraph>
-          1、此处可设置不同人员或不同工作的时薪。
+          2、薪资计算顺序为：首先匹配（人员，工作，时薪），然后匹配（人员，时薪），最后匹配（工作，时薪），如果都没有匹配到，则使用基础。
         </Paragraph>
-        <Paragraph>2、薪资计算顺序为：首先匹配（人员，工作，时薪），然后匹配（人员，时薪），最后匹配（工作，时薪），如果都没有匹配到，则使用基础。</Paragraph>
         <Paragraph>
           3、“基础”工作为系统内置，不可删除，其用于计算未设置具体时薪的情况下的薪资。
         </Paragraph>
@@ -92,9 +162,7 @@ export const GlobalHelp = () => {
         onClick={() => setHelpOpen(true)}
         tooltip="显示当前页面的帮助"
       />
-      <FloatButton.BackTop
-      style={{ insetInlineEnd: 84 }}
-      />
+      <FloatButton.BackTop style={{ insetInlineEnd: 84 }} />
       <Drawer title="帮助" open={helpOpen} onClose={() => setHelpOpen(false)}>
         {helps[String(resource?.meta?.label)]}
       </Drawer>

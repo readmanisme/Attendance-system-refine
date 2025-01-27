@@ -959,8 +959,8 @@
         "id": "pbc_3310633731",
         "listRule": "",
         "viewRule": "",
-        "createRule": "",
-        "updateRule": "",
+        "createRule": "name=\"\"",
+        "updateRule": "name=\"\"",
         "deleteRule": "name !=\"基础\"",
         "name": "workType_test",
         "type": "base",
@@ -1014,15 +1014,17 @@
                 "type": "autodate"
             }
         ],
-        "indexes": [],
+        "indexes": [
+            "CREATE UNIQUE INDEX `idx_1ZGxvIK63W` ON `workType_test` (`name`)"
+        ],
         "system": false
     },
     {
         "id": "pbc_3188403080",
         "listRule": "",
         "viewRule": "",
-        "createRule": "name ~ \"_\"",
-        "updateRule": "name ~ \"_\"",
+        "createRule": "name ~ \"_\" || name = \"\"",
+        "updateRule": "name ~ \"_\" || name = \"\"",
         "deleteRule": "",
         "name": "workers_test",
         "type": "base",
@@ -1080,270 +1082,6 @@
             "CREATE UNIQUE INDEX `idx_5IMNDpkM4d` ON `workers_test` (`name`)"
         ],
         "system": false
-    },
-    {
-        "id": "pbc_1160659843",
-        "listRule": null,
-        "viewRule": null,
-        "createRule": null,
-        "updateRule": null,
-        "deleteRule": null,
-        "name": "salary_day_seg_view_test",
-        "type": "view",
-        "fields": [
-            {
-                "autogeneratePattern": "",
-                "hidden": false,
-                "id": "text3208210256",
-                "max": 0,
-                "min": 0,
-                "name": "id",
-                "pattern": "^[a-z0-9]+$",
-                "presentable": false,
-                "primaryKey": true,
-                "required": true,
-                "system": true,
-                "type": "text"
-            },
-            {
-                "cascadeDelete": false,
-                "collectionId": "pbc_3188403080",
-                "hidden": false,
-                "id": "_clone_odve",
-                "maxSelect": 1,
-                "minSelect": 0,
-                "name": "worker_id",
-                "presentable": false,
-                "required": false,
-                "system": false,
-                "type": "relation"
-            },
-            {
-                "cascadeDelete": false,
-                "collectionId": "pbc_3310633731",
-                "hidden": false,
-                "id": "_clone_kNGz",
-                "maxSelect": 1,
-                "minSelect": 0,
-                "name": "work",
-                "presentable": false,
-                "required": false,
-                "system": false,
-                "type": "relation"
-            },
-            {
-                "hidden": false,
-                "id": "json1970585429",
-                "maxSize": 1,
-                "name": "hours_worked",
-                "presentable": false,
-                "required": false,
-                "system": false,
-                "type": "json"
-            },
-            {
-                "cascadeDelete": false,
-                "collectionId": "pbc_3616351690",
-                "hidden": false,
-                "id": "relation1380456031",
-                "maxSelect": 1,
-                "minSelect": 0,
-                "name": "salary_type_id",
-                "presentable": false,
-                "required": false,
-                "system": false,
-                "type": "relation"
-            },
-            {
-                "hidden": false,
-                "id": "json2957205363",
-                "maxSize": 1,
-                "name": "SalaryNum",
-                "presentable": false,
-                "required": false,
-                "system": false,
-                "type": "json"
-            },
-            {
-                "hidden": false,
-                "id": "_clone_lzfh",
-                "max": "",
-                "min": "",
-                "name": "check_in",
-                "presentable": false,
-                "required": false,
-                "system": false,
-                "type": "date"
-            },
-            {
-                "hidden": false,
-                "id": "_clone_MgCD",
-                "max": "",
-                "min": "",
-                "name": "check_out",
-                "presentable": false,
-                "required": false,
-                "system": false,
-                "type": "date"
-            },
-            {
-                "hidden": false,
-                "id": "json2484321137",
-                "maxSize": 1,
-                "name": "salary",
-                "presentable": false,
-                "required": false,
-                "system": false,
-                "type": "json"
-            }
-        ],
-        "indexes": [],
-        "system": false,
-        "viewQuery": "WITH WorkHours AS (\n    SELECT\n        ar.id,\n        ar.worker_id,\n        ar.work,\n        ar.check_in,\n        ar.check_out,\n        (strftime('%s', ar.check_out) - strftime('%s', ar.check_in)) / 3600.0 AS hours_worked\n    FROM\n        attendance_record_test ar\n    WHERE check_in IS NOT \"\" AND check_out IS NOT \"\"\n),\nMatchedSalary AS (\n    SELECT\n        wh.id,\n        wh.worker_id,\n        wh.work,\n        wh.hours_worked,\n        wh.check_in,\n        wh.check_out,\n        COALESCE(\n            -- 优先匹配 worker_name 和 work_type 都有的条目\n            (SELECT st.id\n             FROM SalaryType_test st\n             WHERE st.worker_name = wh.worker_id\n               AND st.work_type = wh.work\n             LIMIT 1),\n            -- 然后匹配只有 worker_name 的条目\n            (SELECT st.id\n             FROM SalaryType_test st\n             WHERE st.worker_name = wh.worker_id\n             LIMIT 1),\n            -- 接着匹配只有 work_type 的条目\n            (SELECT st.id\n             FROM SalaryType_test st\n             WHERE st.work_type = wh.work\n             LIMIT 1),\n            -- 最后匹配 work_type 为 \"基础\" 的条目\n            (SELECT st.id\n             FROM SalaryType_test st\n             JOIN workType_test wt ON st.work_type = wt.id\n             WHERE wt.name = '基础'\n             LIMIT 1)\n        ) AS salary_type_id,\n        COALESCE(\n            -- 优先匹配 worker_name 和 work_type 都有的条目\n            (SELECT st.SalaryNum\n             FROM SalaryType_test st\n             WHERE st.worker_name = wh.worker_id\n               AND st.work_type = wh.work\n             LIMIT 1),\n            -- 然后匹配只有 worker_name 的条目\n            (SELECT st.SalaryNum\n             FROM SalaryType_test st\n             WHERE st.worker_name = wh.worker_id\n             LIMIT 1),\n            -- 接着匹配只有 work_type 的条目\n            (SELECT st.SalaryNum\n             FROM SalaryType_test st\n             WHERE st.work_type = wh.work\n             LIMIT 1),\n            -- 最后匹配 work_type 为 \"基础\" 的条目\n            (SELECT st.SalaryNum\n             FROM SalaryType_test st\n             JOIN workType_test wt ON st.work_type = wt.id\n             WHERE wt.name = '基础'\n             LIMIT 1)\n        ) AS SalaryNum\n    FROM\n        WorkHours wh\n)\nSELECT\n    ar.id,\n    ar.worker_id,\n    ar.work,\n    wh.hours_worked,\n    st.id AS salary_type_id,  -- 直接从 SalaryType_test 获取\n    ms.SalaryNum,\n    ar.check_in,\n    ar.check_out,\n    (wh.hours_worked * ms.SalaryNum) AS salary\nFROM\n    attendance_record_test ar\nJOIN WorkHours wh ON ar.id = wh.id\nJOIN MatchedSalary ms ON ar.id = ms.id\nLEFT JOIN SalaryType_test st ON st.id = ms.salary_type_id;"
-    },
-    {
-        "id": "pbc_2584241968",
-        "listRule": null,
-        "viewRule": null,
-        "createRule": null,
-        "updateRule": null,
-        "deleteRule": null,
-        "name": "salary_day_view_test",
-        "type": "view",
-        "fields": [
-            {
-                "autogeneratePattern": "",
-                "hidden": false,
-                "id": "text3208210256",
-                "max": 0,
-                "min": 0,
-                "name": "id",
-                "pattern": "^[a-z0-9]+$",
-                "presentable": false,
-                "primaryKey": true,
-                "required": true,
-                "system": true,
-                "type": "text"
-            },
-            {
-                "cascadeDelete": false,
-                "collectionId": "pbc_3188403080",
-                "hidden": false,
-                "id": "_clone_8ggS",
-                "maxSelect": 1,
-                "minSelect": 0,
-                "name": "worker_id",
-                "presentable": false,
-                "required": false,
-                "system": false,
-                "type": "relation"
-            },
-            {
-                "hidden": false,
-                "id": "json1398638146",
-                "maxSize": 1,
-                "name": "work_date",
-                "presentable": false,
-                "required": false,
-                "system": false,
-                "type": "json"
-            },
-            {
-                "hidden": false,
-                "id": "json1717374007",
-                "maxSize": 1,
-                "name": "total_hours_worked",
-                "presentable": false,
-                "required": false,
-                "system": false,
-                "type": "json"
-            },
-            {
-                "hidden": false,
-                "id": "json1544001639",
-                "maxSize": 1,
-                "name": "total_salary",
-                "presentable": false,
-                "required": false,
-                "system": false,
-                "type": "json"
-            }
-        ],
-        "indexes": [],
-        "system": false,
-        "viewQuery": "SELECT\n  (ROW_NUMBER() OVER()) as id,\n    worker_id,\n    DATE(check_in) AS work_date,  -- 提取日期部分\n    SUM(hours_worked) AS total_hours_worked,  -- 每天总工时\n    SUM(salary) AS total_salary  -- 每天总薪酬\nFROM\n    salary_day_seg_view_test\nGROUP BY\n    worker_id,\n    DATE(check_in);"
-    },
-    {
-        "id": "pbc_2268713216",
-        "listRule": null,
-        "viewRule": null,
-        "createRule": null,
-        "updateRule": null,
-        "deleteRule": null,
-        "name": "salary_month_view_test",
-        "type": "view",
-        "fields": [
-            {
-                "autogeneratePattern": "",
-                "hidden": false,
-                "id": "text3208210256",
-                "max": 0,
-                "min": 0,
-                "name": "id",
-                "pattern": "^[a-z0-9]+$",
-                "presentable": false,
-                "primaryKey": true,
-                "required": true,
-                "system": true,
-                "type": "text"
-            },
-            {
-                "cascadeDelete": false,
-                "collectionId": "pbc_3188403080",
-                "hidden": false,
-                "id": "_clone_cgHn",
-                "maxSelect": 1,
-                "minSelect": 0,
-                "name": "worker_id",
-                "presentable": false,
-                "required": false,
-                "system": false,
-                "type": "relation"
-            },
-            {
-                "hidden": false,
-                "id": "json2790091561",
-                "maxSize": 1,
-                "name": "work_month",
-                "presentable": false,
-                "required": false,
-                "system": false,
-                "type": "json"
-            },
-            {
-                "hidden": false,
-                "id": "json1717374007",
-                "maxSize": 1,
-                "name": "total_hours_worked",
-                "presentable": false,
-                "required": false,
-                "system": false,
-                "type": "json"
-            },
-            {
-                "hidden": false,
-                "id": "json1544001639",
-                "maxSize": 1,
-                "name": "total_salary",
-                "presentable": false,
-                "required": false,
-                "system": false,
-                "type": "json"
-            }
-        ],
-        "indexes": [],
-        "system": false,
-        "viewQuery": "SELECT\n  (ROW_NUMBER() OVER()) as id,\n    worker_id,\n    STRFTIME('%Y-%m', work_date) AS work_month,  -- 提取年月部分\n    SUM(total_hours_worked) AS total_hours_worked,  -- 每月总工时\n    SUM(total_salary) AS total_salary  -- 每月总薪酬\nFROM\n    salary_day_view_test\nGROUP BY\n    worker_id,\n    STRFTIME('%Y-%m', work_date);"
     },
     {
         "id": "pbc_2282062390",
