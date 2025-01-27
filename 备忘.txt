@@ -1,2 +1,3 @@
 1、使用yarn yarn-upgrade-all升级所有包
 2、ant design的输入框普遍缺乏label，如有需要可以使用mantine的
+navicat的sql中双引号有识别问题
