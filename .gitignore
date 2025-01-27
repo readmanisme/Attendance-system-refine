@@ -28,3 +28,4 @@ _.sln
 cloc-2.02.exe
 /.VSCodeCounter
 /.yarn
+/doc/.vitepress
