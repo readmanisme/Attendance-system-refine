@@ -19,7 +19,6 @@ import Decimal from "decimal.js";
 import _ from "lodash";
 import { useSomeStore } from "@/stores";
 import { SwitchDataRangeGongShi } from "@/components/SwitchDataRangeGongShi";
-import { fi } from "@faker-js/faker/.";
 export default function GongShiList() {
   const [SalaryLoading, setSalaryLoading] = useState(true);
   const { GongShiData, setGongShiData } = useSomeStore();
@@ -34,7 +33,11 @@ export default function GongShiList() {
         value: id,
       });
     });
-    return filters;
+    // return filters;
+    return [{
+      operator: "or",
+      value: filters,
+    }] as CrudFilter[];
   };
 
   const { tableProps, setFilters } = useTable({
@@ -820,10 +823,17 @@ export default function GongShiList() {
           <Space>
             <PySearchSelect
               onChangeFn={(value: { value: string; label: string }) => {
-                setFilters(get_select_filter([value]), "replace");
-                // PySearchSelectValue.current=[value];
+                if (_.isArray(value)){
+                  setFilters(get_select_filter(value), "replace");
+                }
+                else {
+                  setFilters(get_select_filter([value]), "replace");
+                }
+                
               }}
+              placeholder="选择工人,支持拼音"
               options={null}
+              mode="multiple"
               onClearFn={() => {
                 setFilters([], "replace");
               }}

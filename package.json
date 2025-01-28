@@ -8,9 +8,9 @@
     "build": "tsc && refine build",
     "start": "refine start",
     "refine": "refine",
-    "docs:dev": "vitepress dev doc",
+    "docs:dev": "vitepress dev doc --port 5176",
     "docs:build": "vitepress build doc",
-    "docs:preview": "vitepress preview doc"
+    "docs:preview": "vitepress preview doc --port 5176"
   },
   "dependencies": {
     "@ant-design/charts": "^2.2.6",

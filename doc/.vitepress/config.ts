@@ -4,25 +4,28 @@ import { defineConfig } from 'vitepress'
 export default defineConfig({
   title: "考勤系统操作指引",
   description: "考勤系统操作指引",
+  base:"./",
   themeConfig: {
     // https://vitepress.dev/reference/default-theme-config
+    logo:'/logo.png',
     nav: [
-      { text: 'Home', link: '/' },
-      { text: 'Examples', link: '/markdown-examples' }
+      { text: '首页', link: '/' },
+      { text: '指引', link: '/start' }
     ],
 
     sidebar: [
-      {
-        text: 'Examples',
-        items: [
-          { text: 'Markdown Examples', link: '/markdown-examples' },
-          { text: 'Runtime API Examples', link: '/api-examples' }
-        ]
-      }
+      { text: '启动', link: '/start' },
+      // {
+      //   text: 'Examples',
+      //   items: [
+      //     { text: 'Markdown Examples', link: '/markdown-examples' },
+      //     { text: 'Runtime API Examples', link: '/api-examples' }
+      //   ]
+      // }
     ],
 
-    socialLinks: [
-      { icon: 'github', link: 'https://github.com/vuejs/vitepress' }
-    ]
+    // socialLinks: [
+    //   { icon: 'github', link: 'https://github.com/vuejs/vitepress' }
+    // ]
   }
 })
