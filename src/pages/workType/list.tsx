@@ -43,6 +43,7 @@ export const ListWorkType = () => {
                                 hideText
                                 size="small"
                                 recordItemId={record.id}
+                                disabled={record.name === "基础"}
                             />
                             <ShowButton
                                 hideText

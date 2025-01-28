@@ -4,7 +4,6 @@ import { defineConfig } from 'vitepress'
 export default defineConfig({
   title: "考勤系统操作指引",
   description: "考勤系统操作指引",
-  base:"./",
   themeConfig: {
     // https://vitepress.dev/reference/default-theme-config
     logo:'/logo.png',

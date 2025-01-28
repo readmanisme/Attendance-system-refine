@@ -53,7 +53,7 @@ export const SalaryTypeList = () => {
           dataIndex="actions"
           render={(_, record: BaseRecord) => (
             <Space>
-              <EditButton hideText size="small" recordItemId={record.id} />
+              <EditButton hideText size="small" recordItemId={record.id} disabled={record.expand?.work_type?.name === "基础"}/>
               <ShowButton hideText size="small" recordItemId={record.id} />
               <DeleteButton
                 disabled={record.expand?.work_type?.name === "基础"}
