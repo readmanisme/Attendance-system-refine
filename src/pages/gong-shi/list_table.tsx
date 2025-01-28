@@ -10,6 +10,7 @@ import {
 } from "antd";
 const { RangePicker } = DatePicker;
 import { CrudFilter, useList } from "@refinedev/core";
+import { IconHelp } from "@tabler/icons-react";
 import dayjs, { Dayjs } from "dayjs";
 import * as XLSX from "xlsx";
 import PocketBase from "pocketbase";
@@ -738,7 +739,7 @@ export default function GongShiList() {
             render: (value: any, record: any, index: number) => {
               return (
                 <Tooltip title={record.matchvalue}>
-                  <span>{value}</span>
+                  <div className="flex flex-row items-center gap-2">{value}<IconHelp size={16}/></div>
                 </Tooltip>
               );
             },
@@ -865,7 +866,7 @@ export default function GongShiList() {
               okText="进行导出"
               cancelText="取消操作"
             >
-              <Button loading={isExportLoading}>导出所有考勤记录到Excel</Button>
+              <Button loading={isExportLoading}>导出考勤记录到Excel</Button>
             </Popconfirm>
           </Space>
         </>

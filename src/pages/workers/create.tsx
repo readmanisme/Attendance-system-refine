@@ -104,6 +104,21 @@ export const WorkersCreate = () => {
     names = names.filter((name: string) => name.trim() !== "");
     const names_list = namelist?.data.map((item) => item.name);
     if (names_list) {
+      // 检查是否存在包含下划线的名字
+      const has_underline_name = names.some((name) => name.includes("_"));
+      if (has_underline_name) {
+        setStatus("error");
+        setErrorMsg(<span>
+          以下mention中包含下划线，请修改后再提交：
+          {names.map((name, index) => (
+            <Tag color="red" key={index}>
+              {name}
+            </Tag>
+          ))}
+        </span>
+        );
+        return;
+      }
       let exist_names = names_list.filter((name) => names.includes(name));
       const new_names = names.filter((name) => !exist_names.includes(name));
       // 检查new_names里面自身有没有重复的名字，有的话加入到exist_names中
@@ -180,6 +195,7 @@ export const WorkersCreate = () => {
           >
             <Input value={Inputvalue} onChange={handle_textarea_change} />
           </Form.Item>
+          <Alert message="要求：姓名不能为空, 不能包含下划线, 且不能与已有姓名重复" />
           <Alert
             className="mt-2"
             message={getAlertMessage()}
@@ -197,8 +213,9 @@ export const WorkersCreate = () => {
             value={Textareavalue}
             onChange={handle_textarea_change}
             placeholder="请输入批量录入的姓名，每行一个"
-            className="mt-2"
+            className="mt-2 mb-2"
           />
+          <Alert message="要求：姓名不能为空, 不能包含下划线, 且不能与已有姓名重复" />
           <Alert
             className="mt-2"
             message={getAlertMessage()}

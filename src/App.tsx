@@ -17,7 +17,7 @@ import routerBindings, {
   UnsavedChangesNotifier,
 } from "@refinedev/react-router";
 import dataProvider from "@refinedev/simple-rest";
-import { App as AntdApp, Avatar, Space } from "antd";
+import { App as AntdApp, Avatar, Space,Typography } from "antd";
 import { BrowserRouter, Outlet, Route, Routes } from "react-router";
 import { Header } from "./components/header";
 import { ColorModeContextProvider } from "./contexts/color-mode";
@@ -340,7 +340,7 @@ function App() {
                                     // width={64}
                                     // height={64}
                                   />
-                                  <div className="whitespace-nowrap text-zinc-700">{__SystemName__}</div>
+                                  <Typography.Text className="whitespace-nowrap ">{__SystemName__}</Typography.Text>
                                   <Badge color="blue" variant="light" style={{ width: 120 }}>{__VERSION__}</Badge>
                                   </Space>
                                 ) : (
@@ -353,7 +353,7 @@ function App() {
                                     // width={64}
                                     // height={64}
                                   />
-                                  <div className="whitespace-nowrap text-zinc-700">{__SystemName__}</div>
+                                  <Typography.Text className="whitespace-nowrap ">{__SystemName__}</Typography.Text>
                                   <Badge color="blue" variant="light" style={{ width: 120 }}>{__VERSION__}</Badge>
                                   </Space>
                                 )
