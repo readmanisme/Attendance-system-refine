@@ -8,12 +8,14 @@ export default function PySearchSelect({
   onChangeFn,
   options,
   placeholder = "请选择考勤人员",
-  onClearFn=()=>{},
+  onClearFn = () => {},
+  mode=undefined,
 }: {
   onChangeFn: (value: { value: string; label: string }) => void;
   options: DefaultOptionType[] | null;
   placeholder?: string;
   onClearFn?: () => void;
+  mode?: "multiple" | "tags" | undefined;
 }) {
   // onChangeFn用于接收选择的选项以做他用
   // options用于提供选项列表,默认是工人列表
@@ -39,28 +41,21 @@ export default function PySearchSelect({
     // 检查是不是拼音
     if ((code >= 65 && code <= 90) || (code >= 97 && code <= 122)) {
       if (option && option.label) {
-      const matchResult = match(option?.label, input);
-      if (matchResult) {
-        // const first: number = matchResult[0];
-        // const hanzi: string = option?.label.slice(first, first + 1);
-        // handleInputChange(hanzi);
-        const hanzi = [];
-        for (let i = 0; i < matchResult.length; i++) {
-          const first = matchResult[i];
-          hanzi.push(option?.label.slice(first, first + 1));
+        const matchResult = match(option?.label, input);
+        if (matchResult) {
+          const hanzi = [];
+          for (let i = 0; i < matchResult.length; i++) {
+            const first = matchResult[i];
+            hanzi.push(option?.label.slice(first, first + 1));
+          }
+          HighlightWord.current = hanzi;
+          return true;
+        } else {
+          return false;
         }
-        HighlightWord.current = hanzi;
-        // useEffect(() => {
-        //   setHighoightWord(hanzi);
-        //   }, [hanzi]);
-        return true;
       } else {
         return false;
       }
-    }
-    else{
-      return false;
-    }
     } else {
       return SelectSearch(input, option);
     }
@@ -69,7 +64,7 @@ export default function PySearchSelect({
     resource: __Workers_TableName,
     pagination: { mode: "off" },
   });
-  if (options === null &&raw_workers && raw_workers.data) {
+  if (options === null && raw_workers && raw_workers.data) {
     options = raw_workers?.data.map((worker) => ({
       label: worker.name,
       value: worker.id,
@@ -81,13 +76,17 @@ export default function PySearchSelect({
   return (
     <Select
       placeholder={placeholder}
+      mode={mode}
       showSearch
       allowClear
       labelInValue
       optionFilterProp="label"
       style={{ width: 180 }}
       filterOption={(input, option) => {
-        return SelectSearchPingying(input, option as{ label: string; value: string });
+        return SelectSearchPingying(
+          input,
+          option as { label: string; value: string }
+        );
       }}
       options={options!}
       // onChange={(value) => {
