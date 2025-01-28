@@ -1,22 +1,16 @@
 import {
   IconCommand,
-  IconCookie,
-  IconGauge,
-  IconUser,
   IconChecks,
   IconUsers,
-  IconList,
   IconClipboardData,
   IconLockSquareRounded,
-  IconMicroscope,
   IconCoinYen,
   IconReport,
-  IconHome,
   IconBriefcase,
   IconHelp,
   IconBrightness,
   IconArchive,
-  IconSquareArrowUp
+  IconSquareArrowUp,
 } from "@tabler/icons-react";
 import {
   Badge,
@@ -40,20 +34,17 @@ const mockdata = [
   },
   {
     title: "考勤记录",
-    description:
-      "轻松浏览任何时期的考勤记录。",
+    description: "轻松浏览任何时期的考勤记录。",
     icon: IconClipboardData,
   },
   {
     title: "人员管理",
-    description:
-      "创建、查看、编辑、删除人员信息。并可以批量导入人员信息。",
+    description: "创建、查看、编辑、删除人员信息。并可以批量导入人员信息。",
     icon: IconUsers,
   },
   {
     title: "工作管理",
-    description:
-      "创建、查看、编辑、删除工作信息。",
+    description: "创建、查看、编辑、删除工作信息。",
     icon: IconBriefcase,
   },
   {
@@ -70,14 +61,19 @@ const mockdata = [
   },
   {
     title: "后台管理",
-    description:
-      "供使用人员进行高级操作。",
+    description: "供使用人员进行高级操作。",
     icon: IconLockSquareRounded,
   },
   {
     title: "帮助信息",
-    description:
-      "存在疑问？随时点击右下角帮助按钮查看帮助信息。",
+    description: (
+      <>
+        "存在疑问？随时点击右下角帮助按钮查看帮助信息。"
+        <br />
+        右下角的帮助按钮存在于每一个页面的右下角，点击后右边弹出一个帮助信息框，即可查看此页面的一些帮助信息。
+      </>
+    ),
+
     icon: IconHelp,
   },
   {
@@ -86,6 +82,9 @@ const mockdata = [
       <>
         按下 <Kbd>Ctrl</Kbd> + <Kbd>K</Kbd>{" "}
         即可打开面板，进行快速跳转与快速操作。
+        <br />
+        其中list表示该模块的主页。例如点击“人员签到”的List和在左边导航栏中直接点击“人员签到”的效果是一样的。
+        而Create表示创建，例如点击“人员管理”的Create按钮，会打开一个新建人员的页面，相当于在“人员管理”模块中点击右上角的“新建”按钮。
       </>
     ),
     icon: IconCommand,
@@ -102,7 +101,8 @@ const mockdata = [
   },
   {
     title: "一键回顶",
-    description: "点击右下角回到顶部按钮，即可快速回到页面顶部。",
+    description:
+      "当你往下滚动页面较多的时候,点击右下角回到顶部按钮，即可快速回到页面顶部。",
     icon: IconSquareArrowUp,
   },
 ];
