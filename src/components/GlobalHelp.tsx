@@ -8,7 +8,6 @@ import dayjs from "dayjs";
 
 export const GlobalHelp = () => {
   const pb = new PocketBase(__BACKEND_API_URL__);
-  const [api, contextHolder] = notification.useNotification();
   const backup_database = async () => {
     await pb
       .collection("_superusers")
@@ -18,14 +17,14 @@ export const GlobalHelp = () => {
     );
     if (result) {
       // notification在drawer之上，不用担心遮挡。
-      api.success({
+      notification.success({
         message: "备份成功",
         description: "数据库备份成功，此通知即将关闭",
         showProgress: true,
         duration: 3,
       });
     } else {
-      api.error({
+      notification.error({
         message: "备份失败",
         description: `"数据库备份失败"`,
         showProgress: true,
@@ -42,36 +41,12 @@ export const GlobalHelp = () => {
           1、请详细阅读此页，以对系统的功能有一个全面的认识。
         </Paragraph>
         <Paragraph>
-          2、如果需要备份，但是今天又点击了“今日不再提醒”，那么请点击下列“激活备份”按钮并刷新页面，备份弹窗会重新出现。
-          <br />
-          如果今日已经备份，但是你又需要进行备份，请点击下面的“强制激活备份”按钮，然后刷新页面，备份弹窗会重新出现。
-          <br />
-          你也可以直接点击下面的“手动备份”按钮，然后就会直接进行备份。
+          2、如果需要备份，请点击下方的手动备份按钮，此备份和系统自动弹窗的备份不会冲突。
         </Paragraph>
         <Space>
           <Button
             type="primary"
-            onClick={() => {
-              localStorage.setItem("backupAlertDismissed", "");
-              window.location.reload();
-            }}
-          >
-            激活备份
-          </Button>
-          <Button
-            type="primary"
-            onClick={() => {
-              localStorage.setItem("forceBackup", "true");
-              window.location.reload();
-            }}
-          >
-            强制激活备份
-          </Button>
-          <Button
-            type="primary"
-            onClick={async () => {
-              await backup_database();
-            }}
+            onClick={() => backup_database()}
           >
             手动备份
           </Button>
