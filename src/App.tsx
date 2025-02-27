@@ -89,6 +89,7 @@ import {
   SalaryTypeShow,
 } from "./pages/xin-zi";
 import { GlobalHelp } from "./components/GlobalHelp";
+import { useTranslation } from "react-i18next";
 const pb = new PocketBase(__BACKEND_API_URL__);
 function get_sample_resource_or_route(
   type: "resource" | "route",
@@ -208,7 +209,15 @@ const customTitleHandler = ({
   }
   return title;
 };
+import i18n from "./i18nProvider";
 function App() {
+  const { t, i18n: i18n2 } = useTranslation();
+  const i18nProvider = {
+    //@ts-expect-error,正常的
+    translate: (key: string, params: object) => t(key, params),
+    changeLocale: (lang: string) => i18n.changeLanguage(lang),
+    getLocale: () => i18n2.language,
+  };
   return (
     <BrowserRouter>
       {/* <GitHubBanner /> */}
@@ -224,6 +233,7 @@ function App() {
                     default: pocketbaseDataProvider(pb),
                     example: dataProvider("https://api.fake-rest.refine.dev"),
                   }}
+                  i18nProvider={i18nProvider}
                   // eslint-disable-next-line react-compiler/react-compiler
                   notificationProvider={useNotificationProvider}
                   routerProvider={routerBindings}
@@ -425,7 +435,8 @@ function App() {
                   <GlobalHelp />
                   <RefineKbar />
                   <UnsavedChangesNotifier />
-                  <DocumentTitleHandler handler={customTitleHandler} />;
+                  {/* <DocumentTitleHandler handler={customTitleHandler} />; */}
+                  <DocumentTitleHandler />;
                 </Refine>
                 <DevtoolsPanel />
               </DevtoolsProvider>
