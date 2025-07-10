@@ -1,7 +1,6 @@
 import { Show, TextField, DateField } from "@refinedev/antd";
 import { useOne, useShow } from "@refinedev/core";
 import { Typography } from "antd";
-import { T } from "react-router/dist/development/fog-of-war-Ckdfl79L";
 
 const { Title } = Typography;
 

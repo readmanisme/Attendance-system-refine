@@ -1,7 +1,7 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import tsconfigPaths from 'vite-tsconfig-paths';
-import path from 'path';
+import * as path from 'path';
 export default defineConfig({
   // 帮助文档 https://cn.vite.dev/config/
   plugins: [react({
@@ -30,7 +30,7 @@ export default defineConfig({
     __SystemName__: JSON.stringify('工人考勤系统'),
     __Backend_UserName__: JSON.stringify('shed2705@outlook.com'),
     __Backend_Password__: JSON.stringify('bPWU8GCMuqwKF9z'),
-    __VERSION__: JSON.stringify('v2025.1.28.1440'),
+    __VERSION__: JSON.stringify('v2025.7.10.0936'),
   },
   // define:{
   //   __BACKEND_API_URL__: JSON.stringify('http://localhost:8090'),
