@@ -29,7 +29,7 @@ import {
 } from "@ant-design/icons";
 import RealTimeClock from "@/components/RealTimeClock";
 import { ColorModeContext } from "../../contexts/color-mode";
-import { List, useSelect } from "@refinedev/antd";
+import { List, useSelect, useTable } from "@refinedev/antd";
 import { ColumnsType } from "antd/es/table";
 import PySearchSelect from "@/components/PySearchSelect";
 
@@ -133,53 +133,29 @@ export default function QianDaoPage() {
   // useEffect(() => {
   //   if (!last_record?.data?.length || last_record?.data[0].check_in){}
   // }, [last_record?.data])
-  const handleQiandao = (mode: "上班" | "下班") => {
-    const now = dayjs().toISOString().replace("T", " ");
-    if (!last_record?.data?.length || !last_record?.data[0].check_in) {
-      // 有可能存在既没有上班有没有下班的意外数据
-      if (mode === "下班") {
-        notify?.({
-          type: "error",
-          description: "不应该是下班签到",
-          message: "选择了下班，但是缺乏记录，请先上班签到",
-        });
-        return;
-      }
-      if (!last_record?.data?.length) {
-        CreateRecord({
-          values: {
-            worker_id: selectID,
-            // check_in: now.format("YYYY-MM-DD HH:mm:ss.SSS"),
-            check_in: now,
-            check_out: "",
-            work: work_type_id,
-          },
-        });
-      } else {
-        UpdateRecord({
-          id: last_record?.data[0].id,
-          values: {
-            check_in: now,
-          },
-        });
-      }
-    } else {
-      if (mode === "上班") {
-        notify?.({
-          type: "error",
-          description: "不应该是上班签到",
-          message: "选择了上班，但是已经签到，请先下班签退",
-        });
-        return;
-      }
-      UpdateRecord({
-        id: last_record?.data[0].id,
-        values: {
-          check_out: now,
+
+  const { tableProps: kaoqingjilu } = useTable({
+    resource: __AttendanceRecord_TableName,
+    filters: {
+      // 这里operator是null的实际是不等于null，nnull实际上是等于null
+      permanent: [
+        {
+          field: "check_out",
+          operator: "eq",
+          value: "",
         },
-      });
-    }
-  };
+      ],
+    },
+  });
+  const kaoqingItems=kaoqingjilu?.dataSource;
+  const dates=kaoqingItems?.map((item) => {
+    return dayjs(item.check_in).format("YYYY-MM-DD");
+  });
+  const uniqueDates=Array.from(new Set(dates));
+  // 排除PiliangTime
+  const datesWithoutToday = uniqueDates.filter(
+    (date) => date !== PiliangTime.format("YYYY-MM-DD")
+  );
   const columns: ColumnsType = [
     {
       title: "员工姓名",
@@ -569,6 +545,7 @@ export default function QianDaoPage() {
             </Tag>
           ))}
         </p>
+            <Alert className={datesWithoutToday.length ? "" : "hidden!"} message={"以下日期存在未下班人员：" + datesWithoutToday.join(", ")} type="error" showIcon />
         <div className="flex flex-col sm:flex-row gap-4 justify-between items-center mb-6 mt-2">
           <Select
             placeholder="请选择考勤人员"
@@ -617,20 +594,20 @@ export default function QianDaoPage() {
                 />
               </Tooltip>
 
-              <Tooltip
-                title={UnCheckOutNames?.length ? "请先签退次日所有人员" : ""}
-              >
-                <DatePicker
-                  showTime
-                  allowClear={false}
-                  style={{ width: 150 }}
-                  disabled={!!UnCheckOutNames?.length}
-                  value={PiliangTime}
-                  onChange={(date, dateString) => {
-                    setPiliangTime(date);
-                  }}
-                />
-              </Tooltip>
+              {/* <Tooltip
+                title={UnCheckOutNames?.length ? "请先签退此日所有人员" : ""}
+              > */}
+              <DatePicker
+                showTime
+                allowClear={false}
+                style={{ width: 150 }}
+                // disabled={!!UnCheckOutNames?.length}
+                value={PiliangTime}
+                onChange={(date, dateString) => {
+                  setPiliangTime(date);
+                }}
+              />
+              {/* </Tooltip> */}
             </Space>
             <Space direction="vertical">
               <Popconfirm
@@ -710,7 +687,7 @@ export default function QianDaoPage() {
       <div className={`min-h-screen ${A_div_color} p-4 sm:p-6 lg:p-8`}>
         <Card className="max-w-6xl mx-auto">
           <div className="mb-6">
-            <AntdTitle level={3} className="!mb-2 text-center">
+            <AntdTitle level={3} className="mb-2! text-center">
               员工签到系统
             </AntdTitle>
             {/* 显示批量time */}

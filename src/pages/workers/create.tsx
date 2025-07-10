@@ -197,7 +197,7 @@ export const WorkersCreate = () => {
           </Form.Item>
           <Alert message="要求：姓名不能为空, 不能包含下划线, 且不能与已有姓名重复" />
           <Alert
-            className="mt-2"
+            className="mt-2!"
             message={getAlertMessage()}
             description={getAlertDescription()}
             type={getAlertType()}
@@ -213,11 +213,11 @@ export const WorkersCreate = () => {
             value={Textareavalue}
             onChange={handle_textarea_change}
             placeholder="请输入批量录入的姓名，每行一个"
-            className="mt-2 mb-2"
+            className="mt-2! mb-2!"
           />
           <Alert message="要求：姓名不能为空, 不能包含下划线, 且不能与已有姓名重复" />
           <Alert
-            className="mt-2"
+            className="mt-2!"
             message={getAlertMessage()}
             description={getAlertDescription()}
             type={getAlertType()}

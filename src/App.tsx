@@ -55,7 +55,7 @@ import QianDaoPage from "./pages/qian-dao/qian-dao";
 // import XinZiList from "./pages/xin-zi/list";
 // import XinZiShow from "./pages/xin-zi/show";
 import GongShiList from "./pages/gong-shi/list_table";
-import ZhuYe from "./pages/zhu-ye/zhu-ye";
+// import ZhuYe from "./pages/zhu-ye/zhu-ye";
 import {
   SampleList,
   SampleCreate,
@@ -220,7 +220,7 @@ function App() {
   return (
     <BrowserRouter>
       {/* <GitHubBanner /> */}
-      <RefineKbarProvider>
+      {/* <RefineKbarProvider> */}
         <MantineProvider>
           <ColorModeContextProvider>
             {/* <MantineProvider> */}
@@ -233,20 +233,20 @@ function App() {
                     example: dataProvider("https://api.fake-rest.refine.dev"),
                   }}
                   i18nProvider={i18nProvider}
-                  // eslint-disable-next-line react-compiler/react-compiler
+                  // eslint-disable-next-line react-hooks/react-compiler
                   notificationProvider={useNotificationProvider}
                   routerProvider={routerBindings}
                   resources={[
                     ...get_sample_resource_or_route("resource", "front")  as IResourceItem[],
-                    {
-                      name: "zhuye",
-                      list: "/zhuye",
-                      meta: {
-                        label: "主页",
-                        dataProviderName: undefined,
-                        icon: <IconHome />,
-                      },
-                    },
+                    // {
+                    //   name: "zhuye",
+                    //   list: "/zhuye",
+                    //   meta: {
+                    //     label: "主页",
+                    //     dataProviderName: undefined,
+                    //     icon: <IconHome />,
+                    //   },
+                    // },
                     {
                       name: "qiandao",
                       list: "/qiandao",
@@ -379,12 +379,12 @@ function App() {
                     >
                       <Route
                         index
-                        element={<NavigateToResource resource="zhuye" />}
+                        element={<NavigateToResource resource="qiandao" />}
                       />
                       {get_sample_resource_or_route("route", "front") as React.ReactNode}
-                      <Route path="/zhuye">
+                      {/* <Route path="/zhuye">
                         <Route index element={<ZhuYe />} />
-                      </Route>
+                      </Route> */}
                       <Route path="/qiandao">
                         <Route index element={<QianDaoPage />} />
                       </Route>
@@ -432,7 +432,7 @@ function App() {
                     </Route>
                   </Routes>
                   <GlobalHelp />
-                  <RefineKbar />
+                  {/* <RefineKbar /> */}
                   <UnsavedChangesNotifier />
                   {/* <DocumentTitleHandler handler={customTitleHandler} />; */}
                   <DocumentTitleHandler />;
@@ -444,7 +444,7 @@ function App() {
             {/* </MantineProvider> */}
           </ColorModeContextProvider>
         </MantineProvider>
-      </RefineKbarProvider>
+      {/* </RefineKbarProvider> */}
     </BrowserRouter>
   );
 }

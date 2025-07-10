@@ -51,7 +51,7 @@ export const AttendanceRecordList = () => {
     sorters: {
       permanent: [
         {
-          field: "created",
+          field: "check_in",
           order: "desc",
         },
       ],
@@ -98,7 +98,7 @@ export const AttendanceRecordList = () => {
     <List headerButtons={<CreateButton>添加记录</CreateButton>}>
       <div className="flex flex-row justify-between items-center">
         <div className="flex flex-row gap-2 items-center">
-          <div className="text-center">过滤未下班记录</div>
+          <div className="text-center text-black">过滤未下班记录</div>
           <Switch
             checked={unclockoutfilter}
             onChange={handleUnclockoutfilterChange}

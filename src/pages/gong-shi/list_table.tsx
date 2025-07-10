@@ -35,10 +35,12 @@ export default function GongShiList() {
       });
     });
     // return filters;
-    return [{
-      operator: "or",
-      value: filters,
-    }] as CrudFilter[];
+    return [
+      {
+        operator: "or",
+        value: filters,
+      },
+    ] as CrudFilter[];
   };
 
   const { tableProps, setFilters } = useTable({
@@ -161,8 +163,8 @@ export default function GongShiList() {
               {
                 field: "check_out",
                 operator: "ne",
-                value: ""
-              }
+                value: "",
+              },
             ],
           },
         ],
@@ -739,7 +741,10 @@ export default function GongShiList() {
             render: (value: any, record: any, index: number) => {
               return (
                 <Tooltip title={record.matchvalue}>
-                  <div className="flex flex-row items-center gap-2">{value}<IconHelp size={16}/></div>
+                  <div className="flex flex-row items-center gap-2">
+                    {value}
+                    <IconHelp size={16} />
+                  </div>
                 </Tooltip>
               );
             },
@@ -824,13 +829,11 @@ export default function GongShiList() {
           <Space>
             <PySearchSelect
               onChangeFn={(value: { value: string; label: string }) => {
-                if (_.isArray(value)){
+                if (_.isArray(value)) {
                   setFilters(get_select_filter(value), "replace");
-                }
-                else {
+                } else {
                   setFilters(get_select_filter([value]), "replace");
                 }
-                
               }}
               placeholder="选择工人,支持拼音"
               options={null}
@@ -872,11 +875,11 @@ export default function GongShiList() {
         </>
       )}
     >
-            <Alert
+      <Alert
         message="未下班记录将不被计入"
         type="info"
         showIcon
-        className="mb-2"
+        className="mb-2!"
       />
       <div className="flex items-center justify-end mb-2">
         {get_un_salary_work() !== "" && (
@@ -884,7 +887,7 @@ export default function GongShiList() {
             message={get_un_salary_work()}
             type="warning"
             showIcon
-            className="mb-2 mr-2 w-full"
+            className="mb-2! mr-2! w-full"
           />
         )}
         <SwitchDataRangeGongShi />
