@@ -43,7 +43,8 @@ export default function QianDaoPage() {
   // readLocalStorageValue不具有响应性
   //来自react use 的useLocalStorage更是一点用处都没有
   // const [colorMode, setcolorMode] = useState("light")
-  const [PiliangTime, setPiliangTime] = useState<Dayjs>(dayjs());
+  const [PiliangTime, setPiliangTime] = useState<Dayjs>(dayjs().minute(0).second(0));
+  // 设置为整点，不然选起来会有点麻烦
   const { data: raw_workers, isLoading: loading_workers } = useList({
     resource: __Workers_TableName,
     pagination: { mode: "off" },

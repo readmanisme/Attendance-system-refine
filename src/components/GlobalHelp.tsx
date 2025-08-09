@@ -44,10 +44,7 @@ export const GlobalHelp = () => {
           2、如果需要备份，请点击下方的手动备份按钮，此备份和系统自动弹窗的备份不会冲突。
         </Paragraph>
         <Space>
-          <Button
-            type="primary"
-            onClick={() => backup_database()}
-          >
+          <Button type="primary" onClick={() => backup_database()}>
             手动备份
           </Button>
         </Space>
@@ -55,9 +52,7 @@ export const GlobalHelp = () => {
     ),
     人员签到: (
       <>
-        <Paragraph>
-          1、签到方式分为单人模式和多人模式。
-        </Paragraph>
+        <Paragraph>1、签到方式分为单人模式和多人模式。</Paragraph>
         <Paragraph>
           2、单人模式下，选择员工，选择考勤类型(仅签到)，点击上班或下班按钮，即可进行签到或签退。签到签退时间均为点击按钮时的当前时间。
         </Paragraph>
@@ -66,9 +61,12 @@ export const GlobalHelp = () => {
         </Paragraph>
         <Paragraph>
           3、为防止数据异常，通过代码设计，存在下列约束：
-          ①人员、工作（仅签到需要）、时间（批量模式下）均选择后才可以签到签退。<br />
-          ②未签到者不能签退，未签退者不能签到。<br />
-          ③下班时间不能早于上班时间；上班时间不能早于之前的下班时间（单人模式下没有）。<br />
+          ①人员、工作（仅签到需要）、时间（批量模式下）均选择后才可以签到签退。
+          <br />
+          ②未签到者不能签退，未签退者不能签到。
+          <br />
+          ③下班时间不能早于上班时间；上班时间不能早于之前的下班时间（单人模式下没有）。
+          <br />
           ④这些约束仅适用于时间位于今日的记录，其他时间的记录不受约束。所以不要进行跨日签到。
         </Paragraph>
         <Paragraph>
@@ -177,14 +175,16 @@ export const GlobalHelp = () => {
   const [helpOpen, setHelpOpen] = useState(false);
   return (
     <>
-      <FloatButton
-        icon={<QuestionCircleOutlined />}
-        type="primary"
-        style={{ insetInlineEnd: 24 }}
-        onClick={() => setHelpOpen(true)}
-        tooltip="显示当前页面的帮助"
-      />
-      <FloatButton.BackTop style={{ insetInlineEnd: 84 }} />
+      <FloatButton.Group shape="circle" style={{ insetInlineEnd: 24 }}>
+        <FloatButton.BackTop />
+        <FloatButton
+          icon={<QuestionCircleOutlined />}
+          type="primary"
+          style={{ insetInlineEnd: 24 }}
+          onClick={() => setHelpOpen(true)}
+          tooltip="显示当前页面的帮助"
+        />
+      </FloatButton.Group>
       <Drawer title="帮助" open={helpOpen} onClose={() => setHelpOpen(false)}>
         {helps[String(resource?.meta?.label)]}
       </Drawer>
