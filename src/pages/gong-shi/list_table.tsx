@@ -118,7 +118,7 @@ export default function GongShiList() {
               },
               {
                 field: "work_date",
-                operator: "lt",
+                operator: "lte",
                 value: dayjs(GongShiData[1])
                   .endOf("month")
                   .format("YYYY-MM-DD"),
