@@ -13,7 +13,7 @@
     // 不编译的时候就不要这两个选项，否则编辑器检查有问题
     "forceConsistentCasingInFileNames": true,
     "module": "ESNext",
-    "moduleResolution": "bundler",
+    "moduleResolution": "Node",
     "resolveJsonModule": true,
     "isolatedModules": true,
     "noEmit": true,

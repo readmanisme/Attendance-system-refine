@@ -25,6 +25,7 @@ _.njsproj
 _.sln
 \*.sw?
 *.png
+*.cpuprofile
 cloc-2.02.exe
 /.VSCodeCounter
 /.yarn

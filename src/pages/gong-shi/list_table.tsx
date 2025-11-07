@@ -12,7 +12,7 @@ const { RangePicker } = DatePicker;
 import { CrudFilter, useList } from "@refinedev/core";
 import { IconHelp } from "@tabler/icons-react";
 import dayjs, { Dayjs } from "dayjs";
-import * as XLSX from "xlsx";
+
 import PocketBase from "pocketbase";
 import PySearchSelect from "@/components/PySearchSelect";
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -392,6 +392,7 @@ export default function GongShiList() {
   const export_range = useRef([dayjs().startOf("year"), dayjs().endOf("year")]);
   const [isExportLoading, setIsExportLoading] = useState(false);
   const exportToExcel = async () => {
+    const XLSX = await import("xlsx");
     setIsExportLoading(true);
     const pb = new PocketBase(__BACKEND_API_URL__);
 
