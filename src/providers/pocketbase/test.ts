@@ -2,7 +2,14 @@ import test from "tape";
 import { FilterValue, serialize, transformFilter } from "./filters";
 import { ConditionalFilter, LogicalFilter } from "@refinedev/core";
 
-test("value serialization", (t: { equals: (arg0: string, arg1: string | number | boolean | Date | { a: string; } | null, arg2: string) => void; end: () => void; }) => {
+test("value serialization", (t: {
+  equals: (
+    arg0: string,
+    arg1: string | number | boolean | Date | { a: string } | null,
+    arg2: string
+  ) => void;
+  end: () => void;
+}) => {
   [
     ["string", "'string'"],
     ["don't", "'don\\'t'"],
@@ -21,7 +28,10 @@ test("value serialization", (t: { equals: (arg0: string, arg1: string | number |
   t.end();
 });
 
-test("conditional filters", (t: { equals: (arg0: string, arg1: string, arg2: string) => void; end: () => void; }) => {
+test("conditional filters", (t: {
+  equals: (arg0: string, arg1: string, arg2: string) => void;
+  end: () => void;
+}) => {
   Array.from<[ConditionalFilter["operator"], string]>([
     ["and", "&&"],
     ["or", "||"],
@@ -51,7 +61,10 @@ test("conditional filters", (t: { equals: (arg0: string, arg1: string, arg2: str
   t.end();
 });
 
-test("logical filters", (t: { equals: (arg0: string, arg1: string, arg2: string) => void; end: () => void; }) => {
+test("logical filters", (t: {
+  equals: (arg0: string, arg1: string, arg2: string) => void;
+  end: () => void;
+}) => {
   Array.from<[LogicalFilter["operator"], FilterValue, string]>([
     ["eq", 1, "(a = 1)"],
     ["ne", 2, "(a != 2)"],
@@ -104,7 +117,10 @@ test("logical filters", (t: { equals: (arg0: string, arg1: string, arg2: string)
   t.end();
 });
 
-test("nested logical filters", (t: { equals: (arg0: string, arg1: string, arg2: string) => void; end: () => void; }) => {
+test("nested logical filters", (t: {
+  equals: (arg0: string, arg1: string, arg2: string) => void;
+  end: () => void;
+}) => {
   Array.from<[LogicalFilter["operator"], FilterValue, string]>([
     ["eq", 1, "((a = 1) && (b = '4'))"],
     ["ne", 2, "((a != 2) && (b = '4'))"],
@@ -167,7 +183,10 @@ test("nested logical filters", (t: { equals: (arg0: string, arg1: string, arg2: 
   t.end();
 });
 
-test("deeply nested logical filters", (t: { equals: (arg0: string, arg1: string, arg2: string) => void; end: () => void; }) => {
+test("deeply nested logical filters", (t: {
+  equals: (arg0: string, arg1: string, arg2: string) => void;
+  end: () => void;
+}) => {
   Array.from<[LogicalFilter["operator"], FilterValue, string]>([
     ["eq", 1, "(((a = 1) && (b = '4')) || (c > 1))"],
     ["ne", 2, "(((a != 2) && (b = '4')) || (c > 1))"],

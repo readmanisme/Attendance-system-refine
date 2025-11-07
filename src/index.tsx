@@ -22,13 +22,12 @@ console.error = function (msg, ...args) {
 const container = document.getElementById("root") as HTMLElement;
 const root = createRoot(container);
 function pb_health_check() {
-  return fetch(__BACKEND_API_URL__ + "/api/health")
-    .then(response => {
-      if (!response.ok) {
-        throw new Error("Network response was not ok");
-      }
-      return response.json();
-    });
+  return fetch(__BACKEND_API_URL__ + "/api/health").then((response) => {
+    if (!response.ok) {
+      throw new Error("Network response was not ok");
+    }
+    return response.json();
+  });
 }
 
 const RootComponent = () => {
@@ -57,10 +56,10 @@ const RootComponent = () => {
     // 首先执行一次 0.5s 的健康检查
     // const fastInterval = setInterval(checkHealth, 500);
     // setTimeout(() => {
-      // clearInterval(fastInterval);
+    // clearInterval(fastInterval);
 
-      // 然后执行 5s 的健康检查
-      const slowInterval = setInterval(checkHealth, 5000);
+    // 然后执行 5s 的健康检查
+    const slowInterval = setInterval(checkHealth, 5000);
 
     return () => {
       didCancel = true;

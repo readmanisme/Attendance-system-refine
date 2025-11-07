@@ -14,7 +14,7 @@ import routerBindings, {
   NavigateToResource,
   UnsavedChangesNotifier,
 } from "@refinedev/react-router";
-import { App as AntdApp, Avatar, Space,Typography } from "antd";
+import { App as AntdApp, Avatar, Space, Typography } from "antd";
 import { BrowserRouter, Outlet, Route, Routes } from "react-router";
 import { Header } from "./components/header";
 import { ColorModeContextProvider } from "./contexts/color-mode";
@@ -88,8 +88,7 @@ function get_sample_resource_or_route(
     }
   } else if (type === "resource") {
     if (location === "front") {
-      return [
-      ];
+      return [];
     } else if (location === "behind") {
       return [
         {
@@ -117,10 +116,7 @@ function get_sample_resource_or_route(
     }
   } else if (type === "route") {
     if (location === "front") {
-      return (
-        <>
-        </>
-      );
+      return <></>;
     } else if (location === "behind") {
       return (
         <>
@@ -150,126 +146,131 @@ function App() {
     <BrowserRouter>
       {/* <GitHubBanner /> */}
       {/* <RefineKbarProvider> */}
-        <MantineProvider>
-          <ColorModeContextProvider>
+      <MantineProvider>
+        <ColorModeContextProvider>
+          {/* <MantineProvider> */}
+          <AntdApp>
             {/* <MantineProvider> */}
-            <AntdApp>
-              {/* <MantineProvider> */}
-              <DevtoolsProvider>
-                <Refine
-                  dataProvider={{
-                    default: pocketbaseDataProvider(pb),
-                  }}
-                  i18nProvider={i18nProvider}
-                  // eslint-disable-next-line react-hooks/react-compiler
-                  notificationProvider={useNotificationProvider}
-                  routerProvider={routerBindings}
-                  resources={[
-                    ...get_sample_resource_or_route("resource", "front")  as IResourceItem[],
-                    // {
-                    //   name: "zhuye",
-                    //   list: "/zhuye",
-                    //   meta: {
-                    //     label: "主页",
-                    //     dataProviderName: undefined,
-                    //     icon: <IconHome />,
-                    //   },
-                    // },
-                    {
-                      name: "qiandao",
-                      list: "/qiandao",
-                      meta: {
-                        label: "人员签到",
-                        dataProviderName: undefined,
-                        icon: <IconChecks />,
-                      },
+            <DevtoolsProvider>
+              <Refine
+                dataProvider={{
+                  default: pocketbaseDataProvider(pb),
+                }}
+                i18nProvider={i18nProvider}
+                // eslint-disable-next-line react-hooks/react-compiler
+                notificationProvider={useNotificationProvider}
+                routerProvider={routerBindings}
+                resources={[
+                  ...(get_sample_resource_or_route(
+                    "resource",
+                    "front"
+                  ) as IResourceItem[]),
+                  // {
+                  //   name: "zhuye",
+                  //   list: "/zhuye",
+                  //   meta: {
+                  //     label: "主页",
+                  //     dataProviderName: undefined,
+                  //     icon: <IconHome />,
+                  //   },
+                  // },
+                  {
+                    name: "qiandao",
+                    list: "/qiandao",
+                    meta: {
+                      label: "人员签到",
+                      dataProviderName: undefined,
+                      icon: <IconChecks />,
                     },
-                    {
-                      name: __AttendanceRecord_TableName,
-                      list: "/attendance-record",
-                      create: "/attendance-record/create",
-                      edit: "/attendance-record/edit/:id",
-                      show: "/attendance-record/show/:id",
-                      meta: {
-                        canDelete: true,
-                        label: "考勤记录",
-                        icon: <IconClipboardData />,
-                      },
+                  },
+                  {
+                    name: __AttendanceRecord_TableName,
+                    list: "/attendance-record",
+                    create: "/attendance-record/create",
+                    edit: "/attendance-record/edit/:id",
+                    show: "/attendance-record/show/:id",
+                    meta: {
+                      canDelete: true,
+                      label: "考勤记录",
+                      icon: <IconClipboardData />,
                     },
-                    {
-                      name: __Workers_TableName,
-                      list: "/workers",
-                      create: "/workers/create",
-                      edit: "/workers/edit/:id",
-                      show: "/workers/show/:id",
-                      meta: {
-                        canDelete: true,
-                        label: "人员管理",
-                        icon: <IconUsers />,
-                      },
+                  },
+                  {
+                    name: __Workers_TableName,
+                    list: "/workers",
+                    create: "/workers/create",
+                    edit: "/workers/edit/:id",
+                    show: "/workers/show/:id",
+                    meta: {
+                      canDelete: true,
+                      label: "人员管理",
+                      icon: <IconUsers />,
                     },
-                    {
-                      name: __WorkTypes_TableName,
-                      list: "/workType",
-                      create: "/workType/create",
-                      edit: "/workType/edit/:id",
-                      show: "/workType/show/:id",
-                      meta: {
-                        canDelete: true,
-                        label: "工作管理",
-                        icon: <IconBriefcase />,
-                      },
+                  },
+                  {
+                    name: __WorkTypes_TableName,
+                    list: "/workType",
+                    create: "/workType/create",
+                    edit: "/workType/edit/:id",
+                    show: "/workType/show/:id",
+                    meta: {
+                      canDelete: true,
+                      label: "工作管理",
+                      icon: <IconBriefcase />,
                     },
-                    {
-                      name: __SalaryType_TableName,
-                      list: "/xinzi",
-                      show: "/xinzi/show/:id",
-                      create: "/xinzi/create",
-                      edit: "/xinzi/edit/:id",
-                      meta: {
-                        label: "薪资设置",
-                        icon: <IconCoinYen />,
-                      },
+                  },
+                  {
+                    name: __SalaryType_TableName,
+                    list: "/xinzi",
+                    show: "/xinzi/show/:id",
+                    create: "/xinzi/create",
+                    edit: "/xinzi/edit/:id",
+                    meta: {
+                      label: "薪资设置",
+                      icon: <IconCoinYen />,
                     },
-                    {
-                      name: "gongshi",
-                      list: "/gongshi",
-                      meta: {
-                        label: "工时&薪资显示",
-                        dataProviderName: undefined,
-                        icon: <IconReport />,
-                      },
+                  },
+                  {
+                    name: "gongshi",
+                    list: "/gongshi",
+                    meta: {
+                      label: "工时&薪资显示",
+                      dataProviderName: undefined,
+                      icon: <IconReport />,
                     },
-                    {
-                      name: "pocketbase",
-                      list: "/pocketbase",
-                      meta: {
-                        label: "后台管理",
-                        dataProviderName: undefined,
-                        icon: <IconLockSquareRounded />,
-                      },
+                  },
+                  {
+                    name: "pocketbase",
+                    list: "/pocketbase",
+                    meta: {
+                      label: "后台管理",
+                      dataProviderName: undefined,
+                      icon: <IconLockSquareRounded />,
                     },
-                    ...get_sample_resource_or_route("resource", "behind") as IResourceItem[],
-                  ]}
-                  options={{
-                    syncWithLocation: true,
-                    warnWhenUnsavedChanges: true,
-                    useNewQueryKeys: true,
-                    projectId: "1LFZhY-g5ZTkQ-8ndYcP",
-                  }}
-                >
-                  <Routes>
-                    <Route
-                      element={
-                        <ThemedLayoutV2
-                          Title={({ collapsed }) => (
-                            <ThemedTitleV2
-                              // collapsed is a boolean value that indicates whether the <Sidebar> is collapsed or not
-                              collapsed={collapsed}
-                              icon={
-                                collapsed ? (
-                                  <Space
-                                  >
+                  },
+                  ...(get_sample_resource_or_route(
+                    "resource",
+                    "behind"
+                  ) as IResourceItem[]),
+                ]}
+                options={{
+                  syncWithLocation: true,
+                  warnWhenUnsavedChanges: true,
+                  useNewQueryKeys: true,
+                  projectId: "1LFZhY-g5ZTkQ-8ndYcP",
+                }}
+              >
+                <Routes>
+                  <Route
+                    element={
+                      <ThemedLayoutV2
+                        Title={({ collapsed }) => (
+                          <ThemedTitleV2
+                            // collapsed is a boolean value that indicates whether the <Sidebar> is collapsed or not
+                            collapsed={collapsed}
+                            icon={
+                              collapsed ? (
+                                <Space>
                                   <Avatar
                                     src={logo}
                                     alt="Company Logo"
@@ -277,12 +278,19 @@ function App() {
                                     // width={64}
                                     // height={64}
                                   />
-                                  <Typography.Text className="whitespace-nowrap ">{__SystemName__}</Typography.Text>
-                                  <Badge color="blue" variant="light" style={{ width: 120 }}>{__VERSION__}</Badge>
-                                  </Space>
-                                ) : (
-                                  <Space
+                                  <Typography.Text className="whitespace-nowrap ">
+                                    {__SystemName__}
+                                  </Typography.Text>
+                                  <Badge
+                                    color="blue"
+                                    variant="light"
+                                    style={{ width: 120 }}
                                   >
+                                    {__VERSION__}
+                                  </Badge>
+                                </Space>
+                              ) : (
+                                <Space>
                                   <Avatar
                                     src={logo}
                                     alt="Company Logo"
@@ -290,88 +298,106 @@ function App() {
                                     // width={64}
                                     // height={64}
                                   />
-                                  <Typography.Text className="whitespace-nowrap ">{__SystemName__}</Typography.Text>
-                                  <Badge color="blue" variant="light" style={{ width: 120 }}>{__VERSION__}</Badge>
-                                  </Space>
-                                )
-                              }
-                              text={null}
-                            />
-                          )}
-                          Header={() => <Header sticky />}
-                          Sider={(props) => <ThemedSiderV2 {...props} fixed />}
-                        >
-                          <Outlet />
-                        </ThemedLayoutV2>
-                      }
-                    >
-                      <Route
-                        index
-                        element={<NavigateToResource resource="qiandao" />}
-                      />
-                      {get_sample_resource_or_route("route", "front") as React.ReactNode}
-                      {/* <Route path="/zhuye">
+                                  <Typography.Text className="whitespace-nowrap ">
+                                    {__SystemName__}
+                                  </Typography.Text>
+                                  <Badge
+                                    color="blue"
+                                    variant="light"
+                                    style={{ width: 120 }}
+                                  >
+                                    {__VERSION__}
+                                  </Badge>
+                                </Space>
+                              )
+                            }
+                            text={null}
+                          />
+                        )}
+                        Header={() => <Header sticky />}
+                        Sider={(props) => <ThemedSiderV2 {...props} fixed />}
+                      >
+                        <Outlet />
+                      </ThemedLayoutV2>
+                    }
+                  >
+                    <Route
+                      index
+                      element={<NavigateToResource resource="qiandao" />}
+                    />
+                    {
+                      get_sample_resource_or_route(
+                        "route",
+                        "front"
+                      ) as React.ReactNode
+                    }
+                    {/* <Route path="/zhuye">
                         <Route index element={<ZhuYe />} />
                       </Route> */}
-                      <Route path="/qiandao">
-                        <Route index element={<QianDaoPage />} />
-                      </Route>
-                      <Route path="/attendance-record">
-                        <Route index element={<AttendanceRecordList />} />
-                        <Route
-                          path="create"
-                          element={<AttendanceRecordCreate />}
-                        />
-                        <Route
-                          path="edit/:id"
-                          element={<AttendanceRecordEdit />}
-                        />
-                        <Route
-                          path="show/:id"
-                          element={<AttendanceRecordShow />}
-                        />
-                      </Route>
-                      <Route path="/workers">
-                        <Route index element={<WorkersList />} />
-                        <Route path="create" element={<WorkersCreate />} />
-                        <Route path="edit/:id" element={<WorkersEdit />} />
-                        <Route path="show/:id" element={<WorkersShow />} />
-                      </Route>
-                      <Route path="/workType">
-                        <Route index element={<ListWorkType />} />
-                        <Route path="create" element={<CreateWorkType />} />
-                        <Route path="edit/:id" element={<EditWorkType />} />
-                        <Route path="show/:id" element={<ShowWorkType />} />
-                      </Route>
-                      <Route path="/xinzi">
-                        <Route index element={<SalaryTypeList />} />
-                        <Route path="show/:id" element={<SalaryTypeShow />} />
-                        <Route path="create" element={<SalaryTypeCreate />} />
-                        <Route path="edit/:id" element={<SalaryTypeEdit />} />
-                      </Route>
-                      <Route path="/gongshi">
-                        <Route index element={<GongShiList />} />
-                      </Route>
-                      <Route path="/pocketbase">
-                        <Route index element={<PocketBasePage />} />
-                      </Route>
-                      {get_sample_resource_or_route("route", "behind") as React.ReactNode}
-                      <Route path="*" element={<ErrorComponent />} />
+                    <Route path="/qiandao">
+                      <Route index element={<QianDaoPage />} />
                     </Route>
-                  </Routes>
-                  <GlobalHelp />
-                  {/* <RefineKbar /> */}
-                  <UnsavedChangesNotifier />
-                  {/* <DocumentTitleHandler handler={customTitleHandler} />; */}
-                  <DocumentTitleHandler />;
-                </Refine>
-                <DevtoolsPanel />
-              </DevtoolsProvider>
-              {/* </MantineProvider> */}
-            </AntdApp>
+                    <Route path="/attendance-record">
+                      <Route index element={<AttendanceRecordList />} />
+                      <Route
+                        path="create"
+                        element={<AttendanceRecordCreate />}
+                      />
+                      <Route
+                        path="edit/:id"
+                        element={<AttendanceRecordEdit />}
+                      />
+                      <Route
+                        path="show/:id"
+                        element={<AttendanceRecordShow />}
+                      />
+                    </Route>
+                    <Route path="/workers">
+                      <Route index element={<WorkersList />} />
+                      <Route path="create" element={<WorkersCreate />} />
+                      <Route path="edit/:id" element={<WorkersEdit />} />
+                      <Route path="show/:id" element={<WorkersShow />} />
+                    </Route>
+                    <Route path="/workType">
+                      <Route index element={<ListWorkType />} />
+                      <Route path="create" element={<CreateWorkType />} />
+                      <Route path="edit/:id" element={<EditWorkType />} />
+                      <Route path="show/:id" element={<ShowWorkType />} />
+                    </Route>
+                    <Route path="/xinzi">
+                      <Route index element={<SalaryTypeList />} />
+                      <Route path="show/:id" element={<SalaryTypeShow />} />
+                      <Route path="create" element={<SalaryTypeCreate />} />
+                      <Route path="edit/:id" element={<SalaryTypeEdit />} />
+                    </Route>
+                    <Route path="/gongshi">
+                      <Route index element={<GongShiList />} />
+                    </Route>
+                    <Route path="/pocketbase">
+                      <Route index element={<PocketBasePage />} />
+                    </Route>
+                    {
+                      get_sample_resource_or_route(
+                        "route",
+                        "behind"
+                      ) as React.ReactNode
+                    }
+                    <Route path="*" element={<ErrorComponent />} />
+                  </Route>
+                </Routes>
+                <GlobalHelp />
+                {/* <RefineKbar /> */}
+                <UnsavedChangesNotifier />
+                {/* <DocumentTitleHandler handler={customTitleHandler} />; */}
+                <DocumentTitleHandler />;
+              </Refine>
+              <DevtoolsPanel />
+            </DevtoolsProvider>
             {/* </MantineProvider> */}
-          </ColorModeContextProvider>
-        </MantineProvider>
+          </AntdApp>
+          {/* </MantineProvider> */}
+        </ColorModeContextProvider>
+      </MantineProvider>
       {/* </RefineKbarProvider> */}
     </BrowserRouter>
   );

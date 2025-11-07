@@ -108,14 +108,15 @@ export const WorkersCreate = () => {
       const has_underline_name = names.some((name) => name.includes("_"));
       if (has_underline_name) {
         setStatus("error");
-        setErrorMsg(<span>
-          以下mention中包含下划线，请修改后再提交：
-          {names.map((name, index) => (
-            <Tag color="red" key={index}>
-              {name}
-            </Tag>
-          ))}
-        </span>
+        setErrorMsg(
+          <span>
+            以下mention中包含下划线，请修改后再提交：
+            {names.map((name, index) => (
+              <Tag color="red" key={index}>
+                {name}
+              </Tag>
+            ))}
+          </span>
         );
         return;
       }

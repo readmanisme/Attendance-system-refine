@@ -11,7 +11,8 @@
     "build-profile": "vite build --profile --open",
     "start": "vite preview",
     "refine": "refine",
-    "scan": "npx react-scan localhost:5173"
+    "scan": "npx react-scan localhost:5173",
+    "format": "npx prettier --write ."
   },
   "dependencies": {
     "@ant-design/charts": "^2.6.0",

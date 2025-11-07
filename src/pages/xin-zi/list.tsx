@@ -18,16 +18,16 @@ export const SalaryTypeList = () => {
     },
   });
   // 重新排序，让["expand", "work_type", "name"]为“基础”的排在第一行
-  const sortedDataSource = [...tableProps?.dataSource || []].sort((a, b) => {
+  const sortedDataSource = [...(tableProps?.dataSource || [])].sort((a, b) => {
     if (
       a.expand?.work_type?.name === "基础" &&
-      b.expand?.work_type?.name!== "基础"
+      b.expand?.work_type?.name !== "基础"
     ) {
       return -1;
     }
     if (
       b.expand?.work_type?.name === "基础" &&
-      a.expand?.work_type?.name!== "基础"
+      a.expand?.work_type?.name !== "基础"
     ) {
       return 1;
     }
@@ -35,9 +35,7 @@ export const SalaryTypeList = () => {
   });
   return (
     <List headerButtons={<CreateButton>添加记录</CreateButton>}>
-      <Table {...tableProps}
-      dataSource={sortedDataSource}
-      rowKey="id">
+      <Table {...tableProps} dataSource={sortedDataSource} rowKey="id">
         <Table.Column dataIndex="id" title="ID" />
         <Table.Column
           dataIndex={["expand", "worker_name", "name"]}
@@ -53,7 +51,12 @@ export const SalaryTypeList = () => {
           dataIndex="actions"
           render={(_, record: BaseRecord) => (
             <Space>
-              <EditButton hideText size="small" recordItemId={record.id} disabled={record.expand?.work_type?.name === "基础"}/>
+              <EditButton
+                hideText
+                size="small"
+                recordItemId={record.id}
+                disabled={record.expand?.work_type?.name === "基础"}
+              />
               <ShowButton hideText size="small" recordItemId={record.id} />
               <DeleteButton
                 disabled={record.expand?.work_type?.name === "基础"}

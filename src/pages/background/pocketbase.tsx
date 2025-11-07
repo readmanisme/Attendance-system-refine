@@ -7,9 +7,7 @@ export default function PocketBasePage() {
   // 这里显示pocketbase的后台，即http://127.0.0.1:8090
   const [iframeUrl, setIframeUrl] = React.useState(__BACKEND_Admin_URL__);
   return (
-    <List
-
-    >
+    <List>
       <iframe src={iframeUrl} className="w-full h-screen"></iframe>
 
       {/* iframe会导致head的style一直重复加载，不妥 */}

@@ -9,7 +9,7 @@ export default function PySearchSelect({
   options,
   placeholder = "请选择考勤人员",
   onClearFn = () => {},
-  mode=undefined,
+  mode = undefined,
 }: {
   onChangeFn: (value: { value: string; label: string }) => void;
   options: DefaultOptionType[] | null;

@@ -41,7 +41,9 @@ export default function QianDaoPage() {
   // readLocalStorageValue不具有响应性
   //来自react use 的useLocalStorage更是一点用处都没有
   // const [colorMode, setcolorMode] = useState("light")
-  const [PiliangTime, setPiliangTime] = useState<Dayjs>(dayjs().minute(0).second(0));
+  const [PiliangTime, setPiliangTime] = useState<Dayjs>(
+    dayjs().minute(0).second(0)
+  );
   // 设置为整点，不然选起来会有点麻烦
   const { data: raw_workers, isLoading: loading_workers } = useList({
     resource: __Workers_TableName,
@@ -146,11 +148,11 @@ export default function QianDaoPage() {
       ],
     },
   });
-  const kaoqingItems=kaoqingjilu?.dataSource;
-  const dates=kaoqingItems?.map((item) => {
+  const kaoqingItems = kaoqingjilu?.dataSource;
+  const dates = kaoqingItems?.map((item) => {
     return dayjs(item.check_in).format("YYYY-MM-DD");
   });
-  const uniqueDates=Array.from(new Set(dates));
+  const uniqueDates = Array.from(new Set(dates));
   // 排除PiliangTime
   const datesWithoutToday = uniqueDates.filter(
     (date) => date !== PiliangTime.format("YYYY-MM-DD")
@@ -544,7 +546,12 @@ export default function QianDaoPage() {
             </Tag>
           ))}
         </p>
-            <Alert className={datesWithoutToday.length ? "" : "hidden!"} message={"以下日期存在未下班人员：" + datesWithoutToday.join(", ")} type="error" showIcon />
+        <Alert
+          className={datesWithoutToday.length ? "" : "hidden!"}
+          message={"以下日期存在未下班人员：" + datesWithoutToday.join(", ")}
+          type="error"
+          showIcon
+        />
         <div className="flex flex-col sm:flex-row gap-4 justify-between items-center mb-6 mt-2">
           <Select
             placeholder="请选择考勤人员"

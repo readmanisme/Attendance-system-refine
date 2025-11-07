@@ -3,16 +3,13 @@ import { AuditLogProvider } from "@refinedev/core";
 export const auditLogProvider: AuditLogProvider = {
   get: async (params) => {
     // const { resource, meta, action, author, metaData } = params;
-
     // const response = await fetch(
     //   `https://example.com/api/audit-logs/${resource}/${meta.id}`,
     //   {
     //     method: "GET",
     //   },
     // );
-
     // const data = await response.json();
-
     // return data;
   },
   // Ideally, audit logs should be created in the backend.
@@ -40,12 +37,10 @@ export const auditLogProvider: AuditLogProvider = {
     // console.log(id); // "1"
     // console.log(name); // "Created Product 1"
     // console.log(rest); // { foo: "bar" }
-
     // await fetch(`https://example.com/api/audit-logs/${id}`, {
     //   method: "PATCH",
     //   body: JSON.stringify(params),
     // });
-
     // return { success: true };
   },
 };

@@ -6,9 +6,9 @@ const { Title } = Typography;
 
 export const AttendanceRecordShow = () => {
   const { queryResult } = useShow({
-    meta:{
-      expand:["work"]
-    }
+    meta: {
+      expand: ["work"],
+    },
   });
   const { data, isLoading } = queryResult;
 
@@ -16,9 +16,9 @@ export const AttendanceRecordShow = () => {
   const { data: names, isLoading: namesLoading } = useOne({
     resource: __Workers_TableName,
     id: record?.worker_id || "",
-    queryOptions:{
-      enabled:!!record
-    }
+    queryOptions: {
+      enabled: !!record,
+    },
   });
 
   return (
@@ -26,10 +26,10 @@ export const AttendanceRecordShow = () => {
       <Title level={5}>{"ID"}</Title>
       <TextField value={record?.id} />
       <Title level={5}>{"人员ID"}</Title>
-      
+
       <TextField value={record?.worker_id} />
       <Title level={5}>{"人员姓名"}</Title>
-      <TextField value={namesLoading? "loading..." : names?.data?.name} />
+      <TextField value={namesLoading ? "loading..." : names?.data?.name} />
       <Title level={5}>{"上班时间"}</Title>
       {/* <DateField value={record?.check_in} /> */}
       <TextField value={record?.check_in} />
