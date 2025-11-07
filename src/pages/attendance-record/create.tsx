@@ -13,7 +13,7 @@ export const AttendanceRecordCreate = () => {
   });
   // console.log("nameSelectProps", nameSelectProps);
   return (
-    <Create saveButtonProps={saveButtonProps} >
+    <Create saveButtonProps={saveButtonProps}>
       <Form {...formProps} layout="vertical">
         <Form.Item
           label={"人员ID"}

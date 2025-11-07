@@ -16,12 +16,13 @@ export function TestPage() {
   // you can also fetch all records at once via getFullList
   const records_time_test = async () => {
     // console.log("Fetching records...");
-    const records = await pb.collection(__AttendanceRecord_TableName).getFullList({
-    });
+    const records = await pb
+      .collection(__AttendanceRecord_TableName)
+      .getFullList({});
     // const end_time = Date.now();
     // console.log(`${records.length} records fetched in ${(end_time - start_time)/1000}s`);
     // 43925 records fetched in 2.597s
-  }
+  };
   // records_time_test()
   const gen_and_push_fake_data = async () => {
     faker.seed(666);
@@ -260,24 +261,21 @@ export function TestPage() {
     set_status("数据插入完成");
   };
 
-
   return (
     <div>
       <h1 className="text-4xl font-bold text-blue-500">
         TailwindCSS 安装检测，此处文字应该是蓝色
       </h1>
-        <Button onClick={gen_and_push_fake_data}
-        disabled={true}
-        >
-          向 PocketBase 推送假数据
-        </Button>
-        <Alert
-          // 这里用时间线更好，但是没有必要
-          type="info"
-          message="假数据处理进度"
-          description={status_2}
-          showIcon
-        />
-      </div>
+      <Button onClick={gen_and_push_fake_data} disabled={true}>
+        向 PocketBase 推送假数据
+      </Button>
+      <Alert
+        // 这里用时间线更好，但是没有必要
+        type="info"
+        message="假数据处理进度"
+        description={status_2}
+        showIcon
+      />
+    </div>
   );
 }

@@ -1,6 +1,6 @@
-import { Button, Container, Group, Text } from '@mantine/core';
-import classes from './HeroTitle.module.css';
-import { FeaturesCards } from './FeatureCards';
+import { Button, Container, Group, Text } from "@mantine/core";
+import classes from "./HeroTitle.module.css";
+import { FeaturesCards } from "./FeatureCards";
 export function HeroTitle() {
   return (
     <div className={classes.wrapper}>
@@ -19,19 +19,24 @@ export function HeroTitle() {
         </Text>
         
       </Container> */}
-      <Container className='pt-10 text-center'>
-      <h1 className={classes.title}>
-          一个{' '}
-          <Text component="span" variant="gradient" gradient={{ from: 'blue', to: 'cyan' }} inherit>
+      <Container className="pt-10 text-center">
+        <h1 className={classes.title}>
+          一个{" "}
+          <Text
+            component="span"
+            variant="gradient"
+            gradient={{ from: "blue", to: "cyan" }}
+            inherit
+          >
             全功能 ?
-          </Text>{' '}
+          </Text>{" "}
           的考勤系统🔆
         </h1>
 
         <Text className={classes.description} c="dimmed">
           简单、轻松的进行考勤工作，摆脱繁琐低效的纸质考勤表。
         </Text>
-        </Container>
+      </Container>
       <FeaturesCards />
     </div>
   );

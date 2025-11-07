@@ -25,7 +25,7 @@ export const SalaryTypeShow = () => {
       <Title level={5}>Id</Title>
       <TextField value={record?.id} />
       <Title level={5}>工人</Title>
-      <TextField value={record?.expand?.worker_name?.name } />
+      <TextField value={record?.expand?.worker_name?.name} />
       <Title level={5}>工种</Title>
       <TagField value={record?.expand?.work_type?.name} />
       <Title level={5}>Updated</Title>

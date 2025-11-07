@@ -127,12 +127,10 @@ export const authProvider = (
     login: async (loginOptions: LoginOptions) => {
       try {
         if (isLoginWithProvider(loginOptions)) {
-          await pb
-            .collection(options.collection)
-            .authWithOAuth2({
-              ...loginOptions,
-              provider: loginOptions.providerName,
-            });
+          await pb.collection(options.collection).authWithOAuth2({
+            ...loginOptions,
+            provider: loginOptions.providerName,
+          });
           if (pb.authStore.isValid) {
             return {
               success: true,

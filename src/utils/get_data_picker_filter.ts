@@ -4,8 +4,8 @@ import { useMemo } from "react";
 
 export const useGetDatePickerFilter = () => {
   const { DatePickerMode, recordDateRange } = useSomeStore();
-// https://chatgpt.com/c/678b49bb-ac80-800a-a327-0e082121190b
-// useMemo很关键！
+  // https://chatgpt.com/c/678b49bb-ac80-800a-a327-0e082121190b
+  // useMemo很关键！
   return useMemo(() => {
     let [start, end] = recordDateRange;
     start = start
@@ -28,5 +28,5 @@ export const useGetDatePickerFilter = () => {
         value: end,
       },
     ];
-  }, [recordDateRange]);  // 只有在 recordDateRange 变化时才重新计算
+  }, [recordDateRange]); // 只有在 recordDateRange 变化时才重新计算
 };

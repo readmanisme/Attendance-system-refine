@@ -10,7 +10,7 @@ import {
 } from "antd";
 import React, { useContext } from "react";
 import { ColorModeContext } from "../../contexts/color-mode";
-import {  IconMoonFilled, IconSunFilled } from "@tabler/icons-react";
+import { IconMoonFilled, IconSunFilled } from "@tabler/icons-react";
 
 const { Text } = Typography;
 const { useToken } = theme;
@@ -48,8 +48,8 @@ export const Header: React.FC<RefineThemedLayoutV2HeaderProps> = ({
       <Space>
         <Switch
           // checkedChildren="🌛"
-          unCheckedChildren=<IconSunFilled size={22} color="#ffec3d"/>
-          checkedChildren=<IconMoonFilled size={22} color="#ffec3d"/>
+          unCheckedChildren=<IconSunFilled size={22} color="#ffec3d" />
+          checkedChildren=<IconMoonFilled size={22} color="#ffec3d" />
           // unCheckedChildren="白天"
           onChange={() => setMode(mode === "light" ? "dark" : "light")}
           defaultChecked={mode === "dark"}

@@ -54,7 +54,7 @@ export const SalaryTypeCreate = () => {
               showIcon
             />
           );
-        }else {
+        } else {
           setIsError(false);
         }
       }
@@ -73,7 +73,7 @@ export const SalaryTypeCreate = () => {
               showIcon
             />
           );
-        }else {
+        } else {
           setIsError(false);
         }
       }
@@ -92,11 +92,11 @@ export const SalaryTypeCreate = () => {
               showIcon
             />
           );
-        }else {
+        } else {
           setIsError(false);
         }
       }
-    } 
+    }
   };
   return (
     <Create

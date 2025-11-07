@@ -22,9 +22,8 @@ export const CreateWorkType = () => {
     } else if (namelist?.data.some((item) => item.name === InputValue)) {
       setIsError(true);
       return <Alert message="工作已存在" type="error" showIcon />;
-    }
-    else {
-        setIsError(false);
+    } else {
+      setIsError(false);
     }
   };
   return (
@@ -47,11 +46,11 @@ export const CreateWorkType = () => {
           <Input onChange={(e) => setInputValue(e.target.value)} />
         </Form.Item>
         <Space direction="vertical" className="w-full">
-        <Alert
-          message="工作名称不能为空，也不能重复,也不能有下划线"
-          type="info"
-        />
-        {get_alert()}
+          <Alert
+            message="工作名称不能为空，也不能重复,也不能有下划线"
+            type="info"
+          />
+          {get_alert()}
         </Space>
       </Form>
     </Create>
