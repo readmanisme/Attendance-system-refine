@@ -1,8 +1,19 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import tsconfigPaths from "vite-tsconfig-paths";
-// import tailwindcss from '@tailwindcss/vite'
+import { visualizer } from "rollup-plugin-visualizer";
+
 import * as path from "path";
+
+const visualizerConfigs = [
+  // https://github.com/btd/rollup-plugin-visualizer
+  { template: "treemap", filename: "bundle-treemap.html" },
+  { template: "sunburst", filename: "bundle-sunburst.html" },
+  // { template: "network", filename: "bundle-network.html" },
+  // { template: "list", filename: "bundle-list.html" },
+  { template: "flamegraph", filename: "bundle-flamegraph.html" }
+];
+
 export default defineConfig({
   // 帮助文档 https://cn.vite.dev/config/
   plugins: [
@@ -12,7 +23,8 @@ export default defineConfig({
       },
     }),
     tsconfigPaths(),
-    // tailwindcss(),
+    // visualizer(),
+    ...visualizerConfigs.map(config => visualizer(config))
   ],
   // test: {
   //   globals: true,
@@ -33,7 +45,7 @@ export default defineConfig({
     __SystemName__: JSON.stringify("工人考勤系统"),
     __Backend_UserName__: JSON.stringify("shed2705@outlook.com"),
     __Backend_Password__: JSON.stringify("bPWU8GCMuqwKF9z"),
-    __VERSION__: JSON.stringify("v2025.7.10.0936"),
+    __VERSION__: JSON.stringify("v2025.11.7.1905"),
   },
   // define:{
   //   __BACKEND_API_URL__: JSON.stringify('http://localhost:8090'),

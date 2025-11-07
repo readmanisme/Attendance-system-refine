@@ -27,11 +27,9 @@ import {
   ClockCircleOutlined,
   LogoutOutlined,
 } from "@ant-design/icons";
-import RealTimeClock from "@/components/RealTimeClock";
 import { ColorModeContext } from "../../contexts/color-mode";
 import { List, useSelect, useTable } from "@refinedev/antd";
 import { ColumnsType } from "antd/es/table";
-import PySearchSelect from "@/components/PySearchSelect";
 
 const { Title: AntdTitle } = Typography;
 export default function QianDaoPage() {

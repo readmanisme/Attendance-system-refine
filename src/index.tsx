@@ -7,7 +7,6 @@ import "@mantine/core/styles.css";
 
 import { Alert, Spin } from "antd";
 import { CustomErrorBoundary } from "@/components/ErrorBoundary";
-import axios from "axios";
 import { BackupDatabase } from "./components/BackupDatabase";
 
 const _error = console.error;
@@ -23,7 +22,13 @@ console.error = function (msg, ...args) {
 const container = document.getElementById("root") as HTMLElement;
 const root = createRoot(container);
 function pb_health_check() {
-  return axios.get(__BACKEND_API_URL__ + "/api/health");
+  return fetch(__BACKEND_API_URL__ + "/api/health")
+    .then(response => {
+      if (!response.ok) {
+        throw new Error("Network response was not ok");
+      }
+      return response.json();
+    });
 }
 
 const RootComponent = () => {
@@ -37,7 +42,7 @@ const RootComponent = () => {
       pb_health_check()
         .then((res) => {
           if (!didCancel) {
-            setSpinIsOpen(res.data.code !== 200);
+            setSpinIsOpen(res.code !== 200);
             setInitializing(false);
           }
         })
