@@ -1,4 +1,4 @@
-import { Action, IResourceItem, Refine } from "@refinedev/core";
+import { IResourceItem, Refine } from "@refinedev/core";
 import { DevtoolsPanel, DevtoolsProvider } from "@refinedev/devtools";
 import {
   ErrorComponent,
@@ -25,8 +25,6 @@ import {
   WorkersList,
   WorkersShow,
 } from "./pages/workers";
-import PocketBasePage from "./pages/background/pocketbase";
-import PocketBase from "pocketbase";
 import { dataProvider as pocketbaseDataProvider } from "./providers/pocketbase";
 // } from "refine-pocketbase";
 import {
@@ -36,7 +34,7 @@ import {
   AttendanceRecordShow,
 } from "./pages/attendance-record";
 import { Badge, MantineProvider } from "@mantine/core";
-import logo from "@/public/logo-64.webp";
+import logo from "@/public/logo-64.webp?inline";
 import QianDaoPage from "./pages/qian-dao/qian-dao";
 // import XinZiList from "./pages/xin-zi/list";
 // import XinZiShow from "./pages/xin-zi/show";
@@ -239,15 +237,6 @@ function App() {
                       icon: <IconReport />,
                     },
                   },
-                  {
-                    name: "pocketbase",
-                    list: "/pocketbase",
-                    meta: {
-                      label: "后台管理",
-                      dataProviderName: undefined,
-                      icon: <IconLockSquareRounded />,
-                    },
-                  },
                   ...(get_sample_resource_or_route(
                     "resource",
                     "behind"
@@ -372,9 +361,6 @@ function App() {
                     </Route>
                     <Route path="/gongshi">
                       <Route index element={<GongShiList />} />
-                    </Route>
-                    <Route path="/pocketbase">
-                      <Route index element={<PocketBasePage />} />
                     </Route>
                     {
                       get_sample_resource_or_route(

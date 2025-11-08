@@ -1,0 +1,39 @@
+serve:
+First Contentful Paint
+1.0 秒
+Largest Contentful Paint
+1.3 秒
+Total Blocking Time
+90 毫秒
+Cumulative Layout Shift
+0
+Speed Index
+1.0 秒
+
+http-server:
+First Contentful Paint
+4.8 秒
+Largest Contentful Paint
+5.0 秒
+Total Blocking Time
+80 毫秒
+Cumulative Layout Shift
+0
+Speed Index
+4.8 秒
+
+sirv-cli:
+
+First Contentful Paint
+2.5 秒
+Largest Contentful Paint
+2.9 秒
+Total Blocking Time
+80 毫秒
+Cumulative Layout Shift
+0
+Speed Index
+2.5 秒
+
+sws:
+因为先404，结果可能失真
