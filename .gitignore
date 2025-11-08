@@ -32,3 +32,4 @@ cloc-2.02.exe
 /doc/.vitepress/cache
 public/~$启动指引.docx
 public/~WRL0003.tmp
+bundle-*.html

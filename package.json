@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "vite dev",
     "dev-profile": "vite dev --profile --open",
-    "build": "tsc && vite build",
+    "build": "powershell -Command \"$date = Get-Date -Format 'yyyy-MM-dd_HH-mm-ss'; mkdir -Force logs; function Strip-ANSI { $input -replace '\\e\\[[0-9;]*m', '' }; npx tsc --noEmit 2>&1 | Strip-ANSI | Tee-Object -FilePath logs/build-$date.log; if ($LASTEXITCODE -eq 0) { npx vite build 2>&1 | Strip-ANSI | Tee-Object -FilePath logs/build-$date.log -Append } else { Write-Error 'TypeScript compilation failed' }\"",
     "build-debug": "vite build -d",
     "build-profile": "vite build --profile --open",
     "start": "vite preview",

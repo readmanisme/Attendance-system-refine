@@ -7,7 +7,6 @@ import "@mantine/core/styles.css";
 
 import { Alert, Spin } from "antd";
 import { CustomErrorBoundary } from "@/components/ErrorBoundary";
-import { BackupDatabase } from "./components/BackupDatabase";
 
 const _error = console.error;
 
@@ -71,7 +70,6 @@ const RootComponent = () => {
     <React.StrictMode>
       <CustomErrorBoundary>
         <App />
-        <BackupDatabase />
         {spinIsOpen && (
           <Spin
             size="large"

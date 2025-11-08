@@ -36,7 +36,7 @@ import {
   AttendanceRecordShow,
 } from "./pages/attendance-record";
 import { Badge, MantineProvider } from "@mantine/core";
-import logo from "@/public/logo.png";
+import logo from "@/public/logo-64.webp";
 import QianDaoPage from "./pages/qian-dao/qian-dao";
 // import XinZiList from "./pages/xin-zi/list";
 // import XinZiShow from "./pages/xin-zi/show";
@@ -75,7 +75,7 @@ import {
 } from "./pages/xin-zi";
 import { GlobalHelp } from "./components/GlobalHelp";
 import { useTranslation } from "react-i18next";
-const pb = new PocketBase(__BACKEND_API_URL__);
+import pb from "@/utils/pocketbase";
 function get_sample_resource_or_route(
   type: "resource" | "route",
   location: "front" | "behind"
