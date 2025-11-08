@@ -1,55 +1,13 @@
 import { QuestionCircleOutlined } from "@ant-design/icons";
 import { useResource } from "@refinedev/core";
-import { FloatButton, Drawer, Button, Space, notification } from "antd";
+import { FloatButton, Drawer } from "antd";
 import Paragraph from "antd/es/typography/Paragraph";
 import { useState } from "react";
-import PocketBase from "pocketbase";
-import dayjs from "dayjs";
 
 export const GlobalHelp = () => {
-  const pb = new PocketBase(__BACKEND_API_URL__);
-  const backup_database = async () => {
-    await pb
-      .collection("_superusers")
-      .authWithPassword(__Backend_UserName__, __Backend_Password__);
-    const result = await pb.backups.create(
-      dayjs().format("YYYY-MM-DD-HH-mm-ss-SSS") + "-backup.zip"
-    );
-    if (result) {
-      // notification在drawer之上，不用担心遮挡。
-      notification.success({
-        message: "备份成功",
-        description: "数据库备份成功，此通知即将关闭",
-        showProgress: true,
-        duration: 3,
-      });
-    } else {
-      notification.error({
-        message: "备份失败",
-        description: `"数据库备份失败"`,
-        showProgress: true,
-        duration: 3,
-      });
-    }
-  };
   const { resource } = useResource();
   // 值得注意，由于使用到了useResource这个用到react routerdom的hook，所以需要在路由组件包裹下使用，否则无效
   const helps: Record<string, React.ReactNode> = {
-    主页: (
-      <>
-        <Paragraph>
-          1、请详细阅读此页，以对系统的功能有一个全面的认识。
-        </Paragraph>
-        <Paragraph>
-          2、如果需要备份，请点击下方的手动备份按钮，此备份和系统自动弹窗的备份不会冲突。
-        </Paragraph>
-        <Space>
-          <Button type="primary" onClick={() => backup_database()}>
-            手动备份
-          </Button>
-        </Space>
-      </>
-    ),
     人员签到: (
       <>
         <Paragraph>1、签到方式分为单人模式和多人模式。</Paragraph>

@@ -4,7 +4,7 @@ import _ from "lodash";
 import { fakerZH_CN as faker } from "@faker-js/faker";
 import PocketBase from "pocketbase";
 import dayjs from "dayjs";
-const pb = new PocketBase(__BACKEND_API_URL__);
+import pb from "@/utils/pocketbase";
 export function TestPage() {
   const 集合 = {
     考勤记录: __AttendanceRecord_TableName,

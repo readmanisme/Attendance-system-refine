@@ -394,8 +394,8 @@ export default function GongShiList() {
   const exportToExcel = async () => {
     const XLSX = await import("xlsx");
     setIsExportLoading(true);
-    const pb = new PocketBase(__BACKEND_API_URL__);
-
+    // import pb from "@/utils/pocketbase";
+    const { default: pb } = await import("@/utils/pocketbase");
     const 集合 = {
       考勤记录: __AttendanceRecord_TableName,
       工人: __Workers_TableName,
