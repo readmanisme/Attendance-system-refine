@@ -4,7 +4,7 @@ import "@ant-design/v5-patch-for-react-19";
 import App from "./App";
 import "./style/index.css";
 import "@mantine/core/styles.css";
-
+import "./i18nProvider";
 import { Alert, Spin } from "antd";
 import { CustomErrorBoundary } from "@/components/ErrorBoundary";
 
@@ -20,13 +20,12 @@ console.error = function (msg, ...args) {
 
 const container = document.getElementById("root") as HTMLElement;
 const root = createRoot(container);
-function pb_health_check() {
-  return fetch(__BACKEND_API_URL__ + "/api/health").then((response) => {
-    if (!response.ok) {
-      throw new Error("Network response was not ok");
-    }
-    return response.json();
-  });
+async function pb_health_check() {
+  const response = await fetch(__BACKEND_API_URL__ + "/api/health");
+  if (!response.ok) {
+    throw new Error("Network response was not ok");
+  }
+  return await response.json();
 }
 
 const RootComponent = () => {

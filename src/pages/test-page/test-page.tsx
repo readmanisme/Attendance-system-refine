@@ -1,10 +1,16 @@
 import { useState } from "react";
-import { Alert, Button } from "antd";
+import { Alert, Button, Space } from "antd";
 import _ from "lodash";
 import { fakerZH_CN as faker } from "@faker-js/faker";
 import PocketBase from "pocketbase";
 import dayjs from "dayjs";
 import pb from "@/utils/pocketbase";
+import {
+  useCreateMany,
+  useDeleteMany,
+  useMany,
+  useUpdateMany,
+} from "@refinedev/core";
 export function TestPage() {
   const 集合 = {
     考勤记录: __AttendanceRecord_TableName,
@@ -261,6 +267,73 @@ export function TestPage() {
     set_status("数据插入完成");
   };
 
+  const { mutate: CreateBatchRecord } = useCreateMany({
+    resource: __WorkTypes_TableName,
+  });
+  const { mutate: UpdateBatchRecord } = useUpdateMany({
+    resource: __WorkTypes_TableName,
+  });
+  const [ids, setIds] = useState();
+
+  const {
+    result,
+    query: { isLoading, isError },
+  } = useMany({
+    resource: __AttendanceRecord_TableName,
+    ids,
+  });
+  const { mutate: DeleteBatchRecord } = useDeleteMany({});
+  // const { mutate: UpsertBatchRecord } = useCreateMany({
+  //   resource: __AttendanceRecord_TableName,
+  // });
+  const Batch_Data = [
+    // {
+    //   id: "hum6603y11lhe40",
+    //   name: "基础",
+    // },
+    {
+      id: "t79z4z42tw0m864",
+      name: "割草",
+    },
+    {
+      id: "9nmaij895286071",
+      name: "施肥",
+    },
+    {
+      id: "892t3lmr9i86cdq",
+      name: "清理",
+    },
+    {
+      id: "4j5z8e284yygvv3",
+      name: "加工",
+    },
+    {
+      id: "unc5e93y500caqp",
+      name: "移苗",
+    },
+    {
+      id: "47u95f1j4na68e4",
+      name: "浇水",
+    },
+  ];
+  function Batch_Operation(type: string) {
+    if (type === "create") {
+      CreateBatchRecord({ values: Batch_Data });
+    }
+    if (type === "update") {
+      UpdateBatchRecord({
+        ids: Batch_Data.map((item) => item.id),
+        values: { name: "测试" },
+      }); //不是我要的那种批量
+    }
+    if (type === "delete") {
+      DeleteBatchRecord({
+        ids: Batch_Data.map((item) => item.id),
+        resource: __WorkTypes_TableName,
+      });
+    }
+  }
+
   return (
     <div>
       <h1 className="text-4xl font-bold text-blue-500">
@@ -276,6 +349,13 @@ export function TestPage() {
         description={status_2}
         showIcon
       />
+      <Space>
+        <Button onClick={() => Batch_Operation("create")}>批量 create</Button>
+        <Button onClick={() => setIds(["2u9sx55r9ykx1f9","jn20y08225l8ani","x85e186m011dya8"])}>批量 get</Button>
+        <Button onClick={() => Batch_Operation("update")}>批量 update</Button>
+        <Button onClick={() => Batch_Operation("delete")}>批量 delete</Button>
+        {/* <Button onClick={records_time_test}>批量 upsert</Button> */}
+      </Space>
     </div>
   );
 }

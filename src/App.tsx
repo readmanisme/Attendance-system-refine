@@ -26,7 +26,6 @@ import {
   WorkersShow,
 } from "./pages/workers";
 import { dataProvider as pocketbaseDataProvider } from "./providers/pocketbase";
-// } from "refine-pocketbase";
 import {
   AttendanceRecordCreate,
   AttendanceRecordEdit,
@@ -131,14 +130,14 @@ function get_sample_resource_or_route(
     }
   }
 }
-import i18n from "./i18nProvider";
+
 function App() {
-  const { t, i18n: i18n2 } = useTranslation();
+  const { t, i18n } = useTranslation();
   const i18nProvider = {
     //@ts-expect-error,正常的
     translate: (key: string, params: object) => t(key, params),
     changeLocale: (lang: string) => i18n.changeLanguage(lang),
-    getLocale: () => i18n2.language,
+    getLocale: () => i18n.language,
   };
   return (
     <BrowserRouter>
@@ -270,13 +269,6 @@ function App() {
                                   <Typography.Text className="whitespace-nowrap ">
                                     {__SystemName__}
                                   </Typography.Text>
-                                  <Badge
-                                    color="blue"
-                                    variant="light"
-                                    style={{ width: 120 }}
-                                  >
-                                    {__VERSION__}
-                                  </Badge>
                                 </Space>
                               ) : (
                                 <Space>
@@ -290,13 +282,6 @@ function App() {
                                   <Typography.Text className="whitespace-nowrap ">
                                     {__SystemName__}
                                   </Typography.Text>
-                                  <Badge
-                                    color="blue"
-                                    variant="light"
-                                    style={{ width: 120 }}
-                                  >
-                                    {__VERSION__}
-                                  </Badge>
                                 </Space>
                               )
                             }
