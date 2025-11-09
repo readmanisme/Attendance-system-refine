@@ -14,7 +14,7 @@ import {
 
 import { useState, useContext, useEffect, useCallback } from "react";
 import dayjs, { Dayjs } from "dayjs";
-import { Card, SegmentedControl } from "@mantine/core";
+import { Card } from "@mantine/core";
 import {
   LogicalFilter,
   useCreate,
@@ -694,7 +694,7 @@ export default function QianDaoPage() {
         <Card className="max-w-6xl mx-auto">
           <div className="mb-6">
             <AntdTitle level={3} className="mb-2! text-center">
-              员工签到系统
+              签到录入系统
             </AntdTitle>
             {/* 显示批量time */}
             {/* <p>当前颜色模式:{colorMode}</p> */}
