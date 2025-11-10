@@ -1,4 +1,4 @@
-import { IResourceItem, Refine } from "@refinedev/core";
+import { Refine } from "@refinedev/core";
 import { DevtoolsPanel, DevtoolsProvider } from "@refinedev/devtools";
 import {
   ErrorComponent,
@@ -73,63 +73,6 @@ import {
 import { GlobalHelp } from "./components/GlobalHelp";
 import { useTranslation } from "react-i18next";
 import pb from "@/utils/pocketbase";
-function get_sample_resource_or_route(
-  type: "resource" | "route",
-  location: "front" | "behind"
-) {
-  if (import.meta.env.PROD) {
-    if (type === "resource") {
-      return [];
-    } else if (type === "route") {
-      return;
-    }
-  } else if (type === "resource") {
-    if (location === "front") {
-      return [];
-    } else if (location === "behind") {
-      return [
-        {
-          name: "测试页面",
-          list: "/test-page",
-          // create: "/test-page/create",
-          meta: {
-            dataProviderName: undefined,
-            icon: <IconMicroscope />,
-            hide: !import.meta.env.DEV,
-          },
-        },
-        {
-          name: "Inferencer生成",
-          list: "/Inferencer_example",
-          create: "/Inferencer_example/create",
-          edit: "/Inferencer_example/edit/:id",
-          show: "/Inferencer_example/show/:id",
-          meta: {
-            icon: <IconCode />,
-            hide: !import.meta.env.DEV,
-          },
-        },
-      ];
-    }
-  } else if (type === "route") {
-    if (location === "front") {
-      return <></>;
-    } else if (location === "behind") {
-      return (
-        <>
-          {" "}
-          <Route path="/test-page" element={<TestPage />} />
-          <Route path="/Inferencer_example">
-            <Route index element={<SampleList />} />
-            <Route path="create" element={<SampleCreate />} />
-            <Route path="edit/:id" element={<SampleEdit />} />
-            <Route path="show/:id" element={<SampleShow />} />
-          </Route>
-        </>
-      );
-    }
-  }
-}
 
 function App() {
   const { t, i18n } = useTranslation();
@@ -141,13 +84,9 @@ function App() {
   };
   return (
     <BrowserRouter>
-      {/* <GitHubBanner /> */}
-      {/* <RefineKbarProvider> */}
       <MantineProvider>
         <ColorModeContextProvider>
-          {/* <MantineProvider> */}
           <AntdApp>
-            {/* <MantineProvider> */}
             <DevtoolsProvider>
               <Refine
                 dataProvider={{
@@ -158,19 +97,6 @@ function App() {
                 notificationProvider={useNotificationProvider}
                 routerProvider={routerBindings}
                 resources={[
-                  ...(get_sample_resource_or_route(
-                    "resource",
-                    "front"
-                  ) as IResourceItem[]),
-                  // {
-                  //   name: "zhuye",
-                  //   list: "/zhuye",
-                  //   meta: {
-                  //     label: "主页",
-                  //     dataProviderName: undefined,
-                  //     icon: <IconHome />,
-                  //   },
-                  // },
                   {
                     name: "qiandao",
                     list: "/qiandao",
@@ -236,10 +162,27 @@ function App() {
                       icon: <IconReport />,
                     },
                   },
-                  ...(get_sample_resource_or_route(
-                    "resource",
-                    "behind"
-                  ) as IResourceItem[]),
+                  {
+                    name: "测试页面",
+                    list: "/test-page",
+                    // create: "/test-page/create",
+                    meta: {
+                      dataProviderName: undefined,
+                      icon: <IconMicroscope />,
+                      hide: !import.meta.env.DEV,
+                    },
+                  },
+                  {
+                    name: "Inferencer生成",
+                    list: "/Inferencer_example",
+                    create: "/Inferencer_example/create",
+                    edit: "/Inferencer_example/edit/:id",
+                    show: "/Inferencer_example/show/:id",
+                    meta: {
+                      icon: <IconCode />,
+                      hide: !import.meta.env.DEV,
+                    },
+                  },
                 ]}
                 options={{
                   syncWithLocation: true,
@@ -263,8 +206,6 @@ function App() {
                                     src={logo}
                                     alt="Company Logo"
                                     size="default"
-                                    // width={64}
-                                    // height={64}
                                   />
                                   <Typography.Text className="whitespace-nowrap ">
                                     {__SystemName__}
@@ -276,8 +217,6 @@ function App() {
                                     src={logo}
                                     alt="Company Logo"
                                     size="large"
-                                    // width={64}
-                                    // height={64}
                                   />
                                   <Typography.Text className="whitespace-nowrap ">
                                     {__SystemName__}
@@ -299,15 +238,6 @@ function App() {
                       index
                       element={<NavigateToResource resource="qiandao" />}
                     />
-                    {
-                      get_sample_resource_or_route(
-                        "route",
-                        "front"
-                      ) as React.ReactNode
-                    }
-                    {/* <Route path="/zhuye">
-                        <Route index element={<ZhuYe />} />
-                      </Route> */}
                     <Route path="/qiandao">
                       <Route index element={<QianDaoPage />} />
                     </Route>
@@ -347,29 +277,25 @@ function App() {
                     <Route path="/gongshi">
                       <Route index element={<GongShiList />} />
                     </Route>
-                    {
-                      get_sample_resource_or_route(
-                        "route",
-                        "behind"
-                      ) as React.ReactNode
-                    }
+                    <Route path="/test-page" element={<TestPage />} />
+                    <Route path="/Inferencer_example">
+                      <Route index element={<SampleList />} />
+                      <Route path="create" element={<SampleCreate />} />
+                      <Route path="edit/:id" element={<SampleEdit />} />
+                      <Route path="show/:id" element={<SampleShow />} />
+                    </Route>
                     <Route path="*" element={<ErrorComponent />} />
                   </Route>
                 </Routes>
                 <GlobalHelp />
-                {/* <RefineKbar /> */}
                 <UnsavedChangesNotifier />
-                {/* <DocumentTitleHandler handler={customTitleHandler} />; */}
                 <DocumentTitleHandler />;
               </Refine>
               <DevtoolsPanel />
             </DevtoolsProvider>
-            {/* </MantineProvider> */}
           </AntdApp>
-          {/* </MantineProvider> */}
         </ColorModeContextProvider>
       </MantineProvider>
-      {/* </RefineKbarProvider> */}
     </BrowserRouter>
   );
 }
