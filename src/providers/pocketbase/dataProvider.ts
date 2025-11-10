@@ -43,6 +43,7 @@ export const dataProvider = (pb: PocketBase): DataProvider => ({
           total: totalItems,
         } as GetListResponse<any>;
       } else {
+        // options.batch = 9999; //没有必要设置，因为根据https://github.com/pocketbase/pocketbase/discussions/4677，getFullList会使用getList一直获取直到结束，默认的500一般情况下足够
         const items = await collection.getFullList(options);
 
         return {
