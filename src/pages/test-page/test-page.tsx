@@ -275,13 +275,13 @@ export function TestPage() {
   });
   const [ids, setIds] = useState();
 
-  const {
-    result,
-    query: { isLoading, isError },
-  } = useMany({
-    resource: __AttendanceRecord_TableName,
-    ids,
-  });
+  // const {
+  //   result,
+  //   query: { isLoading, isError },
+  // } = useMany({
+  //   resource: __AttendanceRecord_TableName,
+  //   ids,
+  // });
   const { mutate: DeleteBatchRecord } = useDeleteMany({});
   // const { mutate: UpsertBatchRecord } = useCreateMany({
   //   resource: __AttendanceRecord_TableName,
@@ -351,7 +351,7 @@ export function TestPage() {
       />
       <Space>
         <Button onClick={() => Batch_Operation("create")}>批量 create</Button>
-        <Button onClick={() => setIds(["2u9sx55r9ykx1f9","jn20y08225l8ani","x85e186m011dya8"])}>批量 get</Button>
+        {/* <Button onClick={() => setIds(["2u9sx55r9ykx1f9","jn20y08225l8ani","x85e186m011dya8"])}>批量 get</Button> */}
         <Button onClick={() => Batch_Operation("update")}>批量 update</Button>
         <Button onClick={() => Batch_Operation("delete")}>批量 delete</Button>
         {/* <Button onClick={records_time_test}>批量 upsert</Button> */}

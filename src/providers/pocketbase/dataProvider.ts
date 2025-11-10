@@ -121,7 +121,7 @@ export const dataProvider = (pb: PocketBase): DataProvider => ({
       // 升级但是每个内容不一样
       try {
         const batch = pb.createBatch();
-        meta.updates.forEach((update) => {
+        meta.updates.forEach((update: any) => {
           batch
             .collection(resource)
             .update(
