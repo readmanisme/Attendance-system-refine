@@ -32,143 +32,119 @@ export default function GongShiList() {
   >([]);
   // ======================== 暂存 ========================
 
-  const get_select_filter = (value: { value: string; label: string }[]) => {
-    const list = value?.map((item) => item?.value);
-    const filters: CrudFilter[] = [];
-    list?.forEach((id) => {
-      filters.push({
-        field: "id",
+  const selectedIds = useMemo(
+    () => SelectedPerson.map((p) => p.value),
+    [SelectedPerson]
+  );
+  const idFilters = useMemo(
+    () =>
+      selectedIds.map((id) => ({
+        field: "worker_id",
         operator: "eq",
         value: id,
-      });
-    });
-    // return filters;
-    return [
+      })),
+    [selectedIds]
+  );
+  // 为 useList 的 filters 创建稳定引用，避免每次 render 都触发 re-fetch
+  const monthViewFilter = useMemo(() => {
+    const temp = [
       {
-        operator: "or",
-        value: filters,
+        operator: "and",
+        value: [
+          { field: "work_month", operator: "gte", value: GongShiData[0] },
+          { field: "work_month", operator: "lte", value: GongShiData[1] },
+        ],
       },
-    ] as CrudFilter[];
-  };
-  const get_month_view_filter = (type: "month" | "day" | "a") => {
-    // const data = tableProps.dataSource;
-    const ids = SelectedPerson?.map((item) => item.value);
-
-    if (type === "month") {
-      const filters = ids?.map((id) => ({
-        field: "worker_id",
-        operator: "eq",
-        value: id,
-      }));
-      return {
-        operator: "and",
-        value: [
-          {
-            operator: "or",
-            value: filters,
-          },
-          {
-            operator: "and",
-            value: [
-              {
-                field: "work_month",
-                operator: "gte",
-                value: GongShiData[0],
-              },
-              {
-                field: "work_month",
-                operator: "lte",
-                value: GongShiData[1],
-              },
-            ],
-          },
-        ],
-      };
-    } else if (type === "day") {
-      const filters = ids?.map((id) => ({
-        field: "worker_id",
-        operator: "eq",
-        value: id,
-      }));
-      return {
-        operator: "and",
-        value: [
-          {
-            operator: "or",
-            value: filters,
-          },
-          {
-            operator: "and",
-            value: [
-              {
-                field: "work_date",
-                operator: "gte",
-                value: dayjs(GongShiData[0])
-                  .startOf("month")
-                  .format("YYYY-MM-DD"),
-              },
-              {
-                field: "work_date",
-                operator: "lte",
-                value: dayjs(GongShiData[1])
-                  .endOf("month")
-                  .format("YYYY-MM-DD"),
-              },
-            ],
-          },
-        ],
-      };
-    } else if (type === "a") {
-      const worker_filters = ids?.map((id) => ({
-        field: "worker_id",
-        operator: "eq",
-        value: id,
-      }));
-      return {
-        operator: "and",
-        value: [
-          {
-            operator: "or",
-            value: worker_filters,
-          },
-          {
-            operator: "and",
-            value: [
-              {
-                field: "check_in",
-                operator: "gte",
-                value: dayjs(GongShiData[0])
-                  .startOf("month")
-                  .toISOString()
-                  .replace("T", " "),
-              },
-              {
-                field: "check_in",
-                // 这里合适着了，不用改成check_out
-                operator: "lte",
-                value: dayjs(GongShiData[1])
-                  .endOf("month")
-                  .toISOString()
-                  .replace("T", " "),
-              },
-              {
-                field: "check_out",
-                operator: "ne",
-                value: "",
-              },
-            ],
-          },
-        ],
-      };
+    ];
+    if (idFilters.length) {
+      temp.unshift({
+        operator: "or",
+        value: idFilters,
+      });
     }
-  };
+    return {
+      operator: "and",
+      value: temp,
+    };
+
+    // 依赖 selectedIds, GongShiData（来自 store）
+  }, [GongShiData, idFilters]);
+
+  const dayViewFilter = useMemo(() => {
+    const temp = [
+      {
+        operator: "and",
+        value: [
+          {
+            field: "work_date",
+            operator: "gte",
+            value: dayjs(GongShiData[0]).startOf("month").format("YYYY-MM-DD"),
+          },
+          {
+            field: "work_date",
+            operator: "lte",
+            value: dayjs(GongShiData[1]).endOf("month").format("YYYY-MM-DD"),
+          },
+        ],
+      },
+    ];
+    if (idFilters.length) {
+      temp.unshift({
+        operator: "or",
+        value: idFilters,
+      });
+    }
+    return {
+      operator: "and",
+      value: temp,
+    };
+  }, [GongShiData, idFilters]);
+
+  const attendanceFilter = useMemo(() => {
+    const temp = [
+      {
+        operator: "and",
+        value: [
+          {
+            field: "check_in",
+            operator: "gte",
+            value: dayjs(GongShiData[0])
+              .startOf("month")
+              .toISOString()
+              .replace("T", " "),
+          },
+          {
+            field: "check_in",
+            operator: "lte",
+            value: dayjs(GongShiData[1])
+              .endOf("month")
+              .toISOString()
+              .replace("T", " "),
+          },
+          {
+            field: "check_out",
+            operator: "ne",
+            value: "",
+          },
+        ],
+      },
+    ];
+    if (idFilters.length) {
+      temp.unshift({
+        operator: "or",
+        value: idFilters,
+      });
+    }
+    return {
+      operator: "and",
+      value: temp,
+    };
+  }, [GongShiData, idFilters]);
+
   // ======================== 获取数据 ========================
 
   const { tableProps: workerData } = useTable({
     resource: __Workers_TableName,
-    filters: {
-      defaultBehavior: "replace",
-    },
   });
 
   const FilteredworkerData = useMemo(() => {
@@ -184,56 +160,40 @@ export default function GongShiList() {
     };
   }, [SelectedPerson, workerData]);
 
-  const {
-    data: month_view_data,
-    isLoading,
-    isError,
-  } = useList({
+  const { data: month_view_data } = useList({
     resource: __WorkHours_Month_ViewName,
     // queryOptions: {
     //   enabled: !tableProps.loading,
     // },
-    filters: [get_month_view_filter("month") as CrudFilter],
+    filters: [monthViewFilter as CrudFilter],
     pagination: {
       mode: "off",
     },
   });
 
-  const {
-    data: day_view_data,
-    isLoading: day_view_loading,
-    isError: day_view_error,
-  } = useList({
+  const { data: day_view_data } = useList({
     resource: __WorkHours_Day_ViewName,
     // queryOptions: {
     //   enabled: !tableProps.loading,
     // },
-    filters: [get_month_view_filter("day") as CrudFilter],
+    filters: [dayViewFilter as CrudFilter],
     pagination: {
       mode: "off",
     },
   });
 
-  const {
-    data: attendance_record_data,
-    isLoading: attendance_record_loading,
-    isError: attendance_record_error,
-  } = useList({
+  const { data: attendance_record_data } = useList({
     resource: __AttendanceRecord_TableName,
     // queryOptions: {
     //   enabled: !tableProps.loading,
     // },
-    filters: [get_month_view_filter("a") as CrudFilter],
+    filters: [attendanceFilter as CrudFilter],
     pagination: {
       mode: "off",
     },
   });
 
-  const {
-    data: workType_test_data,
-    isLoading: workType_test_loading,
-    isError: workType_test_error,
-  } = useList({
+  const { data: workType_test_data } = useList({
     resource: __WorkTypes_TableName,
     pagination: {
       mode: "off",
@@ -272,28 +232,20 @@ export default function GongShiList() {
   // @ts-expect-error,111
   const attendance_record_data_map = useGroupByWorkerId(attendance_record_data);
 
-  const workerDetails = useMemo(() => {
-    return (
-      workerData.dataSource?.reduce((acc, worker) => {
-        if (worker.id !== undefined) {
-          // 添加条件判断
-          acc[worker.id] = worker.name;
-        }
-        return acc;
-      }, {}) ?? {}
-    );
+  const workerMap = useMemo(() => {
+    const m = new Map<string, string>();
+    workerData.dataSource?.forEach((w: any) => {
+      if (w?.id !== undefined) m.set(w.id, w.name);
+    });
+    return m;
   }, [workerData.dataSource]);
 
-  const workTypeDetails = useMemo(() => {
-    return (
-      workType_test_data?.data?.reduce((acc, workType) => {
-        if (workType.id !== undefined) {
-          // 添加条件判断
-          acc[workType.id] = workType.name;
-        }
-        return acc;
-      }, {}) ?? {}
-    );
+  const workTypeMap = useMemo(() => {
+    const m = new Map<string, string>();
+    workType_test_data?.data?.forEach((t: any) => {
+      if (t?.id !== undefined) m.set(t.id, t.name);
+    });
+    return m;
   }, [workType_test_data?.data]);
 
   const listProps_work_type = useMemo(() => {
@@ -328,8 +280,8 @@ export default function GongShiList() {
     if (_.isEmpty(SalaryDict)) return {};
     return (
       attendance_record_data?.data?.reduce((dict, item) => {
-        const workerName = workerDetails[item.worker_id];
-        const workName = workTypeDetails[item.work];
+        const workerName = workerMap.get(item.worker_id);
+        const workName = workTypeMap.get(item.work);
         const day = dayjs(item.check_in).format("YYYY-MM-DD").slice(0, 10);
         const dbID = item.id;
         const check_in = dayjs(item.check_in);
@@ -355,13 +307,7 @@ export default function GongShiList() {
         return dict;
       }, {}) || {}
     );
-  }, [
-    MatchSalary,
-    SalaryDict,
-    attendance_record_data?.data,
-    workTypeDetails,
-    workerDetails,
-  ]);
+  }, [MatchSalary, SalaryDict, attendance_record_data?.data, workTypeMap, workerMap]);
 
   const DaySalaryDict: { [key: string]: { [key: string]: Decimal } } =
     useMemo(() => {
@@ -441,11 +387,11 @@ export default function GongShiList() {
 
     const expandDataSource = month_records.map((record) => ({
       key: record.work_month,
-      worker: workerDetails[record.worker_id],
+      worker: workerMap.get(record.worker_id),
       month: record.work_month,
       total_work_hours: record.total_work_hours,
       xinzi:
-        MonthSalaryDict[workerDetails[record.worker_id]][
+        MonthSalaryDict[workerMap.get(record.worker_id)][
           record.work_month
         ].toString(),
     }));
@@ -493,7 +439,7 @@ export default function GongShiList() {
           record.work_date.startsWith(work_month)
         ) ?? [];
       const dataSource_d2 = records.map((record) => {
-        const worker_name = workerDetails[record.worker_id];
+        const worker_name = workerMap.get(record.worker_id);
         return {
           key: record.work_date,
           worker: worker_name,
@@ -543,8 +489,8 @@ export default function GongShiList() {
             dayjs(record.check_in).format("YYYY-MM-DD").startsWith(work_date)
           ) ?? [];
         const dataSource_d3 = records.map((record) => {
-          const worker_name = workerDetails[record.worker_id];
-          const work_name = workTypeDetails[record.work];
+          const worker_name = workerMap.get(record.worker_id);
+          const work_name = workTypeMap.get(record.work);
           const check_in = dayjs(record.check_in);
           const check_out = dayjs(record.check_out);
           const dbID = record.id;
@@ -651,7 +597,7 @@ export default function GongShiList() {
     );
   };
 
-  if (!Object.values(workTypeDetails).includes("基础")) {
+  if (![...workTypeMap.values()].includes("基础")) {
     return (
       <Alert
         message="基础工作类型不存在，请添加"
@@ -663,7 +609,7 @@ export default function GongShiList() {
   }
   const get_un_salary_work = () => {
     // 找出没有设置工资的工作
-    const work_types = Object.values(workTypeDetails);
+    const work_types = [...workTypeMap.values()];
     const un_salary_work_types = work_types.filter((item) => !SalaryDict[item]);
     if (_.isEmpty(un_salary_work_types)) return "";
     return (
