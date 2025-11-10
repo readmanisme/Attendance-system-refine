@@ -12,18 +12,26 @@ const { RangePicker } = DatePicker;
 import { CrudFilter, useList } from "@refinedev/core";
 import { IconHelp } from "@tabler/icons-react";
 import dayjs, { Dayjs } from "dayjs";
-
-import PocketBase from "pocketbase";
 import PySearchSelect from "@/components/PySearchSelect";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Decimal from "decimal.js";
 import _ from "lodash";
 import { useSomeStore } from "@/stores";
 import { SwitchDataRangeGongShi } from "@/components/SwitchDataRangeGongShi";
 export default function GongShiList() {
+  // ======================== useState等 ========================
   const [SalaryLoading, setSalaryLoading] = useState(true);
   const { GongShiData, setGongShiData } = useSomeStore();
-  // const [GongShiData, setGongShiData]=useState([dayjs("2024-05-05").startOf('month').format('YYYY-MM')])
+  const [isExportLoading, setIsExportLoading] = useState(false);
+  const [exportRange, setExportRange] = useState([
+    dayjs().startOf("year"),
+    dayjs().endOf("year"),
+  ]);
+  const [SelectedPerson, setSelectedPerson] = useState<
+    { value: string; label: string }[]
+  >([]);
+  // ======================== 暂存 ========================
+
   const get_select_filter = (value: { value: string; label: string }[]) => {
     const list = value?.map((item) => item?.value);
     const filters: CrudFilter[] = [];
@@ -42,16 +50,9 @@ export default function GongShiList() {
       },
     ] as CrudFilter[];
   };
-
-  const { tableProps, setFilters } = useTable({
-    resource: __Workers_TableName,
-    filters: {
-      defaultBehavior: "replace",
-    },
-  });
   const get_month_view_filter = (type: "month" | "day" | "a") => {
-    const data = tableProps.dataSource;
-    const ids = data?.map((item) => item.id);
+    // const data = tableProps.dataSource;
+    const ids = SelectedPerson?.map((item) => item.value);
 
     if (type === "month") {
       const filters = ids?.map((id) => ({
@@ -66,11 +67,6 @@ export default function GongShiList() {
             operator: "or",
             value: filters,
           },
-          // {
-          //   field: "work_month",
-          //   operator: "eq",
-          //   value: GongShiData,
-          // },
           {
             operator: "and",
             value: [
@@ -101,11 +97,6 @@ export default function GongShiList() {
             operator: "or",
             value: filters,
           },
-          // {
-          //   field: "work_date",
-          //   operator: "startswith",
-          //   value: GongShiData,
-          // },
           {
             operator: "and",
             value: [
@@ -171,6 +162,27 @@ export default function GongShiList() {
       };
     }
   };
+  // ======================== 获取数据 ========================
+
+  const { tableProps: workerData } = useTable({
+    resource: __Workers_TableName,
+    filters: {
+      defaultBehavior: "replace",
+    },
+  });
+
+  const FilteredworkerData = useMemo(() => {
+    if (!SelectedPerson.length) {
+      return workerData;
+    }
+    return {
+      ...workerData,
+      // dataSource不是SelectedPerson的去掉
+      dataSource: workerData.dataSource?.filter((item) =>
+        SelectedPerson.some((person) => person.value === item.id)
+      ),
+    };
+  }, [SelectedPerson, workerData]);
 
   const {
     data: month_view_data,
@@ -178,42 +190,45 @@ export default function GongShiList() {
     isError,
   } = useList({
     resource: __WorkHours_Month_ViewName,
-    queryOptions: {
-      enabled: !tableProps.loading,
-    },
+    // queryOptions: {
+    //   enabled: !tableProps.loading,
+    // },
     filters: [get_month_view_filter("month") as CrudFilter],
     pagination: {
       mode: "off",
     },
   });
+
   const {
     data: day_view_data,
     isLoading: day_view_loading,
     isError: day_view_error,
   } = useList({
     resource: __WorkHours_Day_ViewName,
-    queryOptions: {
-      enabled: !tableProps.loading,
-    },
+    // queryOptions: {
+    //   enabled: !tableProps.loading,
+    // },
     filters: [get_month_view_filter("day") as CrudFilter],
     pagination: {
       mode: "off",
     },
   });
+
   const {
     data: attendance_record_data,
     isLoading: attendance_record_loading,
     isError: attendance_record_error,
   } = useList({
     resource: __AttendanceRecord_TableName,
-    queryOptions: {
-      enabled: !tableProps.loading,
-    },
+    // queryOptions: {
+    //   enabled: !tableProps.loading,
+    // },
     filters: [get_month_view_filter("a") as CrudFilter],
     pagination: {
       mode: "off",
     },
   });
+
   const {
     data: workType_test_data,
     isLoading: workType_test_loading,
@@ -224,9 +239,42 @@ export default function GongShiList() {
       mode: "off",
     },
   });
+
+  const { listProps } = useSimpleList({
+    resource: __SalaryType_TableName,
+    pagination: {
+      mode: "off",
+    },
+    meta: {
+      expand: ["worker_name", "work_type"],
+    },
+  });
+  // ======================== 衍生数据计算 ========================
+  function useGroupByWorkerId<T extends { worker_id: string }>(
+    data: { data?: T[] } | null | undefined
+  ) {
+    return useMemo(() => {
+      return (
+        data?.data?.reduce((acc, item) => {
+          if (!acc.has(item.worker_id)) {
+            acc.set(item.worker_id, []);
+          }
+          acc.get(item.worker_id)!.push(item);
+          return acc;
+        }, new Map<string, T[]>()) || new Map()
+      );
+    }, [data]);
+  }
+  // @ts-expect-error,111
+  const month_view_data_map = useGroupByWorkerId(month_view_data);
+  // @ts-expect-error,111
+  const day_view_data_map = useGroupByWorkerId(day_view_data);
+  // @ts-expect-error,111
+  const attendance_record_data_map = useGroupByWorkerId(attendance_record_data);
+
   const workerDetails = useMemo(() => {
     return (
-      tableProps.dataSource?.reduce((acc, worker) => {
+      workerData.dataSource?.reduce((acc, worker) => {
         if (worker.id !== undefined) {
           // 添加条件判断
           acc[worker.id] = worker.name;
@@ -234,7 +282,7 @@ export default function GongShiList() {
         return acc;
       }, {}) ?? {}
     );
-  }, [tableProps.dataSource]);
+  }, [workerData.dataSource]);
 
   const workTypeDetails = useMemo(() => {
     return (
@@ -247,29 +295,13 @@ export default function GongShiList() {
       }, {}) ?? {}
     );
   }, [workType_test_data?.data]);
-  const { listProps } = useSimpleList({
-    resource: __SalaryType_TableName,
-    pagination: {
-      mode: "off",
-    },
-    meta: {
-      expand: ["worker_name", "work_type"],
-    },
-  });
-  const listProps_work_type = listProps?.dataSource?.map(
-    (item) => item.expand?.work_type?.name
-  );
 
-  // const dataSource = listProps?.dataSource;
-  // console.log("dataSource", listProps?.dataSource);
-  // const SalaryLoading=useRef(false);
-  // const [SalaryLoading, setSalaryLoading] = useState(false);
+  const listProps_work_type = useMemo(() => {
+    return listProps?.dataSource?.map((item) => item.expand?.work_type?.name);
+  }, [listProps?.dataSource]);
 
   const SalaryDict = useMemo(() => {
-    // setSalaryLoading(true);
-    // SalaryLoading.current=true;
     const data = listProps?.dataSource;
-    // console.log("data", data)
     if (!data) return {};
 
     return data.reduce<Record<string, number>>((acc, item) => {
@@ -289,9 +321,9 @@ export default function GongShiList() {
       return acc;
     }, {});
   }, [listProps?.dataSource]);
-  // const SalaryDict = GetSalaryDict();
-  // console.dir(SalaryDict);
+
   const MatchSalary: { [key: string]: string } = useMemo(() => ({}), []);
+
   const DayDuringSalaryDict = useMemo(() => {
     if (_.isEmpty(SalaryDict)) return {};
     return (
@@ -330,7 +362,7 @@ export default function GongShiList() {
     workTypeDetails,
     workerDetails,
   ]);
-  // const day_during_SalaryDict = Get_day_during_SalaryDict();
+
   const DaySalaryDict: { [key: string]: { [key: string]: Decimal } } =
     useMemo(() => {
       if (_.isEmpty(DayDuringSalaryDict)) return {};
@@ -350,7 +382,7 @@ export default function GongShiList() {
         {}
       );
     }, [DayDuringSalaryDict]);
-  // const day_SalaryDict = Get_day_SalaryDict();
+
   const MonthSalaryDict = useMemo(() => {
     if (_.isEmpty(DaySalaryDict)) return {};
     return Object.entries(DaySalaryDict).reduce(
@@ -375,184 +407,26 @@ export default function GongShiList() {
       {}
     );
   }, [DaySalaryDict]);
-  // const month_SalaryDict = Get_month_SalaryDict();
 
   useEffect(() => {
-    // setSalaryLoading(true)
-    // if (!tableProps.loading){
-    //   console.log("别的",listProps)
-    // }
     // @ts-expect-error,这里MonthSalaryDict在不知道什么情况下会存在undefined的key
-    // if (!_.isEmpty(MonthSalaryDict) && !(undefined in MonthSalaryDict)) {
     if (!(undefined in MonthSalaryDict)) {
-      // console.log("MonthSalaryDict", MonthSalaryDict)
       setSalaryLoading(false);
     }
   }, [MonthSalaryDict]);
-  const export_range = useRef([dayjs().startOf("year"), dayjs().endOf("year")]);
-  const [isExportLoading, setIsExportLoading] = useState(false);
+
+  // ======================== 导出xlsx文件 ========================
+
   const exportToExcel = async () => {
-    const XLSX = await import("xlsx");
     setIsExportLoading(true);
-    // import pb from "@/utils/pocketbase";
-    const { default: pb } = await import("@/utils/pocketbase");
-    const 集合 = {
-      考勤记录: __AttendanceRecord_TableName,
-      工人: __Workers_TableName,
-      工作类型: __WorkTypes_TableName,
-      月工时: __WorkHours_Month_ViewName,
-      日工时: __WorkHours_Day_ViewName,
-    };
-    const start = export_range.current[0].toISOString().replace("T", " ");
-    const end = export_range.current[1]
-      .endOf("month")
-      .toISOString()
-      .replace("T", " ");
-    const start_day = export_range.current[0].format("YYYY-MM-DD");
-    const end_day = export_range.current[1].endOf("month").format("YYYY-MM-DD");
-    const start_month = export_range.current[0].format("YYYY-MM");
-    const end_month = export_range.current[1].format("YYYY-MM");
-    const attendanceRecords = await pb.collection(集合.考勤记录).getFullList({
-      filter:
-        "check_in !=null && check_out !=null && check_in >= '" +
-        start +
-        "' && check_in <= '" +
-        end +
-        "'",
-    });
-    const workers = await pb.collection(集合.工人).getFullList();
-    const workTypes = await pb.collection(集合.工作类型).getFullList();
-    const workerDetails = workers.reduce(
-      (acc: Record<string, string>, worker) => {
-        acc[worker.id] = worker.name;
-        return acc;
-      },
-      {}
+    const { default: exportExcel } = await import(
+      "@/pages/gong-shi/export_xlsx"
     );
-    const workTypeDetails = workTypes.reduce(
-      (acc: Record<string, string>, workType) => {
-        acc[workType.id] = workType.name;
-        return acc;
-      },
-      {}
-    );
-    const workHoursMonth = await pb.collection(集合.月工时).getFullList({
-      filter:
-        "work_month >= '" +
-        start_month +
-        "' && work_month <= '" +
-        end_month +
-        "'",
-    });
-    const workHoursDay = await pb.collection(集合.日工时).getFullList({
-      filter:
-        "work_date >= '" + start_day + "' && work_date <= '" + end_day + "'",
-      // work_date在数据库中的类型不像日期，但确实能这么过滤
-    });
-    const attendanceSheetData = attendanceRecords.map((record) => {
-      const dbID = record.id;
-      const duration = Decimal.div(
-        dayjs(record.check_out).diff(dayjs(record.check_in)),
-        1000 * 60 * 60
-      ).toString();
-      const worker_name = workerDetails[record.worker_id];
-      const work_name = workTypeDetails[record.work];
-      // const check_in = dayjs(record.check_in);
-      // const key=`${worker_name}_${work_name}_${dayjs(record.check_in).format("YYYY-MM-DD")}_${dbID}`
-      const salaryKey =
-        `${worker_name}_${work_name}` in SalaryDict
-          ? `${worker_name}_${work_name}`
-          : worker_name in SalaryDict
-          ? worker_name
-          : work_name in SalaryDict
-          ? work_name
-          : "基础";
-      const matchValue = salaryKey + ":" + SalaryDict[salaryKey];
-      return {
-        序号: dbID,
-        工人: worker_name,
-        // 签到时间: record.check_in,
-        // 签退时间: record.check_out,
-        签到时间: dayjs(record.check_in).format("YYYY/MM/DD HH:mm"),
-        签退时间: dayjs(record.check_out).format("YYYY/MM/DD HH:mm"),
-        工作类型: work_name,
-        总工时: duration,
-        薪资: Decimal.mul(duration, SalaryDict[salaryKey]).toString(),
-        依据: matchValue,
-        // 创建时间: record.created,
-        // 更新时间: record.updated
-      };
-    });
-
-    const workHoursDaySheetData = workHoursDay.map((record) => {
-      const worker_name = workerDetails[record.worker_id];
-      const date = record.work_date;
-      // 通过attendanceSheetData，筛选worker和date相同的记录，计算每天的薪资
-      const attendance_records = attendanceSheetData.filter(
-        (record) =>
-          record.工人 === worker_name &&
-          dayjs(record.签到时间).format("YYYY-MM-DD") === date
-      );
-      // const total_work_hours = attendance_records.reduce(
-      //   (acc, record) => acc + parseFloat(record.总工时),
-      //   0
-      // );
-      const xinzi = attendance_records.reduce(
-        (acc, record) => Decimal.add(acc, record.薪资),
-        new Decimal(0)
-      );
-      return {
-        序号: record.id,
-        工人: worker_name,
-        日期: date,
-        总工时: record.total_work_hours,
-        薪资: xinzi.toString(),
-      };
-    });
-
-    const workHoursMonthSheetData = workHoursMonth.map((record) => {
-      const worker_name = workerDetails[record.worker_id];
-      const month = record.work_month;
-      // 通过workHoursDaySheetData，筛选worker和month相同的记录，计算每月的薪资
-      const work_hours_day_records = workHoursDaySheetData.filter(
-        (record) =>
-          record.工人 === worker_name &&
-          dayjs(record.日期).format("YYYY-MM") === month
-      );
-      // const total_work_hours = work_hours_day_records.reduce(
-      //   (acc, record) => acc + parseFloat(record.总工时),
-      //   0
-      // );
-      const xinzi = work_hours_day_records.reduce(
-        (acc, record) => Decimal.add(acc, record.薪资),
-        new Decimal(0)
-      );
-      return {
-        序号: record.id,
-        工人: worker_name,
-        月份: month,
-        总工时: record.total_work_hours,
-        薪资: xinzi.toString(),
-      };
-    });
-
-    // 创建工作簿
-    const wb = XLSX.utils.book_new();
-    // 添加每个工作表
-    const workHoursMonthSheet = XLSX.utils.json_to_sheet(
-      workHoursMonthSheetData
-    );
-    XLSX.utils.book_append_sheet(wb, workHoursMonthSheet, "工时(月)");
-
-    const workHoursDaySheet = XLSX.utils.json_to_sheet(workHoursDaySheetData);
-    XLSX.utils.book_append_sheet(wb, workHoursDaySheet, "工时(日)");
-
-    const attendanceSheet = XLSX.utils.json_to_sheet(attendanceSheetData);
-    XLSX.utils.book_append_sheet(wb, attendanceSheet, "考勤记录");
-    // 导出Excel
-    XLSX.writeFile(wb, "工时记录.xlsx");
+    await exportExcel(exportRange, SalaryDict);
     setIsExportLoading(false);
   };
+  // ======================== 拓展表定义 ========================
+
   const TableExpandedRowRender = (
     record: { id: string; name: string },
     index: number,
@@ -561,21 +435,13 @@ export default function GongShiList() {
   ) => {
     const item = record;
     // 这里的item是worker
-    const month_records =
-      month_view_data?.data?.filter((record) => record.worker_id === item.id) ??
-      [];
-    const day_records =
-      day_view_data?.data?.filter((record) => record.worker_id === item.id) ??
-      [];
-    const attendance_records =
-      attendance_record_data?.data?.filter(
-        (record) => record.worker_id === item.id
-      ) ?? [];
+    const month_records = month_view_data_map.get(item.id) ?? [];
+    const day_records = day_view_data_map.get(item.id) ?? [];
+    const attendance_records = attendance_record_data_map.get(item.id) ?? [];
 
     const expandDataSource = month_records.map((record) => ({
       key: record.work_month,
       worker: workerDetails[record.worker_id],
-      // worker: record.name,
       month: record.work_month,
       total_work_hours: record.total_work_hours,
       xinzi:
@@ -605,6 +471,8 @@ export default function GongShiList() {
         key: "xinzi",
       },
     ];
+    // ======================== 拓展表 第二层 定义 ========================
+
     const expandedRowRender_d2 = (
       record: {
         worker: string;
@@ -626,13 +494,10 @@ export default function GongShiList() {
         ) ?? [];
       const dataSource_d2 = records.map((record) => {
         const worker_name = workerDetails[record.worker_id];
-        // const date=dayjs(record.work_date).format("YYYY-MM-DD");
-        // const work_name = workTypeDetails[record.work];
         return {
           key: record.work_date,
           worker: worker_name,
           date: record.work_date,
-          // work: work_name,
           total_work_hours: record.total_work_hours,
           xinzi: DaySalaryDict[worker_name][record.work_date].toString(),
         };
@@ -648,11 +513,6 @@ export default function GongShiList() {
           dataIndex: "worker",
           key: "worker",
         },
-        // {
-        //   title: "工作类型",
-        //   dataIndex: "work",
-        //   key: "work",
-        // },
         {
           title: "总工时",
           dataIndex: "total_work_hours",
@@ -664,6 +524,8 @@ export default function GongShiList() {
           key: "xinzi",
         },
       ];
+      // ======================== 拓展表 第三层 定义 ========================
+
       const expandedRowRender_d3 = (
         record: {
           worker: string;
@@ -751,6 +613,8 @@ export default function GongShiList() {
             },
           },
         ];
+        // ======================== 拓展表 返回ui ========================
+
         return (
           <Table
             columns={columns_d3}
@@ -787,10 +651,6 @@ export default function GongShiList() {
     );
   };
 
-  const [exportRange, setExportRange] = useState([
-    dayjs().startOf("year"),
-    dayjs().endOf("year"),
-  ]);
   if (!Object.values(workTypeDetails).includes("基础")) {
     return (
       <Alert
@@ -822,6 +682,8 @@ export default function GongShiList() {
       />
     );
   }
+  // ======================== UI ========================
+
   return (
     <LList
       headerButtons={({ defaultButtons }) => (
@@ -831,16 +693,16 @@ export default function GongShiList() {
             <PySearchSelect
               onChangeFn={(value: { value: string; label: string }) => {
                 if (_.isArray(value)) {
-                  setFilters(get_select_filter(value), "replace");
+                  setSelectedPerson(value);
                 } else {
-                  setFilters(get_select_filter([value]), "replace");
+                  setSelectedPerson([value]);
                 }
               }}
               placeholder="选择工人,支持拼音"
               options={null}
               mode="multiple"
               onClearFn={() => {
-                setFilters([], "replace");
+                setSelectedPerson([]);
               }}
             />
             <Popconfirm
@@ -856,17 +718,16 @@ export default function GongShiList() {
                   <RangePicker
                     size="small"
                     picker="month"
-                    defaultValue={export_range.current as [Dayjs, Dayjs]}
+                    // @ts-expect-error,111
+                    defaultValue={exportRange}
                     // @ts-expect-error,有个看不太懂的错误，不管了
                     onChange={(date: [Dayjs, Dayjs], dateString: string) => {
-                      export_range.current = date;
                       setExportRange(date);
                     }}
                   />
                 </div>
               }
               onConfirm={exportToExcel}
-              // onCancel={cancel}
               okText="进行导出"
               cancelText="取消操作"
             >
@@ -893,24 +754,13 @@ export default function GongShiList() {
         )}
         <SwitchDataRangeGongShi />
       </div>
-
-      {/* <List
-        {...listProps}
-        pagination={{
-          ...listProps.pagination,
-          showSizeChanger: false,
-          // 关闭条目显示数量改变，性能和显示都会好一些
-        }}
-        renderItem={renderItem}
-      /> */}
-      {/* <Pagination defaultCurrent={1} total={50} /> */}
       <Table
         key={JSON.stringify(GongShiData)}
         // !!!通过强制重渲染避免在还未计算完成的时候取值导致错误
         // 不加JSON.stringify似乎也能跑，他会自动转换
-        {...tableProps}
+        {...FilteredworkerData}
         pagination={{
-          ...tableProps.pagination,
+          ...FilteredworkerData.pagination,
           onChange: (page, pageSize) => {
             setSalaryLoading(true);
           },
@@ -921,14 +771,13 @@ export default function GongShiList() {
         rowKey="id"
         size="small"
         expandable={{
-          // @ts-expect-error,这里泛型很不好搞
+          // @ts-expect-error,111
           expandedRowRender: TableExpandedRowRender,
           expandRowByClick: true,
         }}
       >
         <Table.Column dataIndex="id" title="ID" />
         <Table.Column dataIndex="name" title="姓名" />
-        {/* <Table.Column dataIndex="content" title="Content" /> */}
       </Table>
     </LList>
   );

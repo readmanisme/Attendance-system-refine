@@ -38,14 +38,6 @@ export default function QianDaoPage() {
   const [work_type, set_work_type] = useState<WorkTypeValue>(undefined); //签到的时候要用
   const [PiLiangNames, setPiLiangNames] = useState<WorkerOption[]>([]);
 
-  const [ShangBanButtonDisabled, setShangBanButtonDisabled] = useState(true);
-  const [XiaBanButtonDisabled, setXiaBanButtonDisabled] = useState(true);
-  const [AlertDescription, setAlertDescription] =
-    useState<React.ReactNode>("此处显示是否可以进行上下班操作的信息");
-  const [AlertType, setAlertType] = useState<
-    "success" | "info" | "warning" | "error"
-  >("info");
-
   const { mutate: CreateBatchRecord } = useCreateMany({
     resource: __AttendanceRecord_TableName,
   });
@@ -82,7 +74,8 @@ export default function QianDaoPage() {
   const { tableProps } = useTable({
     resource: __AttendanceRecord_TableName,
     pagination: {
-      mode: "off",
+      // mode: "off",
+      mode: "server", //因为现在排序是服务器进行的，所以设置分页也OK
     },
     sorters: {
       permanent: [
@@ -153,6 +146,11 @@ export default function QianDaoPage() {
     [uniqueDates, PiliangTime]
   );
 
+  const All_checkOut = useMemo(
+    () => uniqueDates.some((date) => date === PiliangTime.format("YYYY-MM-DD")),
+    [uniqueDates, PiliangTime]
+  );
+
   const dataSource = useMemo(() => tableProps?.dataSource ?? [], [tableProps]);
 
   const last_records = useMemo(
@@ -181,274 +179,193 @@ export default function QianDaoPage() {
   );
   // ======================== 表格定义 ========================
 
-  const columns_table: ColumnsType = [
-    {
-      title: "员工姓名",
-      dataIndex: ["expand", "worker_id", "name"],
-      key: "name",
-    },
-    {
-      title: "签到时间",
-      dataIndex: "check_in",
-      key: "checkInTime",
-      render: (text) => (
-        <Space>
-          <ClockCircleOutlined />
-          {dayjs(text).format("YYYY-MM-DD HH:mm:ss")}
-        </Space>
-      ),
-    },
-    {
-      title: "工作",
-      dataIndex: ["expand", "work", "name"],
-      key: "workType",
-    },
-    {
-      title: "状态",
-      key: "status",
-      dataIndex: "status",
-      render: (status: string, record: any) => {
-        const statuss = record.check_out ? "checked-out" : "pending";
-        const statusMap = {
-          pending: { text: "待签退", color: "warning" }, //已经签到
-          "checked-out": { text: "已签退", color: "default" },
-        };
-        const current = statusMap[statuss];
-        return <Badge status={current.color as any} text={current.text} />;
+  const columns_table: ColumnsType<any> = useMemo(
+    () => [
+      {
+        title: "员工姓名",
+        dataIndex: ["expand", "worker_id", "name"],
+        key: "name",
       },
-    },
-    {
-      title: "签退时间",
-      dataIndex: "check_out",
-      key: "checkOutTime",
-      render: (text) =>
-        text ? dayjs(text).format("YYYY-MM-DD HH:mm:ss") : "-",
-    },
-  ];
+      {
+        title: "签到时间",
+        dataIndex: "check_in",
+        key: "checkInTime",
+        render: (text: string) => (
+          <Space>
+            <ClockCircleOutlined />
+            {dayjs(text).format("YYYY-MM-DD HH:mm:ss")}
+          </Space>
+        ),
+      },
+      {
+        title: "工作",
+        dataIndex: ["expand", "work", "name"],
+        key: "workType",
+      },
+      {
+        title: "状态",
+        key: "status",
+        dataIndex: "status",
+        render: (_: any, record: any) => {
+          const statuss = record.check_out ? "checked-out" : "pending";
+          const statusMap: Record<string, { text: string; color: string }> = {
+            pending: { text: "待签退", color: "warning" },
+            "checked-out": { text: "已签退", color: "default" },
+          };
+          const current = statusMap[statuss];
+          return <Badge status={current.color as any} text={current.text} />;
+        },
+      },
+      {
+        title: "签退时间",
+        dataIndex: "check_out",
+        key: "checkOutTime",
+        render: (text: string) =>
+          text ? dayjs(text).format("YYYY-MM-DD HH:mm:ss") : "-",
+      },
+    ],
+    []
+  );
+
   // ======================== 设置按钮和提示 ========================
-  const { shangDisabled, xiaDisabled, alertDescription, alertType } =
-    useMemo(() => {
-      // 默认
-      if (!PiLiangNames || PiLiangNames.length === 0) {
-        return {
-          shangDisabled: true,
-          xiaDisabled: true,
-          alertDescription: "请选择考勤人员",
-          alertType: "warning" as const,
-        };
-      }
-      if (!PiliangTime) {
-        return {
-          shangDisabled: true,
-          xiaDisabled: true,
-          alertDescription: "请选择考勤时间",
-          alertType: "warning" as const,
-        };
-      }
-
-      // 找出选择人员中，哪些在 last_records 中（即当前还未签退）
-      const missingKeys = PiLiangNames.filter(
-        (name) => !last_records.some((r) => r.worker_id === name.key)
-      ); // missingKeys = 已下班的人（在 last_records 中没有记录）
-
-      // 情况一：没有 missingKeys => 所有人当前都未签退（都在 last_records），可以下班（需检查下班时间早于上班）
-      if (missingKeys.length === 0) {
-        const descs: React.ReactNode[] = [];
-        for (const name of PiLiangNames) {
-          const rec = last_records.find((r) => r.worker_id === name.key);
-          if (rec && dayjs(rec.check_in).isAfter(PiliangTime)) {
-            descs.push(
-              <div key={name.key}>
-                {name.label} 下班时间{" "}
-                {PiliangTime.format("YYYY-MM-DD HH:mm:ss")} 早于上班时间{" "}
-                {dayjs(rec.check_in).format("YYYY-MM-DD HH:mm:ss")}
-              </div>
-            );
-          }
-        }
-        if (descs.length > 0) {
-          return {
-            shangDisabled: true,
-            xiaDisabled: true,
-            alertDescription: descs,
-            alertType: "error" as const,
-          };
-        }
-        return {
-          shangDisabled: true,
-          xiaDisabled: false,
-          alertDescription: "可以下班",
-          alertType: "success" as const,
-        };
-      }
-
-      // 情况二：所有人都已下班（missingKeys.length === PiLiangNames.length），可以上班（需检查上班时间晚于上一次下班时间）
-      if (missingKeys.length === PiLiangNames.length) {
-        const descs: React.ReactNode[] = [];
-        for (const name of PiLiangNames) {
-          const rec = full_records.find((r) => r.worker_id === name.key);
-          if (rec && dayjs(rec.check_out).isAfter(PiliangTime)) {
-            descs.push(
-              <div key={name.key}>
-                {name.label} 上班时间{" "}
-                {PiliangTime.format("YYYY-MM-DD HH:mm:ss")}{" "}
-                早于上一个记录的下班时间{" "}
-                {dayjs(rec.check_out).format("YYYY-MM-DD HH:mm:ss")}
-              </div>
-            );
-          }
-        }
-        if (descs.length > 0) {
-          return {
-            shangDisabled: true,
-            xiaDisabled: true,
-            alertDescription: descs,
-            alertType: "error" as const,
-          };
-        }
-        // 需要选择工作类型才能上班
-        if (!work_type) {
-          return {
-            shangDisabled: true,
-            xiaDisabled: true,
-            alertDescription: "请选择工作",
-            alertType: "warning" as const,
-          };
-        }
-        return {
-          shangDisabled: false,
-          xiaDisabled: true,
-          alertDescription: "可以上班",
-          alertType: "success" as const,
-        };
-      }
-
-      // 情况三：部分人已下班，部分人未下班 -> 错误，提示如何操作
-      const missingNames = missingKeys.map((r) => r.label).join(", ");
-      const noMissNames = PiLiangNames.filter(
-        (item) => !missingKeys.some((m) => m.key === item.key)
-      )
-        .map((i) => i.label)
-        .join(", ");
+  const {
+    shangDisabled: ShangBanButtonDisabled,
+    xiaDisabled: XiaBanButtonDisabled,
+    alertDescription: AlertDescription,
+    alertType: AlertType,
+  } = useMemo(() => {
+    // 默认
+    if (!PiLiangNames || PiLiangNames.length === 0) {
       return {
         shangDisabled: true,
         xiaDisabled: true,
-        alertDescription: (
-          <>
-            <p>如果你需要下班，请去除下列已下班人员：{missingNames}</p>
-            <br />
-            <p>如果你需要上班，请去除下列已上班人员：{noMissNames}</p>
-          </>
-        ),
-        alertType: "error" as const,
+        alertDescription: "请选择考勤人员",
+        alertType: "warning" as const,
       };
-    }, [PiLiangNames, PiliangTime, last_records, full_records, work_type]);
-    
-  const set_buttons_disabled = useCallback(() => {
-    if (PiLiangNames.length === 0) {
-      setShangBanButtonDisabled(true);
-      setXiaBanButtonDisabled(true);
-      setAlertDescription("请选择考勤人员");
-      setAlertType("warning");
-      return;
     }
-    if (PiliangTime === undefined || PiliangTime === null) {
-      setShangBanButtonDisabled(true);
-      setXiaBanButtonDisabled(true);
-      setAlertDescription("请选择考勤时间");
-      setAlertType("warning");
-      return;
+    if (!PiliangTime) {
+      return {
+        shangDisabled: true,
+        xiaDisabled: true,
+        alertDescription: "请选择考勤时间",
+        alertType: "warning" as const,
+      };
     }
-    // 找出所有不在 last_records 中的 key
-    const missingKeys = PiLiangNames.filter(
-      (name) => !last_records?.some((record) => record.worker_id === name.key)
-    );
-    if (missingKeys.length === 0) {
-      // 所有人都没下班，那就可以下班
-      // 需要确保下班时间（PiliangTime）对每个人来说都小于其上班时间
-      const Descriptions: React.ReactNode[] = [];
-      PiLiangNames.forEach((name) => {
-        const record = last_records?.find(
-          (item) => item.worker_id === name.key
-        );
-        if (dayjs(record?.check_in).isAfter(PiliangTime)) {
-          Descriptions.push(
-            <div key={name.key}>
-              {name.label} 下班时间{PiliangTime.format("YYYY-MM-DD HH:mm:ss")}{" "}
-              早于上班时间{" "}
-              {dayjs(record?.check_in).format("YYYY-MM-DD HH:mm:ss")}
-            </div>
-          );
-        }
-      });
-      if (Descriptions.length > 0) {
-        setShangBanButtonDisabled(true);
-        setXiaBanButtonDisabled(true);
-        setAlertDescription(Descriptions);
-        setAlertType("error");
-        return;
-      }
 
-      setXiaBanButtonDisabled(false);
-      setAlertDescription("可以下班");
-      setAlertType("success");
-      return;
-    } else if (missingKeys.length === PiLiangNames.length) {
-      // 所有人都下班了，那就可以上班
-      // 需要确保上班时间（PiliangTime）对每个人来说都大于其上一个记录的下班时间
-      const Descriptions: React.ReactNode[] = [];
-      PiLiangNames.forEach((name) => {
-        const record = full_records?.find(
-          (item) => item.worker_id === name.key
-        );
-        if (record && dayjs(record?.check_out).isAfter(PiliangTime)) {
-          Descriptions.push(
+    // 找出选择人员中，哪些在 last_records 中（即当前还未签退）
+    const missingKeys = PiLiangNames.filter(
+      (name) => !last_records.some((r) => r.worker_id === name.key)
+    ); // missingKeys = 已下班的人（在 last_records 中没有记录）
+
+    // 情况一：没有 missingKeys => 所有人当前都未签退（都在 last_records），可以下班（需检查下班时间早于上班）
+    if (missingKeys.length === 0) {
+      const descs: React.ReactNode[] = [];
+      for (const name of PiLiangNames) {
+        const rec = last_records.find((r) => r.worker_id === name.key);
+        if (rec && dayjs(rec.check_in).isAfter(PiliangTime)) {
+          descs.push(
             <div key={name.key}>
-              {name.label} 上班时间{PiliangTime.format("YYYY-MM-DD HH:mm:ss")}{" "}
-              早于上一个记录的下班时间
-              {dayjs(record?.check_out).format("YYYY-MM-DD HH:mm:ss")}
+              {name.label} 下班时间 {PiliangTime.format("YYYY-MM-DD HH:mm:ss")}{" "}
+              早于上班时间 {dayjs(rec.check_in).format("YYYY-MM-DD HH:mm:ss")}
             </div>
           );
         }
-      });
-      if (Descriptions.length > 0) {
-        setShangBanButtonDisabled(true);
-        setXiaBanButtonDisabled(true);
-        setAlertDescription(Descriptions);
-        setAlertType("error");
-        return;
       }
-      setAlertDescription("选择工作");
-      setAlertType("warning");
-      if (work_type) {
-        setShangBanButtonDisabled(false);
-        setAlertDescription("可以上班");
-        setAlertType("success");
+      if (descs.length > 0) {
+        return {
+          shangDisabled: true,
+          xiaDisabled: true,
+          alertDescription: descs,
+          alertType: "error" as const,
+        };
       }
-      return;
-    } else {
-      // 部分人miss，也就是说部分人已经下班，而其余人没有下班
-      setShangBanButtonDisabled(true);
-      setXiaBanButtonDisabled(true);
-      const missingNames = missingKeys.map((item) => item.label).join(", ");
-      const NoMissNames = PiLiangNames.filter(
-        (item) => !missingKeys.some((miss) => miss.key === item.key)
-      )
-        .map((item) => item.label)
-        .join(", ");
-      setAlertDescription(
+      return {
+        shangDisabled: true,
+        xiaDisabled: false,
+        alertDescription: "可以下班",
+        alertType: "success" as const,
+      };
+    }
+
+    // 情况二：所有人都已下班（missingKeys.length === PiLiangNames.length），可以上班（需检查上班时间晚于上一次下班时间）
+    if (missingKeys.length === PiLiangNames.length) {
+      const descs: React.ReactNode[] = [];
+      for (const name of PiLiangNames) {
+        const rec = full_records.find((r) => r.worker_id === name.key);
+        if (
+          rec &&
+          dayjs(rec.check_out).isAfter(PiliangTime) &&
+          dayjs(rec.check_in).isBefore(PiliangTime)
+        ) {
+          descs.push(
+            <div key={name.key}>
+              {/* {name.label} 上班时间 {PiliangTime.format("YYYY-MM-DD HH:mm:ss")}{" "}
+              早于上一个记录的下班时间{" "} */}
+              {/* {dayjs(rec.check_out).format("YYYY-MM-DD HH:mm:ss")} */}
+              {name.label} 上班时间 {PiliangTime.format("YYYY-MM-DD HH:mm:ss")}{" "}
+              介于 上一个记录的上下班时间之间{" "}
+              {dayjs(rec.check_in).format("YYYY-MM-DD HH:mm:ss")}
+              {"--"}
+              {dayjs(rec.check_out).format("YYYY-MM-DD HH:mm:ss")}
+            </div>
+          );
+        }
+        if (rec && dayjs(rec.check_in).isAfter(PiliangTime)) {
+          descs.push(
+            <div key={name.key}>
+              {name.label} 上班时间 {PiliangTime.format("YYYY-MM-DD HH:mm:ss")}{" "}
+              早于上一个记录的上班时间{" "}
+              {dayjs(rec.check_in).format("YYYY-MM-DD HH:mm:ss")}
+            </div>
+          );
+        }
+      }
+      if (descs.length > 0) {
+        return {
+          shangDisabled: true,
+          xiaDisabled: true,
+          alertDescription: descs,
+          alertType: "error" as const,
+        };
+      }
+      // 需要选择工作类型才能上班
+      if (!work_type) {
+        return {
+          shangDisabled: true,
+          xiaDisabled: true,
+          alertDescription: "请选择工作",
+          alertType: "warning" as const,
+        };
+      }
+      return {
+        shangDisabled: false,
+        xiaDisabled: true,
+        alertDescription: "可以上班",
+        alertType: "success" as const,
+      };
+    }
+
+    // 情况三：部分人已下班，部分人未下班 -> 错误，提示如何操作
+    const missingNames = missingKeys.map((r) => r.label).join(", ");
+    const noMissNames = PiLiangNames.filter(
+      (item) => !missingKeys.some((m) => m.key === item.key)
+    )
+      .map((i) => i.label)
+      .join(", ");
+    return {
+      shangDisabled: true,
+      xiaDisabled: true,
+      alertDescription: (
         <>
           <p>如果你需要下班，请去除下列已下班人员：{missingNames}</p>
           <br />
-          <p>如果你需要上班，请去除下列已上班人员：{NoMissNames}</p>
+          <p>如果你需要上班，请去除下列已上班人员：{noMissNames}</p>
         </>
-      );
-      setAlertType("error");
-    }
-  }, [PiLiangNames, PiliangTime, last_records, work_type]);
-  useEffect(() => {
-    set_buttons_disabled();
-  }, [last_records, set_buttons_disabled]);
+      ),
+      alertType: "error" as const,
+    };
+  }, [PiLiangNames, PiliangTime, last_records, full_records, work_type]);
+
   // ======================== 批量上下班 ========================
 
   const handleQiandao_PILIANG = (mode: "上班" | "下班") => {
@@ -512,37 +429,45 @@ export default function QianDaoPage() {
                 showIcon
               />
               <div className="flex flex-col sm:flex-row gap-4 justify-between items-center mb-6 mt-2">
-                <Select
-                  placeholder="请选择考勤人员"
-                  {...WorkersSelectProps}
-                  // style={{ width: 200 }}
-                  className="w-full"
-                  value={PiLiangNames}
-                  mode="multiple"
-                  allowClear
-                  labelInValue
-                  optionRender={(option) => (
-                    <Space>
-                      {/* 添加待上班和待下班Tag */}
-                      {UnCheckOutNames?.includes(option.data.label) ? (
-                        <Tag color="red">待下班</Tag>
-                      ) : (
-                        <Tag color="green">待上班</Tag>
-                      )}
-                      {option.data.label}
-                    </Space>
-                  )}
-                  onChange={(value: any) => {
-                    // 这里写any，不然会有一堆类型错误
-                    setPiLiangNames(value);
-                  }}
-                />
+                <Space direction="vertical" className="w-full">
+                  <Alert
+                    message={
+                      All_checkOut ? "今日有未下班人员" : "今日所有人员都已下班"
+                    }
+                    type={All_checkOut ? "warning" : "success"}
+                    showIcon
+                  />
+                  <Select
+                    placeholder="请选择考勤人员"
+                    {...WorkersSelectProps}
+                    // style={{ width: 200 }}
+                    className="w-full"
+                    value={PiLiangNames}
+                    mode="multiple"
+                    allowClear
+                    labelInValue
+                    optionRender={(option) => (
+                      <Space>
+                        {/* 添加待上班和待下班Tag */}
+                        {UnCheckOutNames?.includes(option.data.label) ? (
+                          <Tag color="red">待下班</Tag>
+                        ) : (
+                          <Tag color="green">待上班</Tag>
+                        )}
+                        {option.data.label}
+                      </Space>
+                    )}
+                    onChange={(value: any) => {
+                      // 这里写any，不然会有一堆类型错误
+                      setPiLiangNames(value);
+                    }}
+                  />
+                </Space>
                 <Space>
                   <Space direction="vertical">
                     <Tooltip
                       title={XiaBanButtonDisabled ? "" : "下班时不可选择工作"}
                     >
-                      {/* @ts-expect-error,111 */}
                       <Select
                         placeholder="请选择考勤类型"
                         {...workTypeSelectProps}
@@ -581,7 +506,6 @@ export default function QianDaoPage() {
                         // setPiLiangNames([]);
                         // setPiliangTime(dayjs());
                         // set_work_type("");
-                        set_buttons_disabled();
                       }}
                     >
                       <AntdButton
@@ -602,7 +526,6 @@ export default function QianDaoPage() {
                         // setPiLiangNames([]);
                         // setPiliangTime(dayjs());
                         // set_work_type("");
-                        set_buttons_disabled();
                       }}
                     >
                       <AntdButton
@@ -632,6 +555,7 @@ export default function QianDaoPage() {
             rowClassName={(record) =>
               record.check_out === "" ? "bg-blue-50" : ""
             }
+            // pagination={{ pageSize: 10 }}
           />
         </Card>
       </div>
