@@ -73,7 +73,41 @@ import {
 import { GlobalHelp } from "./components/GlobalHelp";
 import { useTranslation } from "react-i18next";
 import pb from "@/utils/pocketbase";
-
+const devOnlyRoutesConfig = import.meta.env.DEV
+  ? [
+      {
+        name: "测试页面",
+        list: "/test-page",
+        meta: {
+          dataProviderName: undefined,
+          icon: <IconMicroscope />,
+        },
+      },
+      {
+        name: "Inferencer生成",
+        list: "/Inferencer_example",
+        create: "/Inferencer_example/create",
+        edit: "/Inferencer_example/edit/:id",
+        show: "/Inferencer_example/show/:id",
+        meta: {
+          icon: <IconCode />,
+        },
+      },
+    ]
+  : [];
+const devOnlyRoutes = import.meta.env.DEV ? (
+  <>
+    <Route path="/test-page" element={<TestPage />} />
+    <Route path="/Inferencer_example">
+      <Route index element={<SampleList />} />
+      <Route path="create" element={<SampleCreate />} />
+      <Route path="edit/:id" element={<SampleEdit />} />
+      <Route path="show/:id" element={<SampleShow />} />
+    </Route>
+  </>
+) : (
+  <></>
+);
 function App() {
   const { t, i18n } = useTranslation();
   const i18nProvider = {
@@ -162,30 +196,10 @@ function App() {
                       icon: <IconReport />,
                     },
                   },
-                  {
-                    name: "测试页面",
-                    list: "/test-page",
-                    // create: "/test-page/create",
-                    meta: {
-                      dataProviderName: undefined,
-                      icon: <IconMicroscope />,
-                      hide: !import.meta.env.DEV,
-                    },
-                  },
-                  {
-                    name: "Inferencer生成",
-                    list: "/Inferencer_example",
-                    create: "/Inferencer_example/create",
-                    edit: "/Inferencer_example/edit/:id",
-                    show: "/Inferencer_example/show/:id",
-                    meta: {
-                      icon: <IconCode />,
-                      hide: !import.meta.env.DEV,
-                    },
-                  },
+                  ...devOnlyRoutesConfig,
                 ]}
                 options={{
-                  syncWithLocation: true,
+                  syncWithLocation: false,
                   warnWhenUnsavedChanges: true,
                   useNewQueryKeys: true,
                   projectId: "1LFZhY-g5ZTkQ-8ndYcP",
@@ -277,13 +291,7 @@ function App() {
                     <Route path="/gongshi">
                       <Route index element={<GongShiList />} />
                     </Route>
-                    <Route path="/test-page" element={<TestPage />} />
-                    <Route path="/Inferencer_example">
-                      <Route index element={<SampleList />} />
-                      <Route path="create" element={<SampleCreate />} />
-                      <Route path="edit/:id" element={<SampleEdit />} />
-                      <Route path="show/:id" element={<SampleShow />} />
-                    </Route>
+                    {devOnlyRoutes}
                     <Route path="*" element={<ErrorComponent />} />
                   </Route>
                 </Routes>

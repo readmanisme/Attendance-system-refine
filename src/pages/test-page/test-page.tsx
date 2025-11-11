@@ -1,8 +1,6 @@
 import { useState } from "react";
 import { Alert, Button, Space } from "antd";
-import _ from "lodash";
-import { fakerZH_CN as faker } from "@faker-js/faker";
-import PocketBase from "pocketbase";
+import { sample, sampleSize } from "es-toolkit/array";
 import dayjs from "dayjs";
 import pb from "@/utils/pocketbase";
 import {
@@ -11,6 +9,7 @@ import {
   useMany,
   useUpdateMany,
 } from "@refinedev/core";
+const _ = { sample, sampleSize };
 export function TestPage() {
   const 集合 = {
     考勤记录: __AttendanceRecord_TableName,
@@ -31,6 +30,7 @@ export function TestPage() {
   };
   // records_time_test()
   const gen_and_push_fake_data = async () => {
+    const { fakerZH_CN: faker } = await import("@faker-js/faker");
     faker.seed(666);
     faker.setDefaultRefDate("2023-01-01T00:00:00.000Z");
 

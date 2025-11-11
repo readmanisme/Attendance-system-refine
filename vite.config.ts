@@ -8,14 +8,14 @@ import * as path from "path";
 const visualizerConfigs = [
   // https://github.com/btd/rollup-plugin-visualizer
   { template: "treemap", filename: "bundle-treemap.html", open: true },
-  { template: "sunburst", filename: "bundle-sunburst.html", gzipSize: true },
+  // { template: "sunburst", filename: "bundle-sunburst.html", gzipSize: true },
   // { template: "network", filename: "bundle-network.html",gzipSize: true },
   // { template: "list", filename: "bundle-list.html" ,gzipSize: true},
-  {
-    template: "flamegraph",
-    filename: "bundle-flamegraph.html",
-    gzipSize: true,
-  },
+  // {
+  //   template: "flamegraph",
+  //   filename: "bundle-flamegraph.html",
+  //   gzipSize: true,
+  // },
 ];
 
 export default defineConfig({

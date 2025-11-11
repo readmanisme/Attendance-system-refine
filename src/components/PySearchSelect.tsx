@@ -1,113 +1,162 @@
-import { Select } from "antd";
+import { Button, Select, Space } from "antd";
 import { match } from "pinyin-pro";
-import { useRef } from "react";
-import { Highlight } from "@mantine/core";
-import { DefaultOptionType } from "antd/es/select";
+import { useMemo, useState, useCallback, useRef } from "react";
+import type { DefaultOptionType } from "antd/es/select";
 import { useList } from "@refinedev/core";
+import { useSelect } from "@refinedev/antd";
+import { SearchOutlined } from "@ant-design/icons";
+
+interface PySearchSelectProps {
+  onChangeFn: (value: { value: string; label: string }) => void;
+  tableOptions?: { table: string; optionLabel: string };
+  placeholder?: string;
+  Laberplaceholder?: string;
+  onClearFn?: () => void;
+  mode?: "multiple" | "tags";
+  needButton?: boolean;
+}
+/**
+ * 自定义的选择器，支持拼音搜索,
+ * 支持多行，默认数据用工人列表,
+ * 启用按钮的时候，onChangeFn只会被按钮点击触发,
+ */
 export default function PySearchSelect({
   onChangeFn,
-  options,
+  tableOptions = { table: __Workers_TableName, optionLabel: "name" },
   placeholder = "请选择考勤人员",
+  Laberplaceholder = "搜索工人：",
   onClearFn = () => {},
   mode = undefined,
-}: {
-  onChangeFn: (value: { value: string; label: string }) => void;
-  options: DefaultOptionType[] | null;
-  placeholder?: string;
-  onClearFn?: () => void;
-  mode?: "multiple" | "tags" | undefined;
-}) {
-  // onChangeFn用于接收选择的选项以做他用
-  // options用于提供选项列表,默认是工人列表
-  const HighlightWord = useRef<string[]>([]);
-  const SelectSearch = (
-    input: string,
-    option: { label: string; value: string } | undefined
-  ) => {
-    HighlightWord.current = [input];
-    // useEffect(() => {
-    //   setHighlightWord([input])
-    //   }, [input]);
-    // Do not call Hooks inside useEffect(...), useMemo(...), or other built-in Hooks
-    // 不使用useEffect会触发Cannot update a component (QianDaoPage) while rendering a different component (Select)
-    return option?.label.toLowerCase().indexOf(input.toLowerCase()) !== -1;
-  };
+  needButton = false,
+}: PySearchSelectProps) {
+  const [highlightWords, setHighlightWords] = useState<string[]>([]);
+  const SelectValue=useRef<{ value: string; label: string }>({ value: "", label: "" });
 
-  const SelectSearchPingying = (
-    input: string,
-    option: { label: string; value: string } | undefined
-  ) => {
-    const code = input[0].charCodeAt(0);
-    // 检查是不是拼音
-    if ((code >= 65 && code <= 90) || (code >= 97 && code <= 122)) {
-      if (option && option.label) {
-        const matchResult = match(option?.label, input);
-        if (matchResult) {
-          const hanzi = [];
-          for (let i = 0; i < matchResult.length; i++) {
-            const first = matchResult[i];
-            hanzi.push(option?.label.slice(first, first + 1));
-          }
-          HighlightWord.current = hanzi;
+  const { selectProps } = useSelect({
+    resource: tableOptions.table,
+    pagination: { mode: "off" },
+    // @ts-expect-error，111
+    optionLabel: tableOptions.optionLabel,
+    sorters: [
+      {
+        field: "created",
+        order: "desc",
+      },
+    ],
+  });
+
+  // ✅ useMemo 避免 options 每次都重建
+  // const finalOptions = useMemo(() => {
+  //   if (options) return options;
+  //   if (rawWorkers?.data) {
+  //     return rawWorkers.data.map((w) => ({
+  //       label: w.name,
+  //       value: w.id,
+  //     }));
+  //   }
+  //   return [];
+  // }, [options, rawWorkers]);
+
+  /** 判断输入是否是拼音字母 */
+  const isPinyin = (input: string) => /^[a-zA-Z]+$/.test(input);
+
+  /** ✅ 统一的搜索逻辑函数 */
+  const handleFilter = useCallback(
+    (input: string, option?: { label?: string; value?: string }) => {
+      if (!option?.label) return false;
+      const label = option.label;
+
+      if (isPinyin(input)) {
+        const result = match(label, input);
+        if (result) {
+          const matchedChars = result.map((idx) => label[idx]);
+          setHighlightWords((prev) => [...prev, ...matchedChars]);
           return true;
-        } else {
-          return false;
         }
-      } else {
         return false;
       }
-    } else {
-      return SelectSearch(input, option);
-    }
-  };
-  const { data: raw_workers } = useList({
-    resource: __Workers_TableName,
-    pagination: { mode: "off" },
-  });
-  if (options === null && raw_workers && raw_workers.data) {
-    options = raw_workers?.data.map((worker) => ({
-      label: worker.name,
-      value: worker.id,
-    }));
-  }
-  // else{
-  //   options = [];
-  // }
+
+      const lower = input.toLowerCase();
+      if (label.toLowerCase().includes(lower)) {
+        setHighlightWords([input]);
+        return true;
+      }
+      return false;
+    },
+    []
+  );
+
+  /** ✅ 高亮渲染函数 */
+  const renderOptionLabel = useCallback(
+    (option: DefaultOptionType) => {
+      const label = option.label as string;
+      if (!highlightWords.length) return <span>{label}</span>;
+
+      const regex = new RegExp(`(${highlightWords.join("|")})`, "gi");
+      const parts = label.split(regex);
+
+      return (
+        <span>
+          {parts.map((part, idx) =>
+            regex.test(part) ? (
+              <span key={idx} style={{ color: "#4169E1" }}>
+                {part}
+              </span>
+            ) : (
+              <span key={idx}>{part}</span>
+            )
+          )}
+        </span>
+      );
+    },
+    [highlightWords]
+  );
+
+  const handleClear = useCallback(() => {
+    setHighlightWords([]);
+    onClearFn();
+  }, [onClearFn]);
+
+  const handleChange = useCallback(
+    (value: { value: string; label: string }) => {
+      setHighlightWords([]);
+      if (!needButton) onChangeFn(value);
+      SelectValue.current=value;
+    },
+    [needButton, onChangeFn]
+  );
+
   return (
-    <Select
-      placeholder={placeholder}
-      mode={mode}
-      showSearch
-      allowClear
-      labelInValue
-      optionFilterProp="label"
-      style={{ width: 180 }}
-      filterOption={(input, option) => {
-        return SelectSearchPingying(
-          input,
-          option as { label: string; value: string }
-        );
-      }}
-      options={options!}
-      // onChange={(value) => {
-      onChange={(value: { value: string; label: string }) => {
-        HighlightWord.current = [];
-        onChangeFn(value);
-      }}
-      onBlur={() => {
-        HighlightWord.current = [];
-      }}
-      onClear={() => {
-        HighlightWord.current = [];
-        onClearFn();
-      }}
-      optionRender={(option) => {
-        return (
-          <Highlight highlight={HighlightWord.current}>
-            {option.label as string}
-          </Highlight>
-        );
-      }}
-    />
+    <Space>
+      <span style={{ width: 100 }}>{Laberplaceholder}</span>
+      <Select
+        {...selectProps}
+        placeholder={placeholder}
+        mode={mode}
+        showSearch
+        allowClear
+        labelInValue
+        optionFilterProp="label"
+        style={{ width: 250 }}
+        // @ts-expect-error, 111
+        filterOption={handleFilter}
+        onChange={handleChange} //选择和删除选项触发，输入内容不触发
+        onClear={handleClear}
+        onBlur={() => setHighlightWords([])}
+        // onSelect={() => setHighlightWords([])}
+        optionRender={renderOptionLabel}
+        onSearch={(value: string) => {
+          if (!value) {
+            setHighlightWords([]);
+            // 内容清空的时候，清空高亮词
+          }
+        }}
+      />
+      {needButton && (
+        <Button type="primary" icon={<SearchOutlined />} onClick={() => onChangeFn(SelectValue.current)}>
+          搜索
+        </Button>
+      )}
+    </Space>
   );
 }

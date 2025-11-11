@@ -13,9 +13,8 @@ import { CrudFilter, useList } from "@refinedev/core";
 import { IconHelp } from "@tabler/icons-react";
 import dayjs, { Dayjs } from "dayjs";
 import PySearchSelect from "@/components/PySearchSelect";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import Decimal from "decimal.js";
-import _ from "lodash";
 import { useSomeStore } from "@/stores";
 import { SwitchDataRangeGongShi } from "@/components/SwitchDataRangeGongShi";
 export default function GongShiList() {
@@ -31,21 +30,60 @@ export default function GongShiList() {
     { value: string; label: string }[]
   >([]);
   // ======================== 暂存 ========================
+  const { tableProps: workerData, setFilters } = useTable({
+    resource: __Workers_TableName,
+    syncWithLocation: false,
+    filters: {
+      defaultBehavior: "replace",
+    },
+  });
+
+  const workerMap = useMemo(() => {
+    const m = new Map<string, string>();
+    workerData.dataSource?.forEach((w: any) => {
+      if (w?.id !== undefined) m.set(w.id, w.name);
+    });
+    return m;
+  }, [workerData.dataSource]);
 
   const selectedIds = useMemo(
     () => SelectedPerson.map((p) => p.value),
     [SelectedPerson]
   );
-  const idFilters = useMemo(
-    () =>
-      selectedIds.map((id) => ({
+
+  const idFilters = useMemo(() => {
+    if (!selectedIds.length) {
+      return [...workerMap.keys()].map((id) => ({
         field: "worker_id",
         operator: "eq",
         value: id,
-      })),
-    [selectedIds]
-  );
-  // 为 useList 的 filters 创建稳定引用，避免每次 render 都触发 re-fetch
+      }));
+    }
+    return selectedIds.map((id) => ({
+      field: "worker_id",
+      operator: "eq",
+      value: id,
+    }));
+  }, [selectedIds, workerMap]);
+
+  useEffect(() => {
+    if (selectedIds.length) {
+      setFilters([
+        {
+          operator: "or",
+          value: selectedIds.map((id) => ({
+            field: "id",
+            operator: "eq",
+            value: id,
+          })),
+        },
+      ]);
+    }
+    else {
+      setFilters([]);
+    }
+  }, [selectedIds, setFilters]);
+
   const monthViewFilter = useMemo(() => {
     const temp = [
       {
@@ -143,23 +181,6 @@ export default function GongShiList() {
 
   // ======================== 获取数据 ========================
 
-  const { tableProps: workerData } = useTable({
-    resource: __Workers_TableName,
-  });
-
-  const FilteredworkerData = useMemo(() => {
-    if (!SelectedPerson.length) {
-      return workerData;
-    }
-    return {
-      ...workerData,
-      // dataSource不是SelectedPerson的去掉
-      dataSource: workerData.dataSource?.filter((item) =>
-        SelectedPerson.some((person) => person.value === item.id)
-      ),
-    };
-  }, [SelectedPerson, workerData]);
-
   const { data: month_view_data } = useList({
     resource: __WorkHours_Month_ViewName,
     // queryOptions: {
@@ -202,6 +223,8 @@ export default function GongShiList() {
 
   const { listProps } = useSimpleList({
     resource: __SalaryType_TableName,
+    // syncWithLocation: false, //如果不设置这个，那么table的筛选设置就会被读取；不过更好的方法是
+    //关掉table的syncWithLocation，反正我也没什么要刷新的，而且刷新后选择器就会消失，无所谓了
     pagination: {
       mode: "off",
     },
@@ -210,35 +233,21 @@ export default function GongShiList() {
     },
   });
   // ======================== 衍生数据计算 ========================
-  function useGroupByWorkerId<T extends { worker_id: string }>(
-    data: { data?: T[] } | null | undefined
-  ) {
-    return useMemo(() => {
-      return (
-        data?.data?.reduce((acc, item) => {
-          if (!acc.has(item.worker_id)) {
-            acc.set(item.worker_id, []);
-          }
-          acc.get(item.worker_id)!.push(item);
-          return acc;
-        }, new Map<string, T[]>()) || new Map()
-      );
-    }, [data]);
-  }
-  // @ts-expect-error,111
-  const month_view_data_map = useGroupByWorkerId(month_view_data);
-  // @ts-expect-error,111
-  const day_view_data_map = useGroupByWorkerId(day_view_data);
-  // @ts-expect-error,111
-  const attendance_record_data_map = useGroupByWorkerId(attendance_record_data);
 
-  const workerMap = useMemo(() => {
-    const m = new Map<string, string>();
-    workerData.dataSource?.forEach((w: any) => {
-      if (w?.id !== undefined) m.set(w.id, w.name);
-    });
-    return m;
-  }, [workerData.dataSource]);
+  const useGroupByWorkerId = (data: any) => {
+    return useMemo(() => {
+      const map = new Map();
+      (data?.data || []).forEach((item: any) => {
+        const k = item.worker_id;
+        if (!map.has(k)) map.set(k, []);
+        map.get(k).push(item);
+      });
+      return map;
+    }, [data?.data]);
+  };
+  const month_view_data_map = useGroupByWorkerId(month_view_data);
+  const day_view_data_map = useGroupByWorkerId(day_view_data);
+  const attendance_record_data_map = useGroupByWorkerId(attendance_record_data);
 
   const workTypeMap = useMemo(() => {
     const m = new Map<string, string>();
@@ -248,356 +257,336 @@ export default function GongShiList() {
     return m;
   }, [workType_test_data?.data]);
 
+  // listProps_work_type (用于检测有没有 "基础")
   const listProps_work_type = useMemo(() => {
     return listProps?.dataSource?.map((item) => item.expand?.work_type?.name);
   }, [listProps?.dataSource]);
 
   const SalaryDict = useMemo(() => {
-    const data = listProps?.dataSource;
-    if (!data) return {};
-
-    return data.reduce<Record<string, number>>((acc, item) => {
+    const data = listProps?.dataSource || [];
+    const dict: Record<string, number> = {};
+    data.forEach((item: any) => {
       const workName = item?.expand?.worker_name?.name;
       const workType = item?.expand?.work_type?.name;
-
-      if (workName && workType) {
-        acc[`${workName}_${workType}`] = item?.SalaryNum || 0;
-      } else if (workName) {
-        acc[workName] = item?.SalaryNum || 0;
-      } else if (workType) {
-        acc[workType] = item?.SalaryNum || 0;
-      } else {
-        acc["基础"] = item?.SalaryNum || 0; // 不应该发生
-      }
-
-      return acc;
-    }, {});
+      const num = Number(item?.SalaryNum) || 0;
+      if (workName && workType) dict[`${workName}_${workType}`] = num;
+      else if (workName) dict[workName] = num;
+      else if (workType) dict[workType] = num;
+      else dict["基础"] = num; // 不应该发生
+    });
+    return dict;
   }, [listProps?.dataSource]);
 
-  const MatchSalary: { [key: string]: string } = useMemo(() => ({}), []);
+  const { dayDuringSalaryMap, daySalaryMap, monthSalaryMap, matchSalaryMap } =
+    useMemo(() => {
+      const dayDuringSalaryMap = new Map<string, Decimal>();
+      const daySalaryMap = new Map<string, Map<string, Decimal>>();
+      const monthSalaryMap = new Map<string, Map<string, Decimal>>();
+      const matchSalaryMap = new Map<string, string>();
 
-  const DayDuringSalaryDict = useMemo(() => {
-    if (_.isEmpty(SalaryDict)) return {};
-    return (
-      attendance_record_data?.data?.reduce((dict, item) => {
-        const workerName = workerMap.get(item.worker_id);
-        const workName = workTypeMap.get(item.work);
-        const day = dayjs(item.check_in).format("YYYY-MM-DD").slice(0, 10);
-        const dbID = item.id;
-        const check_in = dayjs(item.check_in);
-        const check_out = dayjs(item.check_out);
-        const duration = Decimal.div(check_out.diff(check_in), 1000 * 60 * 60);
-        const key = `${workerName}_${workName}_${day}_${dbID}`;
-        // !!!这里一定要使用dbID，不然工作重复就会导致异常
+      const salaryDict = SalaryDict; // local ref
+      const attendanceList = attendance_record_data?.data || [];
+
+      for (const rec of attendanceList) {
+        const dbID = rec.id as string;
+        const workerName = workerMap.get(rec.worker_id) || "未知";
+        const workName = workTypeMap.get(rec.work) || "未知";
+        // 计算时长小时
+        const checkIn = dayjs(rec.check_in);
+        const checkOut = dayjs(rec.check_out);
+        // 防止异常数据
+        if (
+          !checkIn.isValid() ||
+          !checkOut.isValid() ||
+          checkOut.isBefore(checkIn)
+        ) {
+          continue;
+        }
+        const durationHours = new Decimal(checkOut.diff(checkIn)).dividedBy(
+          1000 * 60 * 60
+        );
+
+        const day = checkIn.format("YYYY-MM-DD");
+        //const day = dayjs(item.check_in).format("YYYY-MM-DD").slice(0, 10);
+
+        const month = day.slice(0, 7);
+
         const salaryKey =
-          `${workerName}_${workName}` in SalaryDict
+          `${workerName}_${workName}` in salaryDict
             ? `${workerName}_${workName}`
-            : workerName in SalaryDict
+            : workerName in salaryDict
             ? workerName
-            : workName in SalaryDict
+            : workName in salaryDict
             ? workName
             : "基础";
-        const matchValue = salaryKey + ":" + SalaryDict[salaryKey];
-        // 如果不在MatchSalary中，就添加
-        if (!MatchSalary[dbID!]) {
-          MatchSalary[dbID!] = matchValue;
-        }
+        const salaryNum = new Decimal(salaryDict[salaryKey] ?? 0);
+        // 单条记录工资
+        const recordSalary = durationHours.mul(salaryNum);
 
-        dict[key] = Decimal.mul(duration, SalaryDict[salaryKey]);
-        return dict;
-      }, {}) || {}
-    );
-  }, [MatchSalary, SalaryDict, attendance_record_data?.data, workTypeMap, workerMap]);
+        const uniqueKey = `${workerName}_${workName}_${day}_${dbID}`;
 
-  const DaySalaryDict: { [key: string]: { [key: string]: Decimal } } =
-    useMemo(() => {
-      if (_.isEmpty(DayDuringSalaryDict)) return {};
-      return Object.entries(DayDuringSalaryDict).reduce(
-        (
-          aggregatedDict: { [key: string]: { [key: string]: Decimal } },
-          [key, salary]
-        ) => {
-          const [workerName, workName, day] = key.split("_");
-          aggregatedDict[workerName] = aggregatedDict[workerName] || {};
-          aggregatedDict[workerName][day] =
-            // (aggregatedDict[workerName][day] || 0) + salary;
-            Decimal.add(aggregatedDict[workerName][day] || 0, salary);
+        dayDuringSalaryMap.set(uniqueKey, recordSalary);
 
-          return aggregatedDict;
-        },
-        {}
-      );
-    }, [DayDuringSalaryDict]);
+        // match salary mapping
+        matchSalaryMap.set(dbID, `${salaryKey}:${salaryNum.toString()}`);
 
-  const MonthSalaryDict = useMemo(() => {
-    if (_.isEmpty(DaySalaryDict)) return {};
-    return Object.entries(DaySalaryDict).reduce(
-      (
-        monthlySalaryDict: { [key: string]: { [key: string]: Decimal } },
-        [workerName, dailySalaries]
-      ) => {
-        monthlySalaryDict[workerName] = Object.entries(dailySalaries).reduce(
-          (monthlySalaries, [day, salary]) => {
-            const month = day.slice(0, 7);
-            // monthlySalaries[month] = (monthlySalaries[month] || 0) + salary;
-            monthlySalaries[month] = Decimal.add(
-              monthlySalaries[month] || 0,
-              salary
-            );
-            return monthlySalaries;
-          },
-          monthlySalaryDict[workerName] || {}
+        // accumulate daySalaryMap
+        if (!daySalaryMap.has(workerName))
+          daySalaryMap.set(workerName, new Map());
+        const workerDayMap = daySalaryMap.get(workerName)!;
+        workerDayMap.set(
+          day,
+          (workerDayMap.get(day) || new Decimal(0)).plus(recordSalary)
         );
-        return monthlySalaryDict;
-      },
-      {}
-    );
-  }, [DaySalaryDict]);
 
+        // accumulate monthSalaryMap
+        if (!monthSalaryMap.has(workerName))
+          monthSalaryMap.set(workerName, new Map());
+        const workerMonthMap = monthSalaryMap.get(workerName)!;
+        workerMonthMap.set(
+          month,
+          (workerMonthMap.get(month) || new Decimal(0)).plus(recordSalary)
+        );
+      }
+
+      return {
+        dayDuringSalaryMap,
+        daySalaryMap,
+        monthSalaryMap,
+        matchSalaryMap,
+      };
+    }, [attendance_record_data?.data, SalaryDict, workerMap, workTypeMap]);
+
+  // useEffect(() => {
+  //   if (monthSalaryMap.size !== 0) {
+  //     setSalaryLoading(false);
+  //   }
+  // }, [monthSalaryMap.size]);
   useEffect(() => {
-    // @ts-expect-error,这里MonthSalaryDict在不知道什么情况下会存在undefined的key
-    if (!(undefined in MonthSalaryDict)) {
+    // 只要这些计算结果存在，说明计算已完成
+    if (
+      dayDuringSalaryMap &&
+      daySalaryMap &&
+      monthSalaryMap &&
+      matchSalaryMap
+    ) {
       setSalaryLoading(false);
     }
-  }, [MonthSalaryDict]);
+  }, [dayDuringSalaryMap, daySalaryMap, monthSalaryMap, matchSalaryMap]);
 
   // ======================== 导出xlsx文件 ========================
 
-  const exportToExcel = async () => {
+  const exportToExcel = useCallback(async () => {
     setIsExportLoading(true);
-    const { default: exportExcel } = await import(
-      "@/pages/gong-shi/export_xlsx"
-    );
-    await exportExcel(exportRange, SalaryDict);
-    setIsExportLoading(false);
-  };
+    try {
+      const { default: exportExcel } = await import(
+        "@/pages/gong-shi/export_xlsx"
+      );
+      await exportExcel(exportRange, SalaryDict);
+    } finally {
+      setIsExportLoading(false);
+    }
+  }, [exportRange, SalaryDict]);
   // ======================== 拓展表定义 ========================
 
-  const TableExpandedRowRender = (
-    record: { id: string; name: string },
-    index: number,
-    indent: number,
-    expanded: boolean
-  ) => {
-    const item = record;
-    // 这里的item是worker
-    const month_records = month_view_data_map.get(item.id) ?? [];
-    const day_records = day_view_data_map.get(item.id) ?? [];
-    const attendance_records = attendance_record_data_map.get(item.id) ?? [];
+  const TableExpandedRowRender = useCallback(
+    (record: { id: string; name: string }) => {
+      const workerId = record.id;
+      const month_records = month_view_data_map.get(workerId) ?? [];
+      const day_records = day_view_data_map.get(workerId) ?? [];
+      const attendance_records = attendance_record_data_map.get(workerId) ?? [];
 
-    const expandDataSource = month_records.map((record) => ({
-      key: record.work_month,
-      worker: workerMap.get(record.worker_id),
-      month: record.work_month,
-      total_work_hours: record.total_work_hours,
-      xinzi:
-        MonthSalaryDict[workerMap.get(record.worker_id)][
-          record.work_month
-        ].toString(),
-    }));
-    const expandColumns = [
-      {
-        title: "月份",
-        dataIndex: "month",
-        key: "month",
-      },
-      {
-        title: "工人",
-        dataIndex: "worker",
-        key: "worker",
-      },
-      {
-        title: "总工时",
-        dataIndex: "total_work_hours",
-        key: "total_work_hours",
-      },
-      {
-        title: "薪资",
-        dataIndex: "xinzi",
-        key: "xinzi",
-      },
-    ];
-    // ======================== 拓展表 第二层 定义 ========================
-
-    const expandedRowRender_d2 = (
-      record: {
-        worker: string;
-        month: string;
-        total_work_hours: string;
-        xinzi: string;
-      },
-      index: number,
-      indent: number,
-      expanded: boolean
-    ) => {
-      // d2,表示depth 2，第二层
-      const item = record;
-      const work_month = item.month;
-      // 这里取month而不是work_month，因为这是表的record，取决于表的字段设置
-      const records =
-        day_records?.filter((record) =>
-          record.work_date.startsWith(work_month)
-        ) ?? [];
-      const dataSource_d2 = records.map((record) => {
-        const worker_name = workerMap.get(record.worker_id);
+      // 二级表数据（按月）
+      const expandDataSource = month_records.map((r: any) => {
+        const workerName = workerMap.get(r.worker_id) || "未知";
+        const month = r.work_month;
+        const total_work_hours = r.total_work_hours;
+        const xinzi = (
+          monthSalaryMap.get(workerName)?.get(month) || new Decimal(0)
+        ).toString();
         return {
-          key: record.work_date,
-          worker: worker_name,
-          date: record.work_date,
-          total_work_hours: record.total_work_hours,
-          xinzi: DaySalaryDict[worker_name][record.work_date].toString(),
+          key: month,
+          worker: workerName,
+          month,
+          total_work_hours,
+          xinzi,
         };
       });
-      const columns_d2 = [
-        {
-          title: "日期",
-          dataIndex: "date",
-          key: "date",
-        },
-        {
-          title: "工人",
-          dataIndex: "worker",
-          key: "worker",
-        },
+
+      const expandColumns = [
+        { title: "月份", dataIndex: "month", key: "month" },
+        { title: "工人", dataIndex: "worker", key: "worker" },
         {
           title: "总工时",
           dataIndex: "total_work_hours",
           key: "total_work_hours",
         },
-        {
-          title: "薪资",
-          dataIndex: "xinzi",
-          key: "xinzi",
-        },
+        { title: "薪资", dataIndex: "xinzi", key: "xinzi" },
       ];
-      // ======================== 拓展表 第三层 定义 ========================
 
-      const expandedRowRender_d3 = (
-        record: {
-          worker: string;
-          date: string;
-          total_work_hours: string;
-          xinzi: string;
-        },
-        index: number,
-        indent: number,
-        expanded: boolean
-      ) => {
-        const work_date = record.date;
-        const records =
-          attendance_records?.filter((record) =>
-            dayjs(record.check_in).format("YYYY-MM-DD").startsWith(work_date)
-          ) ?? [];
-        const dataSource_d3 = records.map((record) => {
-          const worker_name = workerMap.get(record.worker_id);
-          const work_name = workTypeMap.get(record.work);
-          const check_in = dayjs(record.check_in);
-          const check_out = dayjs(record.check_out);
-          const dbID = record.id;
+      // depth2 render
+      const expandedRowRender_d2 = (rowRecord: any) => {
+        const work_month = rowRecord.month;
+        const records = day_records.filter((d: any) =>
+          d.work_date.startsWith(work_month)
+        );
+        const dataSource_d2 = records.map((r: any) => {
+          const worker_name = workerMap.get(r.worker_id) || "未知";
+          const xinzi = (
+            daySalaryMap.get(worker_name)?.get(r.work_date) || new Decimal(0)
+          ).toString();
           return {
-            key: record.id,
+            key: r.work_date,
             worker: worker_name,
-            check_in: check_in.format("YYYY-MM-DD HH:mm"),
-            check_out: check_out.format("YYYY-MM-DD HH:mm"),
-            work: work_name,
-            total_work_hours: Decimal.div(
-              check_out.diff(check_in),
-              1000 * 60 * 60
-            ).toString(),
-            matchvalue: MatchSalary[dbID!],
-            xinzi:
-              DayDuringSalaryDict[
-                worker_name +
-                  "_" +
-                  work_name +
-                  "_" +
-                  check_in.format("YYYY-MM-DD") +
-                  "_" +
-                  dbID
-              ].toString(),
+            date: r.work_date,
+            total_work_hours: r.total_work_hours,
+            xinzi,
           };
         });
-        const columns_d3 = [
-          {
-            title: "工人",
-            dataIndex: "worker",
-            key: "worker",
-          },
-          {
-            title: "签到时间",
-            dataIndex: "check_in",
-            key: "check_in",
-          },
-          {
-            title: "签退时间",
-            dataIndex: "check_out",
-            key: "check_out",
-          },
-          {
-            title: "工作类型",
-            dataIndex: "work",
-            key: "work",
-          },
+
+        const columns_d2 = [
+          { title: "日期", dataIndex: "date", key: "date" },
+          { title: "工人", dataIndex: "worker", key: "worker" },
           {
             title: "总工时",
             dataIndex: "total_work_hours",
             key: "total_work_hours",
           },
-          {
-            title: "薪资",
-            dataIndex: "xinzi",
-            key: "xinzi",
-            render: (value: any, record: any, index: number) => {
-              return (
-                <Tooltip title={record.matchvalue}>
+          { title: "薪资", dataIndex: "xinzi", key: "xinzi" },
+        ];
+
+        // depth3 render
+        const expandedRowRender_d3 = (d2Record: any) => {
+          const work_date = d2Record.date;
+          const recs = attendance_records.filter((ar: any) =>
+            dayjs(ar.check_in).format("YYYY-MM-DD").startsWith(work_date)
+          );
+
+          const dataSource_d3 = recs.map((r: any) => {
+            const worker_name = workerMap.get(r.worker_id) || "未知";
+            const work_name = workTypeMap.get(r.work) || "未知";
+            const check_in = dayjs(r.check_in);
+            const check_out = dayjs(r.check_out);
+            const dbID = String(r.id);
+            const uniqueKey = `${worker_name}_${work_name}_${check_in.format(
+              "YYYY-MM-DD"
+            )}_${dbID}`;
+            return {
+              key: dbID,
+              worker: worker_name,
+              check_in: check_in.format("YYYY-MM-DD HH:mm"),
+              check_out: check_out.format("YYYY-MM-DD HH:mm"),
+              work: work_name,
+              total_work_hours: new Decimal(check_out.diff(check_in))
+                .dividedBy(1000 * 60 * 60)
+                .toString(),
+              matchvalue: matchSalaryMap.get(dbID) || "",
+              xinzi: (
+                dayDuringSalaryMap.get(uniqueKey) || new Decimal(0)
+              ).toString(),
+            };
+          });
+
+          const columns_d3 = [
+            { title: "工人", dataIndex: "worker", key: "worker" },
+            { title: "签到时间", dataIndex: "check_in", key: "check_in" },
+            { title: "签退时间", dataIndex: "check_out", key: "check_out" },
+            { title: "工作类型", dataIndex: "work", key: "work" },
+            {
+              title: "总工时",
+              dataIndex: "total_work_hours",
+              key: "total_work_hours",
+            },
+            {
+              title: "薪资",
+              dataIndex: "xinzi",
+              key: "xinzi",
+              render: (value: any, rec: any) => (
+                <Tooltip title={rec.matchvalue}>
                   <div className="flex flex-row items-center gap-2">
                     {value}
                     <IconHelp size={16} />
                   </div>
                 </Tooltip>
-              );
+              ),
             },
-          },
-        ];
-        // ======================== 拓展表 返回ui ========================
+          ];
+
+          return (
+            <Table
+              columns={columns_d3}
+              dataSource={dataSource_d3}
+              size="small"
+              pagination={false}
+            />
+          );
+        };
 
         return (
           <Table
-            columns={columns_d3}
-            dataSource={dataSource_d3}
+            columns={columns_d2}
+            dataSource={dataSource_d2}
             size="small"
-            pagination={false}
+            expandable={{
+              expandedRowRender: expandedRowRender_d3,
+              expandRowByClick: true,
+            }}
           />
         );
       };
 
       return (
         <Table
-          columns={columns_d2}
-          dataSource={dataSource_d2}
+          columns={expandColumns}
+          dataSource={expandDataSource}
           size="small"
           expandable={{
-            expandedRowRender: expandedRowRender_d3,
+            expandedRowRender: expandedRowRender_d2,
             expandRowByClick: true,
           }}
         />
       );
-    };
-    return (
-      <Table
-        columns={expandColumns}
-        dataSource={expandDataSource}
-        // pagination={false}
-        expandable={{
-          expandedRowRender: expandedRowRender_d2,
-          expandRowByClick: true,
-        }}
-        size="small"
-      />
-    );
-  };
+    },
+    // 依赖列表：只在下面这些映射变化时重建函数体（以减少 Table 重建）
+    [
+      month_view_data_map,
+      day_view_data_map,
+      attendance_record_data_map,
+      workerMap,
+      monthSalaryMap,
+      daySalaryMap,
+      workTypeMap,
+      matchSalaryMap,
+      dayDuringSalaryMap,
+    ]
+  );
 
-  if (![...workTypeMap.values()].includes("基础")) {
+  const hasBaseWorkType = useMemo(() => {
+    return listProps_work_type?.includes("基础");
+  }, [listProps_work_type]);
+
+  const get_un_salary_work = useMemo(() => {
+    const work_types = [...workTypeMap.values()];
+    const un_salary_work_types = work_types.filter(
+      (item) => !(item in SalaryDict)
+    );
+    if (!un_salary_work_types.length) return "";
+    return `未设置工资的工作类型：${un_salary_work_types.join(
+      ","
+    )}，请设置其对应的工资,否则按照基础工资计算。`;
+  }, [workTypeMap, SalaryDict]);
+  // 使用稳定的 key 来避免 JSON.stringify 全表重渲染（GongShiData 由 store 提供，取 valueOf）
+  const gongShiKey = useMemo(() => {
+    try {
+      return `${GongShiData?.[0]?.valueOf?.() ?? ""}-${
+        GongShiData?.[1]?.valueOf?.() ?? ""
+      }`;
+    } catch {
+      return "gs-default";
+    }
+  }, [GongShiData]);
+
+  if (!hasBaseWorkType) {
     return (
       <Alert
         message="基础工作类型不存在，请添加"
@@ -607,17 +596,6 @@ export default function GongShiList() {
       />
     );
   }
-  const get_un_salary_work = () => {
-    // 找出没有设置工资的工作
-    const work_types = [...workTypeMap.values()];
-    const un_salary_work_types = work_types.filter((item) => !SalaryDict[item]);
-    if (_.isEmpty(un_salary_work_types)) return "";
-    return (
-      "未设置工资的工作类型：" +
-      un_salary_work_types.join(",") +
-      "，请设置其对应的工资,否则按照基础工资计算。"
-    );
-  };
   if (!listProps.loading && !listProps_work_type?.includes("基础")) {
     return (
       <Alert
@@ -638,15 +616,15 @@ export default function GongShiList() {
           <Space>
             <PySearchSelect
               onChangeFn={(value: { value: string; label: string }) => {
-                if (_.isArray(value)) {
+                if (Array.isArray(value)) {
                   setSelectedPerson(value);
                 } else {
                   setSelectedPerson([value]);
                 }
               }}
-              placeholder="选择工人,支持拼音"
-              options={null}
+              placeholder="多选工人,支持拼音"
               mode="multiple"
+              needButton={true}
               onClearFn={() => {
                 setSelectedPerson([]);
               }}
@@ -690,9 +668,9 @@ export default function GongShiList() {
         className="mb-2!"
       />
       <div className="flex items-center justify-end mb-2">
-        {get_un_salary_work() !== "" && (
+        {get_un_salary_work !== "" && (
           <Alert
-            message={get_un_salary_work()}
+            message={get_un_salary_work}
             type="warning"
             showIcon
             className="mb-2! mr-2! w-full"
@@ -701,17 +679,19 @@ export default function GongShiList() {
         <SwitchDataRangeGongShi />
       </div>
       <Table
-        key={JSON.stringify(GongShiData)}
+        key={gongShiKey}
         // !!!通过强制重渲染避免在还未计算完成的时候取值导致错误
         // 不加JSON.stringify似乎也能跑，他会自动转换
-        {...FilteredworkerData}
+        {...workerData}
         pagination={{
-          ...FilteredworkerData.pagination,
+          ...workerData.pagination,
           onChange: (page, pageSize) => {
             setSalaryLoading(true);
+            // console.log("page", page, "pageSize", pageSize);
           },
         }}
         loading={SalaryLoading}
+        // loading={listProps.loading}
         // 在这里判断salary那些字段是不是空的没有作用，因为换页的时候它们都不是空的
         // 判断tableProps.loading作用不大，因为他加载完后工资计算还没完
         rowKey="id"
