@@ -16,7 +16,7 @@ import { useEffect, useState } from "react";
 import { useSomeStore } from "@/stores";
 import { SwitchDataRange } from "@/components/SwitchDataRange";
 import { useGetDatePickerFilter } from "@/utils/get_data_picker_filter";
-import _ from "lodash";
+import PySearchSelect from "@/components/PySearchSelect";
 export const AttendanceRecordList = () => {
   const datePickerFilter = useGetDatePickerFilter();
   const { recordDateRange, setRecordDateRange } = useSomeStore();
@@ -26,23 +26,21 @@ export const AttendanceRecordList = () => {
     optionValue: "id",
   });
   const get_filter = (values: any) => {
-    // console.log(values)
-    let names = values.name;
-    if (!_.isArray(names)) {
-      names = [names];
+    if (!values){
+      return [];
     }
     return [
       {
         operator: "or",
-        value: names.map((name: string) => ({
+        value: values.map((r: any) => ({
           field: "worker_id",
           operator: "eq",
-          value: name,
+          value: r.value,
         })),
       },
     ];
   };
-  const { tableProps, filters, setFilters, searchFormProps } = useTable({
+  const { tableProps, setFilters } = useTable({
     resource: __AttendanceRecord_TableName,
     meta: {
       expand: ["work", "worker_id"],
@@ -60,11 +58,6 @@ export const AttendanceRecordList = () => {
       // 这里operator是null的实际是不等于null，nnull实际上是等于null
       permanent: datePickerFilter as CrudFilter[],
       defaultBehavior: "replace",
-    },
-    onSearch: (values: any) => {
-      // console.log(get_filter(values))
-      return get_filter(values) as CrudFilters;
-      // return get_filter(values) as any;
     },
   });
 
@@ -85,15 +78,7 @@ export const AttendanceRecordList = () => {
     } else {
       setFilters([], "replace");
     }
-  }, [unclockoutfilter]);
-  const getDefaultValue = () => {
-    // return [dayjs().subtract(1, "month"),dayjs()];
-    if (recordDateRange.length > 0) {
-      return [dayjs(recordDateRange[0]), dayjs(recordDateRange[1])];
-    } else {
-      return [];
-    }
-  };
+  }, [setFilters, unclockoutfilter]);
   return (
     <List headerButtons={<CreateButton>添加记录</CreateButton>}>
       <div className="flex flex-row justify-between items-center">
@@ -106,21 +91,19 @@ export const AttendanceRecordList = () => {
         </div>
         <SwitchDataRange />
       </div>
-      <Form {...searchFormProps} layout="inline" className="mb-2">
-        <Form.Item name="name" label="搜索人名">
-          <Select
-            className="min-w-52"
-            mode="multiple"
-            {...workerSelectProps}
-            allowClear
-            placeholder="不支持拼音"
-            onClear={() => {
-              searchFormProps.form?.submit();
-            }}
-          />
-        </Form.Item>
-        <SaveButton onClick={searchFormProps.form?.submit}>搜索</SaveButton>
-      </Form>
+      <PySearchSelect
+        onChangeFn={(value: { value: string; label: string }) => {
+          // @ts-expect-error，111
+          setFilters(get_filter(value));
+        }}
+        placeholder="多选工人,支持拼音"
+        mode="multiple"
+        onClearFn={() => {
+          // setSelectedPerson([]);
+          setFilters([]);
+        }}
+        needButton={true}
+      />
       {/* <Table {...tableProps} rowKey="id" onChange={handleTableChange}> */}
       <Table {...tableProps} rowKey="id">
         <Table.Column dataIndex="id" title={"ID"} />

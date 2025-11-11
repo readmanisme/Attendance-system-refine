@@ -10,6 +10,7 @@ import {
   DatePicker,
   Popconfirm,
   Tooltip,
+  Flex,
 } from "antd";
 
 import { useState, useEffect, useCallback, useMemo } from "react";
@@ -34,7 +35,10 @@ export default function QianDaoPage() {
   const [PiliangTime, setPiliangTime] = useState<Dayjs>(
     dayjs().minute(0).second(0).millisecond(0) // 设置为整点，不然选起来会有点麻烦
   );
-
+  const IsPast = useMemo(
+    () => PiliangTime.isBefore(dayjs(), "day"),
+    [PiliangTime]
+  );
   const [work_type, set_work_type] = useState<WorkTypeValue>(undefined); //签到的时候要用
   const [PiLiangNames, setPiLiangNames] = useState<WorkerOption[]>([]);
 
@@ -430,13 +434,28 @@ export default function QianDaoPage() {
               />
               <div className="flex flex-col sm:flex-row gap-4 justify-between items-center mb-6 mt-2">
                 <Space direction="vertical" className="w-full">
-                  <Alert
-                    message={
-                      All_checkOut ? "今日有未下班人员" : "今日所有人员都已下班"
-                    }
-                    type={All_checkOut ? "warning" : "success"}
-                    showIcon
-                  />
+                  <Flex gap="small">
+                    <Alert
+                    className="flex-1"
+                      message={
+                        All_checkOut
+                          ? "今日有未下班人员"
+                          : "今日所有人员都已下班"
+                      }
+                      type={All_checkOut ? "warning" : "success"}
+                      showIcon
+                    />
+                    <Alert
+                    className="flex-1"
+                      message={
+                        IsPast
+                          ? "你正在过去日期中进行操作"
+                          : "你正在录入今日数据"
+                      }
+                      type={IsPast ? "warning" : "success"}
+                      showIcon
+                    />
+                  </Flex>
                   <Select
                     placeholder="请选择考勤人员"
                     {...WorkersSelectProps}
