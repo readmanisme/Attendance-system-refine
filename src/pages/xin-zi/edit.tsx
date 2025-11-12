@@ -106,8 +106,6 @@ export const SalaryTypeEdit = () => {
         <SaveButton {...saveButtonProps} disabled={IsError} />
       )}
     >
-      <pre>{JSON.stringify(worker_name, null, 2)}</pre>
-      <pre>{JSON.stringify(work_type, null, 2)}</pre>
       <Form {...formProps} layout="vertical">
         <Form.Item
           label="Id"

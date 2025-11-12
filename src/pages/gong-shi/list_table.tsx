@@ -275,7 +275,6 @@ export default function GongShiList() {
       if (workName && workType) dict[`${workName}_${workType}`] = num;
       else if (workName) dict[workName] = num;
       else if (workType) dict[workType] = num;
-      else dict["基础"] = num; // 不应该发生
     });
     return dict;
   }, [listProps?.dataSource]);

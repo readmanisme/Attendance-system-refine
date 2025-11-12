@@ -6,16 +6,19 @@ import {
   ShowButton,
   useTable,
 } from "@refinedev/antd";
-import { CrudFilter, type BaseRecord } from "@refinedev/core";
-import { Space, Table, Switch } from "antd";
+import { CrudFilter, useDeleteMany, type BaseRecord } from "@refinedev/core";
+import { Space, Table, Switch, Button, Popconfirm, Alert } from "antd";
 import dayjs from "dayjs";
 import { useEffect, useState } from "react";
 import { SwitchDataRange } from "@/components/SwitchDataRange";
 import { useGetDatePickerFilter } from "@/utils/get_data_picker_filter";
 import PySearchSelect from "@/components/PySearchSelect";
+import { DeleteOutlined } from "@ant-design/icons";
+import { useResourceParams } from "@refinedev/core";
+
 export const AttendanceRecordList = () => {
   const datePickerFilter = useGetDatePickerFilter();
-
+  const { resource } = useResourceParams();
   const get_filter = (values: any) => {
     if (!values) {
       return [];
@@ -31,7 +34,11 @@ export const AttendanceRecordList = () => {
       },
     ];
   };
-  const { tableProps, setFilters, setCurrentPage: setCurrent } = useTable({
+  const {
+    tableProps,
+    setFilters,
+    setCurrentPage: setCurrent,
+  } = useTable({
     resource: __AttendanceRecord_TableName,
     meta: {
       expand: ["work", "worker_id"],
@@ -51,7 +58,7 @@ export const AttendanceRecordList = () => {
       defaultBehavior: "replace",
     },
   });
-
+  const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
   const [unclockoutfilter, setUnclockoutfilter] = useState(false);
   const handleUnclockoutfilterChange = (checked: boolean) => {
     setUnclockoutfilter(checked);
@@ -67,12 +74,42 @@ export const AttendanceRecordList = () => {
         },
       ]);
       setCurrent(1);
+      setSelectedRowKeys([]);
     } else {
       setFilters([], "replace");
+      setSelectedRowKeys([]);
     }
   }, [setCurrent, setFilters, unclockoutfilter]);
+
+  // 使用 useDeleteMany 批量删除
+  const { mutate: deleteMany } = useDeleteMany();
+
+  // 处理选择变化
+  const rowSelection = {
+    selectedRowKeys,
+    onChange: (newSelectedRowKeys: React.Key[]) => {
+      setSelectedRowKeys(newSelectedRowKeys);
+      console.log("rowSelection", newSelectedRowKeys);
+    },
+  };
+
+  // 处理批量删除
+  const handleBatchDelete = () => {
+    deleteMany({
+      // @ts-expect-error,111
+      resource: resource?.name, // 替换为你的资源名
+      ids: selectedRowKeys as number[], // 假设 id 是 number 类型
+    });
+  };
+
   return (
     <List headerButtons={<CreateButton>添加记录</CreateButton>}>
+      <Alert
+        message="点选复选框选择记录，然后可以批量删除；只能选择当页记录"
+        type="info"
+        showIcon
+        className="mb-2!"
+      />
       <div className="flex flex-row justify-between items-center">
         <div className="flex flex-row gap-2 items-center">
           <div className="text-center text-black">过滤未下班记录</div>
@@ -81,13 +118,30 @@ export const AttendanceRecordList = () => {
             onChange={handleUnclockoutfilterChange}
           />
         </div>
-        <SwitchDataRange onApplyFn={() => setCurrent(1)} />
+        <Popconfirm title="确认删除选中记录？" onConfirm={handleBatchDelete}>
+          <Button
+            type="primary"
+            danger
+            icon={<DeleteOutlined />}
+            // onClick={handleBatchDelete}
+            disabled={selectedRowKeys.length === 0}
+          >
+            删除选中 ({selectedRowKeys.length})
+          </Button>
+        </Popconfirm>
+        <SwitchDataRange
+          onApplyFn={() => {
+            setCurrent(1);
+            setSelectedRowKeys([]);
+          }}
+        />
       </div>
       <PySearchSelect
         onChangeFn={(value: { value: string; label: string }) => {
           // @ts-expect-error，111
           setFilters(get_filter(value));
           setCurrent(1);
+          setSelectedRowKeys([]);
         }}
         placeholder="多选工人,支持拼音"
         mode="multiple"
@@ -95,13 +149,12 @@ export const AttendanceRecordList = () => {
           // setSelectedPerson([]);
           setFilters([]);
           setCurrent(1);
+          setSelectedRowKeys([]);
         }}
         needButton={true}
       />
-      {/* <Table {...tableProps} rowKey="id" onChange={handleTableChange}> */}
-      <Table {...tableProps} rowKey="id">
+      <Table {...tableProps} rowKey="id" rowSelection={rowSelection}>
         <Table.Column dataIndex="id" title={"ID"} />
-        {/* <Table.Column dataIndex="worker_id" title={"人员ID"} /> */}
         <Table.Column
           dataIndex={["expand", "worker_id", "name"]}
           title={"人员姓名"}
@@ -109,8 +162,6 @@ export const AttendanceRecordList = () => {
         <Table.Column
           dataIndex="check_in"
           title={"上班时间"}
-          // DateField只显示到日期
-          // slice(0,-5)去掉.000Z
           render={(_, record: BaseRecord) => {
             // return <>{record.check_in.slice(0, -5)}</>;
             return (
@@ -125,23 +176,6 @@ export const AttendanceRecordList = () => {
         <Table.Column
           dataIndex="check_out"
           title={"下班时间"}
-          // filterDropdown={(props) => (
-          //   <FilterDropdown {...props}
-          //   mapValue={(value)=>{
-          //     if(value===""){
-          //   }}}
-          //   >
-          //     <Select
-          //     className="min-w-52"
-          //       mode="multiple"
-          //       placeholder="Select Category"
-          //       options={[
-          //         { label: "空值", value: "0" },
-          //         { label: "非空", value: "1" },
-          //       ]}
-          //     />
-          //   </FilterDropdown>
-          // )}
           render={(_, record: BaseRecord) => {
             return (
               <>

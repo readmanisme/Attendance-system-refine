@@ -1,8 +1,6 @@
-import { QuestionCircleOutlined } from "@ant-design/icons";
 import { useResourceParams } from "@refinedev/core";
 import { FloatButton, Drawer } from "antd";
 import Paragraph from "antd/es/typography/Paragraph";
-import { use, useState } from "react";
 import { useSomeStore } from "@/stores";
 export const GlobalHelp = () => {
   const { resource } = useResourceParams();
