@@ -78,8 +78,7 @@ export default function GongShiList() {
           })),
         },
       ]);
-    }
-    else {
+    } else {
       setFilters([]);
     }
   }, [selectedIds, setFilters]);

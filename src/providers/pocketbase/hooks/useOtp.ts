@@ -30,7 +30,7 @@ export const useOtp = () => {
       otpPromise?.resolve(otp);
       setOtpPromise(undefined);
     },
-    [otpPromise],
+    [otpPromise]
   );
 
   const isPending = !!otpPromise;

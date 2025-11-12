@@ -15,7 +15,7 @@ test("value serialization", (t) => {
     t.equals(
       serialize(value),
       output,
-      `should serialize ${value} (${typeof value})`,
+      `should serialize ${value} (${typeof value})`
     );
   });
   t.end();
@@ -45,7 +45,7 @@ test("conditional filters", (t) => {
         },
       ]),
       `((a = 'a') ${output} (b != 'b'))`,
-      `should return conditional filter expression for ${operator}`,
+      `should return conditional filter expression for ${operator}`
     );
   });
   t.end();
@@ -97,7 +97,7 @@ test("logical filters", (t) => {
         },
       ]),
       output,
-      `should return logical filter expression for ${operator}`,
+      `should return logical filter expression for ${operator}`
     );
   });
 
@@ -160,7 +160,7 @@ test("nested logical filters", (t) => {
         },
       ]),
       output,
-      `should return logical filter expression for ${operator}`,
+      `should return logical filter expression for ${operator}`
     );
   });
 
@@ -237,7 +237,7 @@ test("deeply nested logical filters", (t) => {
         },
       ]),
       output,
-      `should return logical filter expression for ${operator}`,
+      `should return logical filter expression for ${operator}`
     );
   });
 
@@ -275,7 +275,7 @@ test("deeply nested logical filters", (t) => {
       },
     ]),
     "",
-    "deeply nested empty filters should not generate an expression",
+    "deeply nested empty filters should not generate an expression"
   );
 
   t.end();

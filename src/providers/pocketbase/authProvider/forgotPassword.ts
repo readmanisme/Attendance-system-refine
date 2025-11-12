@@ -23,11 +23,11 @@ export const forgotPassword =
           ? {
               message: translate(
                 "authProvider.forgotPassword.successMessage",
-                "Password reset link sent",
+                "Password reset link sent"
               ),
               description: translate(
                 "authProvider.forgotPassword.successDescription",
-                "Check your email for instructions to reset your password.",
+                "Check your email for instructions to reset your password."
               ),
             }
           : undefined,
@@ -40,11 +40,11 @@ export const forgotPassword =
               statusCode: 400,
               message: translate(
                 "authProvider.forgotPassword.errorMessage",
-                "Password reset email not sent",
+                "Password reset email not sent"
               ),
               description: translate(
                 "authProvider.forgotPassword.errorDescription",
-                "Something went wrong while sending the reset link. Please check your email address and try again.",
+                "Something went wrong while sending the reset link. Please check your email address and try again."
               ),
             }
           : undefined,

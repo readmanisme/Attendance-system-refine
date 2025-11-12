@@ -27,11 +27,11 @@ export const updatePassword =
           ? {
               message: translate(
                 "authProvider.updatePassword.successMessage",
-                "Password updated",
+                "Password updated"
               ),
               description: translate(
                 "authProvider.updatePassword.successDescription",
-                "Your password has been changed successfully.",
+                "Your password has been changed successfully."
               ),
             }
           : undefined,
@@ -44,11 +44,11 @@ export const updatePassword =
               statusCode: 400,
               name: translate(
                 "authProvider.updatePassword.errorMessage",
-                "Password update failed",
+                "Password update failed"
               ),
               message: translate(
                 "authProvider.updatePassword.errorDescription",
-                "Something went wrong while updating your password. Please try again later.",
+                "Something went wrong while updating your password. Please try again later."
               ),
             }
           : undefined,

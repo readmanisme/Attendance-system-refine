@@ -18,7 +18,7 @@ export const WorkersList = () => {
   //   { value: string; label: string }[]
   // >([]);
   const get_filter = (values: any) => {
-    if (!values){
+    if (!values) {
       return [];
     }
     // let names = values.name;

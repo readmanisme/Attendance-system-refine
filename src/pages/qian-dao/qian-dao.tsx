@@ -11,6 +11,7 @@ import {
   Popconfirm,
   Tooltip,
   Flex,
+  TimePicker,
 } from "antd";
 
 import { useState, useEffect, useCallback, useMemo } from "react";
@@ -24,9 +25,10 @@ import {
 } from "@ant-design/icons";
 import { List, useSelect, useTable } from "@refinedev/antd";
 import { ColumnsType } from "antd/es/table";
+import PySearchSelect from "@/components/PySearchSelect";
 
 const { Title: AntdTitle } = Typography;
-
+const { RangePicker } = DatePicker;
 type WorkerOption = { key: string; label: string; value: string };
 type WorkTypeValue = { value: string; label: string } | undefined;
 
@@ -34,6 +36,13 @@ export default function QianDaoPage() {
   // ======================== useState ========================
   const [PiliangTime, setPiliangTime] = useState<Dayjs>(
     dayjs().minute(0).second(0).millisecond(0) // 设置为整点，不然选起来会有点麻烦
+  );
+  const [RangeTime, setRangeTime] = useState<Dayjs[]>([
+    dayjs().minute(0).second(0).millisecond(0),
+    dayjs().minute(0).second(0).millisecond(0),
+  ]);
+  const [CheckDate, setCheckDate] = useState<Dayjs>(
+    dayjs().minute(0).second(0).millisecond(0)
   );
   const IsPast = useMemo(
     () => PiliangTime.isBefore(dayjs(), "day"),
@@ -436,7 +445,7 @@ export default function QianDaoPage() {
                 <Space direction="vertical" className="w-full">
                   <Flex gap="small">
                     <Alert
-                    className="flex-1"
+                      className="flex-1"
                       message={
                         All_checkOut
                           ? "今日有未下班人员"
@@ -446,7 +455,7 @@ export default function QianDaoPage() {
                       showIcon
                     />
                     <Alert
-                    className="flex-1"
+                      className="flex-1"
                       message={
                         IsPast
                           ? "你正在过去日期中进行操作"
@@ -456,29 +465,27 @@ export default function QianDaoPage() {
                       showIcon
                     />
                   </Flex>
-                  <Select
-                    placeholder="请选择考勤人员"
-                    {...WorkersSelectProps}
-                    // style={{ width: 200 }}
-                    className="w-full"
-                    value={PiLiangNames}
-                    mode="multiple"
-                    allowClear
-                    labelInValue
-                    optionRender={(option) => (
-                      <Space>
-                        {/* 添加待上班和待下班Tag */}
-                        {UnCheckOutNames?.includes(option.data.label) ? (
-                          <Tag color="red">待下班</Tag>
-                        ) : (
-                          <Tag color="green">待上班</Tag>
-                        )}
-                        {option.data.label}
-                      </Space>
-                    )}
-                    onChange={(value: any) => {
-                      // 这里写any，不然会有一堆类型错误
+                  <PySearchSelect
+                    onChangeFn={(value: any) => {
                       setPiLiangNames(value);
+                    }}
+                    placeholder="多选工人,支持拼音"
+                    Laberplaceholder=""
+                    mode="multiple"
+                    UnCheckOutNames={UnCheckOutNames}
+                    width={714}
+                    type="qiandao"
+                  />
+                  <TimePicker.RangePicker
+                    onChange={(time: Dayjs, timeString: string) => {
+                      setRangeTime(time); //这个dayjs仍然有年月日的部分
+                    }}
+                  />
+                  <DatePicker
+                    allowClear={false}
+                    value={CheckDate}
+                    onChange={(value, dateString) => {
+                      setCheckDate(value);
                     }}
                   />
                 </Space>
