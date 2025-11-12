@@ -55,7 +55,7 @@ export const SalaryTypeList = () => {
                 hideText
                 size="small"
                 recordItemId={record.id}
-                disabled={record.expand?.work_type?.name === "基础"}
+                // disabled={record.expand?.work_type?.name === "基础"}
               />
               <ShowButton hideText size="small" recordItemId={record.id} />
               <DeleteButton

@@ -6,12 +6,9 @@ import {
   ShowButton,
   useTable,
   CreateButton,
-  SaveButton,
-  useSelect,
 } from "@refinedev/antd";
-import type { BaseRecord, CrudFilter, CrudFilters } from "@refinedev/core";
-import { Form, Select, Space, Table } from "antd";
-import { useMemo, useState } from "react";
+import type { BaseRecord } from "@refinedev/core";
+import { Space, Table } from "antd";
 
 export const WorkersList = () => {
   // const [SelectedPerson, setSelectedPerson] = useState<
@@ -36,7 +33,11 @@ export const WorkersList = () => {
       },
     ];
   };
-  const { tableProps: workerData, setFilters,setCurrentPage: setCurrent } = useTable({
+  const {
+    tableProps: workerData,
+    setFilters,
+    setCurrentPage: setCurrent,
+  } = useTable({
     syncWithLocation: true,
     sorters: {
       permanent: [
@@ -50,7 +51,7 @@ export const WorkersList = () => {
       defaultBehavior: "replace",
     },
   });
-
+console.log("workerData",workerData)
   return (
     <List headerButtons={<CreateButton>添加人员</CreateButton>}>
       <PySearchSelect
@@ -62,14 +63,14 @@ export const WorkersList = () => {
           // }
           // @ts-expect-error，111
           setFilters(get_filter(value));
-          setCurrent(1)
+          setCurrent(1);
         }}
         placeholder="多选工人,支持拼音"
         mode="multiple"
         onClearFn={() => {
           // setSelectedPerson([]);
           setFilters([]);
-          setCurrent(1)
+          setCurrent(1);
         }}
         needButton={true}
       />

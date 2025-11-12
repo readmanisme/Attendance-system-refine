@@ -11,8 +11,10 @@ import {
   Flex,
   TimePicker,
   Tag,
+  Button,
+  Tooltip,
 } from "antd";
-
+import { IconHelp } from "@tabler/icons-react";
 import { useState, useCallback, useMemo } from "react";
 import dayjs, { Dayjs } from "dayjs";
 import { Card } from "@mantine/core";
@@ -21,19 +23,26 @@ import { ClockCircleOutlined } from "@ant-design/icons";
 import { List, useSelect, useTable } from "@refinedev/antd";
 import { ColumnsType } from "antd/es/table";
 import PySearchSelect from "@/components/PySearchSelect";
-
+import { useSomeStore } from "@/stores";
 const { Title: AntdTitle } = Typography;
 type WorkerOption = { key: string; label: string; value: string };
 type WorkTypeValue = { value: string; label: string } | undefined;
 
 export default function QianDaoPage() {
   // ======================== useState ========================
-
+  const { CommonGrouping, setCommonGrouping, setCommonGroupingAll } =
+    useSomeStore();
+  const [cr_value, setCrValue] = useState([]);
+  const [cr_edit, setCrEdit] = useState([true, true, true, true, true]);
   const [RangeTime, setRangeTime] = useState<Dayjs[]>([
     dayjs().minute(0).second(0).millisecond(0),
     dayjs().minute(0).second(0).millisecond(0),
   ]);
-  const TimeDifference=useMemo(()=>RangeTime[1].diff(RangeTime[0],'hour'),[RangeTime]);
+  const TimeDifference = useMemo(
+    () => RangeTime[1].diff(RangeTime[0], "hour", true),
+    [RangeTime]
+  );
+  console.log(TimeDifference);
   const [CheckDate, setCheckDate] = useState<Dayjs>(
     dayjs().minute(0).second(0).millisecond(0)
   );
@@ -246,6 +255,9 @@ export default function QianDaoPage() {
       values: records,
     });
   };
+  // ======================== 暂存 ========================
+  const hours = [2, 2.5, 5, 7, 7.5, 8, 8.5, 9, 10, 10.5, 12, 13];
+
   // ======================== UI ========================
 
   return (
@@ -265,7 +277,7 @@ export default function QianDaoPage() {
                 type="error"
                 showIcon
               />
-              <div className="flex flex-col sm:flex-row gap-4 justify-between items-center mb-6 mt-2">
+              <div className="flex flex-col sm:flex-row gap-4 justify-between items-end mb-6 mt-2">
                 <Space direction="vertical" className="w-full">
                   <Flex gap="small">
                     <Alert
@@ -300,22 +312,59 @@ export default function QianDaoPage() {
                     Laberplaceholder=""
                     mode="multiple"
                     width={702}
+                    value={PiLiangNames}
                   />
                 </Space>
                 <Space direction="vertical">
-                  <Space>
-                    <TimePicker.RangePicker
-                      style={{ width: 240 }}
-                      // @ts-expect-error,111
-                      value={RangeTime}
-                      // @ts-expect-error,111
-                      onChange={(time: Dayjs, timeString: string) => {
-                        // @ts-expect-error,111
-                        setRangeTime(time); //这个dayjs仍然有年月日的部分
-                      }}
-                    />
-                    <Tag color="blue">{TimeDifference}小时</Tag>
-                  </Space>
+                  <Space direction="vertical">
+                      <Tooltip title="从7:00开始">
+                        <div className="flex flex-row items-center gap-2">
+                          快速选择工时：
+                          <IconHelp size={16} />
+                        </div>
+                      </Tooltip>
+                      <Space wrap>
+                        {hours.map((hour) => (
+                          <Button
+                            color="blue"
+                            variant="outlined"
+                            key={hour}
+                            size="small"
+                            onClick={() => {
+                              setRangeTime([
+                                dayjs()
+                                  .hour(7)
+                                  .minute(0)
+                                  .second(0)
+                                  .millisecond(0),
+                                dayjs()
+                                  .hour(7)
+                                  .minute(0)
+                                  .second(0)
+                                  .millisecond(0)
+                                  .add(hour, "hour"),
+                              ]);
+                            }}
+                          >
+                            {hour}
+                          </Button>
+                        ))}
+                      </Space>
+                      </Space>
+                      <Space>
+                        <TimePicker.RangePicker
+                          style={{ width: 240 }}
+                          // @ts-expect-error,111
+                          value={RangeTime}
+                          // @ts-expect-error,111
+                          onChange={(time: Dayjs, timeString: string) => {
+                            // @ts-expect-error,111
+                            setRangeTime(time); //这个dayjs仍然有年月日的部分
+                          }}
+                        />
+                        <Tag color="blue" style={{ width: 60 }}>{TimeDifference}小时</Tag>
+                      </Space>
+                  
                   <Space>
                     <DatePicker
                       style={{ width: 120 }}
@@ -361,11 +410,67 @@ export default function QianDaoPage() {
               </div>
 
               <Alert
-                message="校验情况"
+                // message="校验情况"
                 description={AlertDescription}
                 type={AlertType}
                 showIcon
               />
+              <p className="mt-2! mb-0!">常用分组：</p>
+              {/* <Button onClick={()=>setCommonGroupingAll([[],[],[],[],[]])}>修复CommonGrouping</Button> */}
+              {CommonGrouping.map((item, index) => (
+                <Space className="mt-2">
+                  <PySearchSelect
+                    key={index + "select"}
+                    value={item}
+                    onChangeFn={(value: any) => {
+                      setCrValue(value);
+                    }}
+                    placeholder="多选工人,支持拼音"
+                    Laberplaceholder=""
+                    mode="multiple"
+                    width={702}
+                    disabeld={cr_edit[index]}
+                  />
+                  <Button
+                    key={index + "b1"}
+                    onClick={() => {
+                      setCrEdit((prev) => {
+                        const newCrEdit = [...prev];
+                        newCrEdit[index] = !newCrEdit[index]; // 只切换当前index的状态
+                        return newCrEdit;
+                      });
+                    }}
+                  >
+                    {cr_edit[index] ? "编辑" : "取消"}
+                  </Button>
+                  <Button
+                    key={index + "b2"}
+                    danger
+                    onClick={() => {
+                      setCommonGrouping([], index);
+                    }}
+                  >
+                    清空
+                  </Button>
+                  <Button
+                    key={index + "b3"}
+                    onClick={() => {
+                      setCommonGrouping(cr_value, index);
+                    }}
+                  >
+                    保存
+                  </Button>
+                  <Button
+                    key={index + "b4"}
+                    type="primary"
+                    onClick={() => {
+                      setPiLiangNames(item);
+                    }}
+                  >
+                    应用
+                  </Button>
+                </Space>
+              ))}
             </>
           </div>
           <Table

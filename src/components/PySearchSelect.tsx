@@ -15,6 +15,8 @@ interface PySearchSelectProps {
   mode?: "multiple" | "tags";
   needButton?: boolean;
   width?: number;
+  disabeld?: boolean;
+  value?: [{ value: string; label: string }];
 }
 /**
  * 自定义的选择器，支持拼音搜索,
@@ -30,6 +32,8 @@ export default function PySearchSelect({
   mode = undefined,
   needButton = false,
   width = 250,
+  disabeld = false,
+  value = undefined,
 }: PySearchSelectProps) {
   const [highlightWords, setHighlightWords] = useState<string[]>([]);
   const SelectValue = useRef<{ value: string; label: string }>({
@@ -92,6 +96,9 @@ export default function PySearchSelect({
   );
 
   const otherOptions = {}; //可以用于根据条件加入参数
+  if (value) {
+    otherOptions.value = value;
+  }
 
   /** ✅ 高亮渲染函数 */
   const renderOptionLabel = useCallback(
@@ -147,6 +154,7 @@ export default function PySearchSelect({
         mode={mode}
         showSearch
         allowClear
+        disabled={disabeld}
         labelInValue
         optionFilterProp="label"
         style={{ width: width }}
