@@ -11,7 +11,7 @@ const defaultOptions: Required<AutitLogOptions> = {
 
 export const auditLogProvider = (
   pb: PocketBase,
-  auditLogsOptions: AutitLogOptions,
+  auditLogsOptions: AutitLogOptions
 ): AuditLogProvider => {
   const options = {
     ...defaultOptions,
@@ -40,7 +40,7 @@ export const auditLogProvider = (
         },
         {
           requestKey: meta?.requestKey ?? null,
-        },
+        }
       );
 
       return { success: true };

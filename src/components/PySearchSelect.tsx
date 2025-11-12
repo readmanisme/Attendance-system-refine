@@ -1,4 +1,4 @@
-import { Button, Select, Space } from "antd";
+import { Button, Select, Space, Tag } from "antd";
 import { match } from "pinyin-pro";
 import { useMemo, useState, useCallback, useRef } from "react";
 import type { DefaultOptionType } from "antd/es/select";
@@ -14,6 +14,9 @@ interface PySearchSelectProps {
   onClearFn?: () => void;
   mode?: "multiple" | "tags";
   needButton?: boolean;
+  UnCheckOutNames?: string[] | undefined;
+  width?: number;
+  type?: string | undefined;
 }
 /**
  * 自定义的选择器，支持拼音搜索,
@@ -28,9 +31,15 @@ export default function PySearchSelect({
   onClearFn = () => {},
   mode = undefined,
   needButton = false,
+  UnCheckOutNames = undefined,
+  width = 250,
+  type = undefined,
 }: PySearchSelectProps) {
   const [highlightWords, setHighlightWords] = useState<string[]>([]);
-  const SelectValue=useRef<{ value: string; label: string }>({ value: "", label: "" });
+  const SelectValue = useRef<{ value: string; label: string }>({
+    value: "",
+    label: "",
+  });
 
   const { selectProps } = useSelect({
     resource: tableOptions.table,
@@ -86,15 +95,54 @@ export default function PySearchSelect({
     []
   );
 
+  const otherOptions = {}; //可以用于根据条件加入参数
+
   /** ✅ 高亮渲染函数 */
   const renderOptionLabel = useCallback(
     (option: DefaultOptionType) => {
       const label = option.label as string;
-      if (!highlightWords.length) return <span>{label}</span>;
+
+      // if (!highlightWords.length) return <span>{label}</span>;
+      if (!highlightWords.length) {
+        if (type === "qiandao") {
+          return (
+            <Space>
+              {UnCheckOutNames?.includes(option.data.label) ? (
+                <Tag color="red">待下班</Tag>
+              ) : (
+                <Tag color="green">待上班</Tag>
+              )}
+              {option.data.label}
+            </Space>
+          );
+        }
+        return <span>{label}</span>;
+      }
 
       const regex = new RegExp(`(${highlightWords.join("|")})`, "gi");
       const parts = label.split(regex);
-
+      if (type === "qiandao") {
+        return (
+          <Space>
+            {UnCheckOutNames?.includes(option.data.label) ? (
+              <Tag color="red">待下班</Tag>
+            ) : (
+              <Tag color="green">待上班</Tag>
+            )}
+            <span>
+              {parts.map((part, idx) =>
+                regex.test(part) ? (
+                  <span key={idx} style={{ color: "#4169E1" }}>
+                    {part}
+                  </span>
+                ) : (
+                  <span key={idx}>{part}</span>
+                )
+              )}
+            </span>
+          </Space>
+        );
+      }
       return (
         <span>
           {parts.map((part, idx) =>
@@ -109,7 +157,7 @@ export default function PySearchSelect({
         </span>
       );
     },
-    [highlightWords]
+    [UnCheckOutNames, highlightWords, type]
   );
 
   const handleClear = useCallback(() => {
@@ -121,23 +169,28 @@ export default function PySearchSelect({
     (value: { value: string; label: string }) => {
       setHighlightWords([]);
       if (!needButton) onChangeFn(value);
-      SelectValue.current=value;
+      SelectValue.current = value;
     },
     [needButton, onChangeFn]
   );
 
   return (
     <Space>
-      <span style={{ width: 100 }}>{Laberplaceholder}</span>
+      {Laberplaceholder && (
+        <span style={{ width: Laberplaceholder ? 100 : 0 }}>
+          {Laberplaceholder}
+        </span>
+      )}
       <Select
         {...selectProps}
+        {...otherOptions}
         placeholder={placeholder}
         mode={mode}
         showSearch
         allowClear
         labelInValue
         optionFilterProp="label"
-        style={{ width: 250 }}
+        style={{ width: width }}
         // @ts-expect-error, 111
         filterOption={handleFilter}
         onChange={handleChange} //选择和删除选项触发，输入内容不触发
@@ -153,7 +206,11 @@ export default function PySearchSelect({
         }}
       />
       {needButton && (
-        <Button type="primary" icon={<SearchOutlined />} onClick={() => onChangeFn(SelectValue.current)}>
+        <Button
+          type="primary"
+          icon={<SearchOutlined />}
+          onClick={() => onChangeFn(SelectValue.current)}
+        >
           搜索
         </Button>
       )}

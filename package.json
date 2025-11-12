@@ -12,7 +12,8 @@
     "start": "vite preview",
     "refine": "refine",
     "scan": "npx react-scan localhost:5173",
-    "format": "npx prettier --write ."
+    "format": "npx prettier --write .",
+    "cyopen": "cypress open"
   },
   "dependencies": {
     "@ant-design/charts": "^2.6.0",
@@ -87,6 +88,7 @@
     "@typescript-eslint/parser": "^8.36.0",
     "@vitejs/plugin-react": "^4.6.0",
     "babel-plugin-react-compiler": "19.1.0-rc.2",
+    "cypress": "^15.6.0",
     "eslint": "^9.30.1",
     "eslint-plugin-react": "^7.37.5",
     "eslint-plugin-react-hooks": "6.0.0-rc.1",

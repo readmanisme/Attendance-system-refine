@@ -26,7 +26,7 @@ export const AttendanceRecordList = () => {
     optionValue: "id",
   });
   const get_filter = (values: any) => {
-    if (!values){
+    if (!values) {
       return [];
     }
     return [

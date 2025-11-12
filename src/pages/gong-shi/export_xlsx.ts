@@ -15,10 +15,7 @@ const exportExcel = async (
     日工时: __WorkHours_Day_ViewName,
   };
   const start = export_range[0].toISOString().replace("T", " ");
-  const end = export_range[1]
-    .endOf("month")
-    .toISOString()
-    .replace("T", " ");
+  const end = export_range[1].endOf("month").toISOString().replace("T", " ");
   const start_day = export_range[0].format("YYYY-MM-DD");
   const end_day = export_range[1].endOf("month").format("YYYY-MM-DD");
   const start_month = export_range[0].format("YYYY-MM");

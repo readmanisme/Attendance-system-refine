@@ -8,7 +8,6 @@ export const WorkersCreate: React.FC = () => {
   const go = useGo();
 
   const { data: namelist } = useList({
-    resource: resource?.name,
     pagination: { mode: "off" },
   });
 
@@ -35,7 +34,6 @@ export const WorkersCreate: React.FC = () => {
   });
 
   const [inputValue, setInputValue] = useState("");
-  const [errorMsg, setErrorMsg] = useState<React.ReactNode>("");
 
   /** ✅ 提前缓存已有姓名集合，O(1) 查找 */
   const existingNames = useMemo(
@@ -154,7 +152,7 @@ export const WorkersCreate: React.FC = () => {
 
       <Alert
         className="mt-2!"
-        message="要求：姓名不能为空、不能包含下划线、且不能与已有姓名重复, 重复姓名可以通过添加说明进行区分。空行将被忽略"
+        message="要求：姓名不能为空、不能包含下划线、且不能与已有姓名重复, 重复姓名可以通过添加说明进行区分。空行、前后空格将被忽略"
         type="info"
         showIcon
       />
