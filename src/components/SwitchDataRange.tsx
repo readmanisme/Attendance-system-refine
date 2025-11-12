@@ -1,97 +1,33 @@
 import { useSomeStore } from "@/stores";
-import { Segmented, DatePicker, Button } from "antd";
-import dayjs, { Dayjs } from "dayjs";
-import { useEffect, useState } from "react";
-import { type PickerMode } from "rc-picker/lib/interface";
-export const SwitchDataRange = ({ picker = "date" }) => {
-  const {
-    DatePickerMode,
-    setDatePickerMode,
-    recordDateRange,
-    setRecordDateRange,
-  } = useSomeStore();
+import { DatePicker, Button } from "antd";
+import dayjs from "dayjs";
+import { useState } from "react";
+export const SwitchDataRange = ({ onApplyFn = () => {} }) => {
+  const { recordDateRange, setRecordDateRange } = useSomeStore();
   const { RangePicker } = DatePicker;
-  function setPickMonth(data: Dayjs) {
-    setRecordDateRange(
-      data.startOf("month").format("YYYY-MM-DD"),
-      data.endOf("month").format("YYYY-MM-DD")
-    );
-  }
-  const getDefaultValue = (type: "range" | "single") => {
-    if (type === "range") {
-      if (recordDateRange.length > 0) {
-        return [dayjs(recordDateRange[0]), dayjs(recordDateRange[1])];
-      } else {
-        return [];
-      }
-    } else if (type === "single") {
-      if (recordDateRange.length > 0) {
-        return dayjs(recordDateRange[0]);
-        // 2022-01-21会识别为2022-01，所以无需额外处理
-      } else {
-        // return dayjs().startOf("month");
-        return null;
-      }
-    }
-  };
-  const [key, setkey] = useState(0);
-  useEffect(() => {
-    setkey(key + 1);
-  }, [recordDateRange]);
-  function get_date_picker() {
-    if (DatePickerMode === "range") {
-      return (
-        // <div>
-        <RangePicker
-          allowClear={false}
-          key={key}
-          className="w-56"
-          defaultValue={getDefaultValue("range") as [Dayjs, Dayjs]}
-          onChange={(date, dateString) => {
-            setRecordDateRange(...dateString);
-          }}
-          picker={picker as PickerMode}
-        />
-        // </div>
-      );
-    } else if (DatePickerMode === "single") {
-      return (
-        // <div>
-        <DatePicker
-          allowClear={false}
-          key={key}
-          className="w-56"
-          defaultValue={getDefaultValue("single")}
-          onChange={(date, dateString) => {
-            setPickMonth(date as Dayjs);
-          }}
-          picker="month"
-        />
-        // </div>
-      );
-    }
-  }
+  const [temp, setTemp] = useState<string[]>(recordDateRange);
   return (
     <div className="flex flex-row justify-end items-center mb-2  gap-2">
-      <Segmented<string>
-        // className="bg-sky-600"
-        options={["单月", "区间"]}
-        onChange={(value) => {
-          if (value === "单月") {
-            setDatePickerMode("single");
-          } else if (value === "区间") {
-            setDatePickerMode("range");
-          }
+      <RangePicker
+        allowClear={false}
+        className="w-56"
+        defaultValue={[dayjs(recordDateRange[0]), dayjs(recordDateRange[1])]}
+        onChange={(date, dateString) => {
+          // setRecordDateRange(dateString);
+          setTemp(dateString);
         }}
+        picker="month"
       />
-      {get_date_picker()}
+      {/* <span>(不含后一月)</span> */}
       <Button
         type="primary"
         onClick={() => {
-          setRecordDateRange("1999-01-01", "2099-12-31");
+          // setRecordDateRange("1999-01-01", "2099-12-31"); //因为工时页面也要用，如果这么大的范围大约要爆炸
+          setRecordDateRange(temp);
+          onApplyFn();
         }}
       >
-        清空
+        应用
       </Button>
     </div>
   );

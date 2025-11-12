@@ -2,29 +2,20 @@ import {
   CreateButton,
   DeleteButton,
   EditButton,
-  FilterDropdown,
   List,
-  SaveButton,
   ShowButton,
-  useSelect,
   useTable,
 } from "@refinedev/antd";
-import { CrudFilter, CrudFilters, type BaseRecord } from "@refinedev/core";
-import { Space, Table, Switch, Select, Form } from "antd";
+import { CrudFilter, type BaseRecord } from "@refinedev/core";
+import { Space, Table, Switch } from "antd";
 import dayjs from "dayjs";
 import { useEffect, useState } from "react";
-import { useSomeStore } from "@/stores";
 import { SwitchDataRange } from "@/components/SwitchDataRange";
 import { useGetDatePickerFilter } from "@/utils/get_data_picker_filter";
 import PySearchSelect from "@/components/PySearchSelect";
 export const AttendanceRecordList = () => {
   const datePickerFilter = useGetDatePickerFilter();
-  const { recordDateRange, setRecordDateRange } = useSomeStore();
-  const { selectProps: workerSelectProps } = useSelect({
-    resource: __Workers_TableName,
-    optionLabel: "name",
-    optionValue: "id",
-  });
+
   const get_filter = (values: any) => {
     if (!values) {
       return [];
@@ -40,7 +31,7 @@ export const AttendanceRecordList = () => {
       },
     ];
   };
-  const { tableProps, setFilters } = useTable({
+  const { tableProps, setFilters, setCurrent } = useTable({
     resource: __AttendanceRecord_TableName,
     meta: {
       expand: ["work", "worker_id"],
@@ -75,10 +66,11 @@ export const AttendanceRecordList = () => {
           value: "",
         },
       ]);
+      setCurrent(1);
     } else {
       setFilters([], "replace");
     }
-  }, [setFilters, unclockoutfilter]);
+  }, [setCurrent, setFilters, unclockoutfilter]);
   return (
     <List headerButtons={<CreateButton>添加记录</CreateButton>}>
       <div className="flex flex-row justify-between items-center">
@@ -89,18 +81,20 @@ export const AttendanceRecordList = () => {
             onChange={handleUnclockoutfilterChange}
           />
         </div>
-        <SwitchDataRange />
+        <SwitchDataRange onApplyFn={() => setCurrent(1)} />
       </div>
       <PySearchSelect
         onChangeFn={(value: { value: string; label: string }) => {
           // @ts-expect-error，111
           setFilters(get_filter(value));
+          setCurrent(1);
         }}
         placeholder="多选工人,支持拼音"
         mode="multiple"
         onClearFn={() => {
           // setSelectedPerson([]);
           setFilters([]);
+          setCurrent(1);
         }}
         needButton={true}
       />

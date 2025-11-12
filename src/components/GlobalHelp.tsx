@@ -2,10 +2,11 @@ import { QuestionCircleOutlined } from "@ant-design/icons";
 import { useResource } from "@refinedev/core";
 import { FloatButton, Drawer } from "antd";
 import Paragraph from "antd/es/typography/Paragraph";
-import { useState } from "react";
-
+import { use, useState } from "react";
+import { useSomeStore } from "@/stores";
 export const GlobalHelp = () => {
   const { resource } = useResource();
+  const { helpOpen, setHelpOpen } = useSomeStore();
   // 值得注意，由于使用到了useResource这个用到react routerdom的hook，所以需要在路由组件包裹下使用，否则无效
   const helps: Record<string, React.ReactNode> = {
     人员签到: (
@@ -130,20 +131,19 @@ export const GlobalHelp = () => {
     ),
     undefined: "当前页面未设置label",
   };
-  const [helpOpen, setHelpOpen] = useState(false);
   return (
     <>
-      <FloatButton.Group shape="circle" style={{ insetInlineEnd: 24 }}>
-        <FloatButton.BackTop />
-        <FloatButton
-          icon={<QuestionCircleOutlined />}
-          type="primary"
-          style={{ insetInlineEnd: 24 }}
-          onClick={() => setHelpOpen(true)}
-          tooltip="显示当前页面的帮助"
-        />
-      </FloatButton.Group>
-      <Drawer title="帮助" open={helpOpen} onClose={() => setHelpOpen(false)}>
+      <FloatButton.BackTop
+        style={{
+          bottom: "10px", // 距离底部50px
+          right: "20px", // 距离右侧24px
+        }}
+      />
+      <Drawer
+        title={`${resource?.meta?.label} 帮助`}
+        open={helpOpen}
+        onClose={() => setHelpOpen(false)}
+      >
         {helps[String(resource?.meta?.label)]}
       </Drawer>
     </>
