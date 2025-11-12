@@ -14,9 +14,7 @@ interface PySearchSelectProps {
   onClearFn?: () => void;
   mode?: "multiple" | "tags";
   needButton?: boolean;
-  UnCheckOutNames?: string[] | undefined;
   width?: number;
-  type?: string | undefined;
 }
 /**
  * 自定义的选择器，支持拼音搜索,
@@ -31,9 +29,7 @@ export default function PySearchSelect({
   onClearFn = () => {},
   mode = undefined,
   needButton = false,
-  UnCheckOutNames = undefined,
   width = 250,
-  type = undefined,
 }: PySearchSelectProps) {
   const [highlightWords, setHighlightWords] = useState<string[]>([]);
   const SelectValue = useRef<{ value: string; label: string }>({
@@ -102,47 +98,10 @@ export default function PySearchSelect({
     (option: DefaultOptionType) => {
       const label = option.label as string;
 
-      // if (!highlightWords.length) return <span>{label}</span>;
-      if (!highlightWords.length) {
-        if (type === "qiandao") {
-          return (
-            <Space>
-              {UnCheckOutNames?.includes(option.data.label) ? (
-                <Tag color="red">待下班</Tag>
-              ) : (
-                <Tag color="green">待上班</Tag>
-              )}
-              {option.data.label}
-            </Space>
-          );
-        }
-        return <span>{label}</span>;
-      }
+      if (!highlightWords.length) return <span>{label}</span>;
 
       const regex = new RegExp(`(${highlightWords.join("|")})`, "gi");
       const parts = label.split(regex);
-      if (type === "qiandao") {
-        return (
-          <Space>
-            {UnCheckOutNames?.includes(option.data.label) ? (
-              <Tag color="red">待下班</Tag>
-            ) : (
-              <Tag color="green">待上班</Tag>
-            )}
-            <span>
-              {parts.map((part, idx) =>
-                regex.test(part) ? (
-                  <span key={idx} style={{ color: "#4169E1" }}>
-                    {part}
-                  </span>
-                ) : (
-                  <span key={idx}>{part}</span>
-                )
-              )}
-            </span>
-          </Space>
-        );
-      }
       return (
         <span>
           {parts.map((part, idx) =>
@@ -157,7 +116,7 @@ export default function PySearchSelect({
         </span>
       );
     },
-    [UnCheckOutNames, highlightWords, type]
+    [highlightWords]
   );
 
   const handleClear = useCallback(() => {

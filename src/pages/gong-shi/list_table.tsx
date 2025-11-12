@@ -16,11 +16,11 @@ import PySearchSelect from "@/components/PySearchSelect";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Decimal from "decimal.js";
 import { useSomeStore } from "@/stores";
-import { SwitchDataRangeGongShi } from "@/components/SwitchDataRangeGongShi";
+import { SwitchDataRange } from "@/components/SwitchDataRange";
 export default function GongShiList() {
   // ======================== useState等 ========================
   const [SalaryLoading, setSalaryLoading] = useState(true);
-  const { GongShiData, setGongShiData } = useSomeStore();
+  const { recordDateRange, setRecordDateRange } = useSomeStore();
   const [isExportLoading, setIsExportLoading] = useState(false);
   const [exportRange, setExportRange] = useState([
     dayjs().startOf("year"),
@@ -30,7 +30,7 @@ export default function GongShiList() {
     { value: string; label: string }[]
   >([]);
   // ======================== 暂存 ========================
-  const { tableProps: workerData, setFilters } = useTable({
+  const { tableProps: workerData, setFilters,setCurrent } = useTable({
     resource: __Workers_TableName,
     syncWithLocation: false,
     filters: {
@@ -88,8 +88,8 @@ export default function GongShiList() {
       {
         operator: "and",
         value: [
-          { field: "work_month", operator: "gte", value: GongShiData[0] },
-          { field: "work_month", operator: "lte", value: GongShiData[1] },
+          { field: "work_month", operator: "gte", value: recordDateRange[0] },
+          { field: "work_month", operator: "lte", value: recordDateRange[1] },
         ],
       },
     ];
@@ -105,7 +105,7 @@ export default function GongShiList() {
     };
 
     // 依赖 selectedIds, GongShiData（来自 store）
-  }, [GongShiData, idFilters]);
+  }, [recordDateRange, idFilters]);
 
   const dayViewFilter = useMemo(() => {
     const temp = [
@@ -115,12 +115,16 @@ export default function GongShiList() {
           {
             field: "work_date",
             operator: "gte",
-            value: dayjs(GongShiData[0]).startOf("month").format("YYYY-MM-DD"),
+            value: dayjs(recordDateRange[0])
+              .startOf("month")
+              .format("YYYY-MM-DD"),
           },
           {
             field: "work_date",
             operator: "lte",
-            value: dayjs(GongShiData[1]).endOf("month").format("YYYY-MM-DD"),
+            value: dayjs(recordDateRange[1])
+              .endOf("month")
+              .format("YYYY-MM-DD"),
           },
         ],
       },
@@ -135,7 +139,7 @@ export default function GongShiList() {
       operator: "and",
       value: temp,
     };
-  }, [GongShiData, idFilters]);
+  }, [recordDateRange, idFilters]);
 
   const attendanceFilter = useMemo(() => {
     const temp = [
@@ -145,7 +149,7 @@ export default function GongShiList() {
           {
             field: "check_in",
             operator: "gte",
-            value: dayjs(GongShiData[0])
+            value: dayjs(recordDateRange[0])
               .startOf("month")
               .toISOString()
               .replace("T", " "),
@@ -153,7 +157,7 @@ export default function GongShiList() {
           {
             field: "check_in",
             operator: "lte",
-            value: dayjs(GongShiData[1])
+            value: dayjs(recordDateRange[1])
               .endOf("month")
               .toISOString()
               .replace("T", " "),
@@ -176,7 +180,7 @@ export default function GongShiList() {
       operator: "and",
       value: temp,
     };
-  }, [GongShiData, idFilters]);
+  }, [recordDateRange, idFilters]);
 
   // ======================== 获取数据 ========================
 
@@ -577,13 +581,13 @@ export default function GongShiList() {
   // 使用稳定的 key 来避免 JSON.stringify 全表重渲染（GongShiData 由 store 提供，取 valueOf）
   const gongShiKey = useMemo(() => {
     try {
-      return `${GongShiData?.[0]?.valueOf?.() ?? ""}-${
-        GongShiData?.[1]?.valueOf?.() ?? ""
+      return `${recordDateRange?.[0]?.valueOf?.() ?? ""}-${
+        recordDateRange?.[1]?.valueOf?.() ?? ""
       }`;
     } catch {
       return "gs-default";
     }
-  }, [GongShiData]);
+  }, [recordDateRange]);
 
   if (!hasBaseWorkType) {
     return (
@@ -620,12 +624,14 @@ export default function GongShiList() {
                 } else {
                   setSelectedPerson([value]);
                 }
+                setCurrent(1)
               }}
               placeholder="多选工人,支持拼音"
               mode="multiple"
               needButton={true}
               onClearFn={() => {
                 setSelectedPerson([]);
+                setCurrent(1)
               }}
             />
             <Popconfirm
@@ -675,7 +681,7 @@ export default function GongShiList() {
             className="mb-2! mr-2! w-full"
           />
         )}
-        <SwitchDataRangeGongShi />
+        <SwitchDataRange />
       </div>
       <Table
         key={gongShiKey}

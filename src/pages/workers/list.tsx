@@ -36,7 +36,7 @@ export const WorkersList = () => {
       },
     ];
   };
-  const { tableProps: workerData, setFilters } = useTable({
+  const { tableProps: workerData, setFilters,setCurrent } = useTable({
     syncWithLocation: true,
     sorters: {
       permanent: [
@@ -62,12 +62,14 @@ export const WorkersList = () => {
           // }
           // @ts-expect-error，111
           setFilters(get_filter(value));
+          setCurrent(1)
         }}
         placeholder="多选工人,支持拼音"
         mode="multiple"
         onClearFn={() => {
           // setSelectedPerson([]);
           setFilters([]);
+          setCurrent(1)
         }}
         needButton={true}
       />
