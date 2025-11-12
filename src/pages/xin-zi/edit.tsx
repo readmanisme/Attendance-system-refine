@@ -19,7 +19,7 @@ export const SalaryTypeEdit = () => {
     resource: __WorkTypes_TableName,
     optionLabel: "name",
   });
-  const { data: records } = useList({
+  const { result: records } = useList({
     pagination: {
       mode: "off",
     },

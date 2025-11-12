@@ -1,13 +1,13 @@
 import React, { useCallback, useMemo, useState } from "react";
 import { Create, SaveButton, useForm } from "@refinedev/antd";
 import { Alert, Form, Input, Space, Tag } from "antd";
-import { useCreateMany, useGo, useList, useResource } from "@refinedev/core";
+import { useCreateMany, useGo, useList, useResourceParams } from "@refinedev/core";
 
 export const CreateWorkType = () => {
   const [IsError, setIsError] = React.useState(true);
-  const { resource } = useResource();
+  const { resource } = useResourceParams();
   const go = useGo();
-  const { data: namelist } = useList({
+  const { result: namelist } = useList({
     pagination: {
       mode: "off",
     },

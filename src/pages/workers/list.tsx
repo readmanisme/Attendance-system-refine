@@ -36,7 +36,7 @@ export const WorkersList = () => {
       },
     ];
   };
-  const { tableProps: workerData, setFilters,setCurrent } = useTable({
+  const { tableProps: workerData, setFilters,setCurrentPage: setCurrent } = useTable({
     syncWithLocation: true,
     sorters: {
       permanent: [

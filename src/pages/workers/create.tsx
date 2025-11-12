@@ -1,13 +1,13 @@
 import { Create, SaveButton } from "@refinedev/antd";
-import { useCreateMany, useGo, useList, useResource } from "@refinedev/core";
+import { useCreateMany, useGo, useList, useResourceParams } from "@refinedev/core";
 import { Alert, Input, Tag } from "antd";
 import React, { useCallback, useMemo, useState } from "react";
 
 export const WorkersCreate: React.FC = () => {
-  const { resource } = useResource();
+  const { resource } = useResourceParams();
   const go = useGo();
 
-  const { data: namelist } = useList({
+  const { result: namelist } = useList({
     pagination: { mode: "off" },
   });
 

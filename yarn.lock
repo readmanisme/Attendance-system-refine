@@ -16,17 +16,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@aliemir/react-live@npm:^4.0.0":
-  version: 4.0.1
-  resolution: "@aliemir/react-live@npm:4.0.1"
-  dependencies:
-    prism-react-renderer: "npm:^1.3.1"
-    sucrase: "npm:^3.29.0"
-    use-editable: "npm:^2.3.3"
-  checksum: 10c0/4f0143da29b0c038efcb4903de22aa11540e6ea3e57f57d8c1178a7ed2bc7cb0f2553377ab2f448a48e7518f1516afac696c2ec1f84afc4814e48224912cc20d
-  languageName: node
-  linkType: hard
-
 "@alloc/quick-lru@npm:^5.2.0":
   version: 5.2.0
   resolution: "@alloc/quick-lru@npm:5.2.0"
@@ -2825,16 +2814,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@jridgewell/gen-mapping@npm:^0.3.2":
-  version: 0.3.13
-  resolution: "@jridgewell/gen-mapping@npm:0.3.13"
-  dependencies:
-    "@jridgewell/sourcemap-codec": "npm:^1.5.0"
-    "@jridgewell/trace-mapping": "npm:^0.3.24"
-  checksum: 10c0/9a7d65fb13bd9aec1fbab74cda08496839b7e2ceb31f5ab922b323e94d7c481ce0fc4fd7e12e2610915ed8af51178bdc61e168e92a8c8b8303b030b03489b13b
-  languageName: node
-  linkType: hard
-
 "@jridgewell/gen-mapping@npm:^0.3.5":
   version: 0.3.8
   resolution: "@jridgewell/gen-mapping@npm:0.3.8"
@@ -3524,29 +3503,29 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@refinedev/antd@npm:^5.46.2":
-  version: 5.47.0
-  resolution: "@refinedev/antd@npm:5.47.0"
+"@refinedev/antd@npm:^6.0.3":
+  version: 6.0.3
+  resolution: "@refinedev/antd@npm:6.0.3"
   dependencies:
     "@ant-design/icons": "npm:^5.5.1"
     "@ant-design/pro-layout": "npm:^7.21.1"
-    "@refinedev/ui-types": "npm:^1.24.2"
-    "@tanstack/react-query": "npm:^4.10.1"
-    antd: "npm:^5.17.0"
+    "@refinedev/ui-types": "npm:^2.0.1"
+    "@tanstack/react-query": "npm:^5.81.5"
+    antd: "npm:^5.23.0"
     dayjs: "npm:^1.10.7"
     react-markdown: "npm:^6.0.1"
     remark-gfm: "npm:^1.0.0"
     sunflower-antd: "npm:1.0.0-beta.3"
     tslib: "npm:^2.6.2"
   peerDependencies:
-    "@refinedev/core": ^4.46.1
-    "@types/react": ^17.0.0 || ^18.0.0
-    "@types/react-dom": ^17.0.0 || ^18.0.0
-    antd: ^5.17.0
+    "@refinedev/core": ^5.0.0
+    "@types/react": ^18.0.0 || ^19.0.0
+    "@types/react-dom": ^18.0.0 || ^19.0.0
+    antd: ^5.23.0
     dayjs: ^1.10.7
-    react: ^17.0.0 || ^18.0.0
-    react-dom: ^17.0.0 || ^18.0.0
-  checksum: 10c0/d4127a73501664deea2115d9bf2acec1b40ee9205b05eaac540a1e473f9d26aa0691cb66f47c0e6ea6d8475c4833988ae43b32ce75ed45df525e902a62d902e4
+    react: ^18.0.0 || ^19.0.0
+    react-dom: ^18.0.0 || ^19.0.0
+  checksum: 10c0/d68ac92306881e6e33eb0deecdf0d75fa826a0a4f2b500a1c770a435a12119decbe080b45ff56330ecfe0b53e363171583aecf2d93244c699564910768bd347c
   languageName: node
   linkType: hard
 
@@ -3596,12 +3575,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@refinedev/core@npm:^4.57.10, @refinedev/core@npm:^4.57.5, @refinedev/core@npm:^4.57.9":
-  version: 4.58.0
-  resolution: "@refinedev/core@npm:4.58.0"
+"@refinedev/core@npm:^5.0.5":
+  version: 5.0.5
+  resolution: "@refinedev/core@npm:5.0.5"
   dependencies:
-    "@refinedev/devtools-internal": "npm:1.1.16"
-    "@tanstack/react-query": "npm:^4.10.1"
+    "@refinedev/devtools-internal": "npm:2.0.1"
+    "@tanstack/react-query": "npm:^5.81.5"
     lodash: "npm:^4.17.21"
     lodash-es: "npm:^4.17.21"
     papaparse: "npm:^5.3.0"
@@ -3610,28 +3589,28 @@ __metadata:
     tslib: "npm:^2.6.2"
     warn-once: "npm:^0.1.0"
   peerDependencies:
-    "@tanstack/react-query": ^4.10.1
-    "@types/react": ^17.0.0 || ^18.0.0
-    "@types/react-dom": ^17.0.0 || ^18.0.0
-    react: ^17.0.0 || ^18.0.0
-    react-dom: ^17.0.0 || ^18.0.0
-  checksum: 10c0/d16ddfa91ac786968474929dec4ff3fb52a96f251e8c578eb57f672356deeed850241eaea8d1eab3531bc2e3ad86f95122d41bb836549cbf93abe5fa666121e4
+    "@tanstack/react-query": ^5.81.5
+    "@types/react": ^18.0.0 || ^19.0.0
+    "@types/react-dom": ^18.0.0 || ^19.0.0
+    react: ^18.0.0 || ^19.0.0
+    react-dom: ^18.0.0 || ^19.0.0
+  checksum: 10c0/11083494193912040a3a6514f71c3100c2e222ee86f7db52172208355a50db38fbb0bf9e694a5c24b91ad6bd749f4d952c546efc20b8e1a99ecf09bb069b7aac
   languageName: node
   linkType: hard
 
-"@refinedev/devtools-internal@npm:1.1.16":
-  version: 1.1.16
-  resolution: "@refinedev/devtools-internal@npm:1.1.16"
+"@refinedev/devtools-internal@npm:2.0.1":
+  version: 2.0.1
+  resolution: "@refinedev/devtools-internal@npm:2.0.1"
   dependencies:
-    "@refinedev/devtools-shared": "npm:1.1.14"
-    "@tanstack/react-query": "npm:^4.10.1"
+    "@refinedev/devtools-shared": "npm:2.0.1"
+    "@tanstack/react-query": "npm:^5.81.5"
     error-stack-parser: "npm:^2.1.4"
   peerDependencies:
-    "@types/react": ^17.0.0 || ^18.0.0
-    "@types/react-dom": ^17.0.0 || ^18.0.0
-    react: ^17.0.0 || ^18.0.0
-    react-dom: ^17.0.0 || ^18.0.0
-  checksum: 10c0/0b2e565f4c8fb5f789a58ded722b8ea6b4198fa0f44ffa5f60ac1db17ecb574c3ea8fcc0e4cc4d5e02f622bd3a7d437a7c678695c43ddcf51ce28388af3dbd08
+    "@types/react": ^18.0.0 || ^19.0.0
+    "@types/react-dom": ^18.0.0 || ^19.0.0
+    react: ^18.0.0 || ^19.0.0
+    react-dom: ^18.0.0 || ^19.0.0
+  checksum: 10c0/d5b0550d5dc85fe73f646d33697e365aa33282c983313671027ebae459e48e8bff933b5e2f8bb96cb1f00a1c1c3e92b688477455e3e5e1c578465a66813eb510
   languageName: node
   linkType: hard
 
@@ -3673,21 +3652,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@refinedev/devtools-shared@npm:1.1.14":
-  version: 1.1.14
-  resolution: "@refinedev/devtools-shared@npm:1.1.14"
-  dependencies:
-    "@tanstack/react-query": "npm:^4.10.1"
-    error-stack-parser: "npm:^2.1.4"
-  peerDependencies:
-    "@types/react": ^17.0.0 || ^18.0.0
-    "@types/react-dom": ^17.0.0 || ^18.0.0
-    react: ^17.0.0 || ^18.0.0
-    react-dom: ^17.0.0 || ^18.0.0
-  checksum: 10c0/ad3d71544c6f9379e409e67d67166320bfb1c25df32a98552b450ce8266c9699b396e97ebb16a34d6a1aa1b4d6e62c31d71d7f74815266aea32c5a4e4baa3cfc
-  languageName: node
-  linkType: hard
-
 "@refinedev/devtools-shared@npm:2.0.1":
   version: 2.0.1
   resolution: "@refinedev/devtools-shared@npm:2.0.1"
@@ -3703,33 +3667,32 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@refinedev/devtools@npm:^1.2.16":
-  version: 1.2.17
-  resolution: "@refinedev/devtools@npm:1.2.17"
+"@refinedev/devtools@npm:^2.0.3":
+  version: 2.0.3
+  resolution: "@refinedev/devtools@npm:2.0.3"
   dependencies:
     "@aliemir/dom-to-fiber-utils": "npm:^0.4.0"
-    "@refinedev/devtools-shared": "npm:1.1.14"
+    "@refinedev/devtools-shared": "npm:2.0.1"
     error-stack-parser: "npm:^2.1.4"
     lodash: "npm:^4.17.21"
     lodash-es: "npm:^4.17.21"
   peerDependencies:
-    "@refinedev/cli": 2.16.47
-    "@refinedev/core": ^4.46.1
-    "@refinedev/devtools-server": 1.1.42
-    "@types/react": ^17.0.0 || ^18.0.0
-    "@types/react-dom": ^17.0.0 || ^18.0.0
-    react: ^17.0.0 || ^18.0.0
-    react-dom: ^17.0.0 || ^18.0.0
-  checksum: 10c0/86b687b904705eec9411cf136169c1196e7cf909055831b5677f28a3ce11b47c48b36cdce005887a57662d8c8289f6729fb46203e7b4f99844582941a61de6fc
+    "@refinedev/cli": 2.16.50
+    "@refinedev/core": ^5.0.0
+    "@refinedev/devtools-server": 2.0.1
+    "@types/react": ^18.0.0 || ^19.0.0
+    "@types/react-dom": ^18.0.0 || ^19.0.0
+    react: ^18.0.0 || ^19.0.0
+    react-dom: ^18.0.0 || ^19.0.0
+  checksum: 10c0/3a6f405166f151eb73260a7a541e079a6a71af355e0ecb1f90d9abb46d0864f6914a3820ec0ece81afbeb0e2f9e6b57e338b62a59346ba1db763b44df2ef56e9
   languageName: node
   linkType: hard
 
-"@refinedev/inferencer@npm:^5.1.1":
-  version: 5.1.1
-  resolution: "@refinedev/inferencer@npm:5.1.1"
+"@refinedev/inferencer@npm:^6.0.2":
+  version: 6.0.2
+  resolution: "@refinedev/inferencer@npm:6.0.2"
   dependencies:
-    "@aliemir/react-live": "npm:^4.0.0"
-    "@refinedev/core": "npm:^4.57.5"
+    "@refinedev/core": "npm:^5.0.5"
     "@tabler/icons-react": "npm:^3.1.0"
     dayjs: "npm:^1.10.7"
     graphql: "npm:^15.6.1"
@@ -3754,20 +3717,20 @@ __metadata:
     "@mui/lab": ^6.0.0-beta.14
     "@mui/material": ^6.1.7
     "@mui/x-data-grid": ^7.23.5
-    "@refinedev/antd": ^5.0.0
-    "@refinedev/chakra-ui": ^2.0.0
-    "@refinedev/core": ^4.54.0
-    "@refinedev/mantine": ^2.0.0
-    "@refinedev/mui": ^6.0.0
-    "@refinedev/react-hook-form": ^4.0.0
-    "@refinedev/react-table": ^5.0.0
+    "@refinedev/antd": ^6.0.0
+    "@refinedev/chakra-ui": ^3.0.0
+    "@refinedev/core": ^5.0.0
+    "@refinedev/mantine": ^3.0.0
+    "@refinedev/mui": ^7.0.0
+    "@refinedev/react-hook-form": ^5.0.0
+    "@refinedev/react-table": ^6.0.0
     "@tanstack/react-table": ^8.2.6
-    "@types/react": ^17.0.0 || ^18.0.0
-    "@types/react-dom": ^17.0.0 || ^18.0.0
+    "@types/react": ^18.0.0 || ^19.0.0
+    "@types/react-dom": ^18.0.0 || ^19.0.0
     antd: ^5.0.3
     dayjs: ^1.10.7
-    react: ^17.0.0 || ^18.0.0
-    react-dom: ^17.0.0 || ^18.0.0
+    react: ^18.0.0 || ^19.0.0
+    react-dom: ^18.0.0 || ^19.0.0
     react-hook-form: ^7.57.0
   peerDependenciesMeta:
     "@chakra-ui/react":
@@ -3810,52 +3773,52 @@ __metadata:
       optional: true
     react-hook-form:
       optional: true
-  checksum: 10c0/1400bbe34ba8c4ee33ea00e76f60155822423237117062fc144d98474470d20e5c81692a185ea3070f08d9af9f1330d8ca923b4ad527cc8ff4e5011cf28ac020
+  checksum: 10c0/e6d5f0feefdcb2788121993b30c1b9ca6c4d95f191e69e95a59f2bb766a5052e2a3ba3cc63e5da7d2c4d26baf7d2d9a226db9203aba149977a2cd5ffd3a45807
   languageName: node
   linkType: hard
 
-"@refinedev/kbar@npm:^1.3.16":
-  version: 1.3.17
-  resolution: "@refinedev/kbar@npm:1.3.17"
+"@refinedev/kbar@npm:^2.0.1":
+  version: 2.0.1
+  resolution: "@refinedev/kbar@npm:2.0.1"
   dependencies:
     kbar: "npm:0.1.0-beta.40"
   peerDependencies:
-    "@refinedev/core": ^4.46.1
-    react: ^17.0.0 || ^18.0.0
-    react-dom: ^17.0.0 || ^18.0.0
-  checksum: 10c0/040545631670d603fddf65b2f1537b39e28c15ee9b030450ff84d5bd9a8df65af8a6c2e4226460851663cda6486f4f716d09c805b850d582c82d8a3bf048cdb0
+    "@refinedev/core": ^5.0.0
+    react: ^18.0.0 || ^19.0.0
+    react-dom: ^18.0.0 || ^19.0.0
+  checksum: 10c0/423b3349c44cf4a83864d27b8cf2c156c90e6e20bbb493f4fa9b30049e0646f41fa35681bd5a0c2b1711175d06b32669281f0a1d6a039350fb1932e75fb862c4
   languageName: node
   linkType: hard
 
-"@refinedev/react-router@npm:^1.0.1":
-  version: 1.0.1
-  resolution: "@refinedev/react-router@npm:1.0.1"
+"@refinedev/react-router@npm:^2.0.3":
+  version: 2.0.3
+  resolution: "@refinedev/react-router@npm:2.0.3"
   dependencies:
     qs: "npm:^6.10.1"
     react-router: "npm:^7.0.2"
   peerDependencies:
-    "@refinedev/core": ^4.46.1
-    "@types/react": ^17.0.0 || ^18.0.0
-    "@types/react-dom": ^17.0.0 || ^18.0.0
-    react: ^17.0.0 || ^18.0.0
-    react-dom: ^17.0.0 || ^18.0.0
+    "@refinedev/core": ^5.0.0
+    "@types/react": ^18.0.0 || ^19.0.0
+    "@types/react-dom": ^18.0.0 || ^19.0.0
+    react: ^18.0.0 || ^19.0.0
+    react-dom: ^18.0.0 || ^19.0.0
     react-router: ^7.0.2
-  checksum: 10c0/c3ed2a3ddd1e994d41fcb61b04ca85da611f34dbaa9fb7ce70b91044e4606e79c66be80391b2bfa72796ab3cd2afe1f466ed3bb2ff6417f40e00ea7c2f3572e9
+  checksum: 10c0/e253d705d68c6f85c7d85b683231ae565569ec0fce32ae0ba267c22eaac666e73a14a2bb8d460ffc3e102afbcdc332f1da494bb0834fe04f18a36cd3347de14d
   languageName: node
   linkType: hard
 
-"@refinedev/ui-types@npm:^1.24.2":
-  version: 1.24.2
-  resolution: "@refinedev/ui-types@npm:1.24.2"
+"@refinedev/ui-types@npm:^2.0.1":
+  version: 2.0.1
+  resolution: "@refinedev/ui-types@npm:2.0.1"
   dependencies:
-    "@refinedev/core": "npm:^4.57.9"
+    "@refinedev/core": "npm:^5.0.5"
     dayjs: "npm:^1.10.7"
     tslib: "npm:^2.6.2"
   peerDependencies:
-    "@refinedev/core": ^4.46.1
-    react: ^17.0.0 || ^18.0.0
-    react-dom: ^17.0.0 || ^18.0.0
-  checksum: 10c0/0142ab099dfbc99bdd3d3f5598bbd3f7a5c61c2ed035aaf06414d3d5acea888dd7417bed944d240d2988197dcaa87925372d524f4bf0c175acf57aa6385fa083
+    "@refinedev/core": ^5.0.0
+    react: ^18.0.0 || ^19.0.0
+    react-dom: ^18.0.0 || ^19.0.0
+  checksum: 10c0/da6a7d4523335fd38462ad71abaf007ae68452aebb335f8b0ef4bc932d7bca14dd735cc7a03a3c9613d5b0fa2cd30f6e844c0ba1bd622d6d1933399e5f7ce896
   languageName: node
   linkType: hard
 
@@ -4228,13 +4191,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@tanstack/query-core@npm:4.41.0":
-  version: 4.41.0
-  resolution: "@tanstack/query-core@npm:4.41.0"
-  checksum: 10c0/e8a502c855ac08006665293478a692dbbca39fddc1fff815d99c7dcfd01dec75705548237fe162d0db6c35f9c7bb9e8313aeaed81c952f244eed91cc1d54006c
-  languageName: node
-  linkType: hard
-
 "@tanstack/query-core@npm:5.90.7":
   version: 5.90.7
   resolution: "@tanstack/query-core@npm:5.90.7"
@@ -4242,26 +4198,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@tanstack/react-query@npm:^4.10.1":
-  version: 4.42.0
-  resolution: "@tanstack/react-query@npm:4.42.0"
-  dependencies:
-    "@tanstack/query-core": "npm:4.41.0"
-    use-sync-external-store: "npm:^1.2.0"
-  peerDependencies:
-    react: ^16.8.0 || ^17.0.0 || ^18.0.0 || ^19.0.0
-    react-dom: ^16.8.0 || ^17.0.0 || ^18.0.0 || ^19.0.0
-    react-native: "*"
-  peerDependenciesMeta:
-    react-dom:
-      optional: true
-    react-native:
-      optional: true
-  checksum: 10c0/2258f4d592addc1c78061bc8eb059f1de3a0fa3cbf5106326a63122273dac64e96fe2a708cfbdb1b3e552810ebbe83ae27b1e5f1dec8cae77a195203c20cdcd5
-  languageName: node
-  linkType: hard
-
-"@tanstack/react-query@npm:^5.81.5":
+"@tanstack/react-query@npm:5, @tanstack/react-query@npm:^5.81.5":
   version: 5.90.7
   resolution: "@tanstack/react-query@npm:5.90.7"
   dependencies:
@@ -5169,15 +5106,16 @@ __metadata:
     "@mantine/spotlight": "npm:^8.1.3"
     "@mantine/tiptap": "npm:^8.1.3"
     "@redux-devtools/extension": "npm:^3.3.0"
-    "@refinedev/antd": "npm:^5.46.2"
+    "@refinedev/antd": "npm:^6.0.3"
     "@refinedev/cli": "npm:^2.16.46"
-    "@refinedev/core": "npm:^4.57.10"
-    "@refinedev/devtools": "npm:^1.2.16"
-    "@refinedev/inferencer": "npm:^5.1.1"
-    "@refinedev/kbar": "npm:^1.3.16"
-    "@refinedev/react-router": "npm:^1.0.1"
+    "@refinedev/core": "npm:^5.0.5"
+    "@refinedev/devtools": "npm:^2.0.3"
+    "@refinedev/inferencer": "npm:^6.0.2"
+    "@refinedev/kbar": "npm:^2.0.1"
+    "@refinedev/react-router": "npm:^2.0.3"
     "@tabler/icons-react": "npm:^3.34.0"
     "@tailwindcss/postcss": "npm:4.0.7"
+    "@tanstack/react-query": "npm:5"
     "@tiptap/extension-link": "npm:^2.25.0"
     "@tiptap/pm": "npm:^2.25.0"
     "@tiptap/react": "npm:^2.25.0"
@@ -5468,9 +5406,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"antd@npm:^5.17.0":
-  version: 5.28.0
-  resolution: "antd@npm:5.28.0"
+"antd@npm:^5.23.0":
+  version: 5.28.1
+  resolution: "antd@npm:5.28.1"
   dependencies:
     "@ant-design/colors": "npm:^7.2.1"
     "@ant-design/cssinjs": "npm:^1.23.0"
@@ -5524,7 +5462,7 @@ __metadata:
   peerDependencies:
     react: ">=16.9.0"
     react-dom: ">=16.9.0"
-  checksum: 10c0/06c08308a7fc93085770e957d7980c367f7839938aa8b87e018f88dd6b12a12abc230ff80eeda78afa33a4357122ead19da6d16ea1adbe534bc1c352d37fbc8f
+  checksum: 10c0/0fc134a2304e7a86cbec932e05cb816e72042a271336e4c547299cba09020799f910a767ceb6d60590e0647b9b4cf01fe82ca22c1b4e02fd8585d0208c677b4c
   languageName: node
   linkType: hard
 
@@ -5585,13 +5523,6 @@ __metadata:
     react: ">=16.9.0"
     react-dom: ">=16.9.0"
   checksum: 10c0/b8ba5ab9cbd355f0c18167778c5d2ab48c1f84eaf36a9ca04129a6557eac4d54f49bb0878327d71a5b0b53c5f98bcf12f75a6d9b0dc9ef35ac7f6f2ca0419ccf
-  languageName: node
-  linkType: hard
-
-"any-promise@npm:^1.0.0":
-  version: 1.3.0
-  resolution: "any-promise@npm:1.3.0"
-  checksum: 10c0/60f0298ed34c74fef50daab88e8dab786036ed5a7fad02e012ab57e376e0a0b4b29e83b95ea9b5e7d89df762f5f25119b83e00706ecaccb22cfbacee98d74889
   languageName: node
   linkType: hard
 
@@ -6489,13 +6420,6 @@ __metadata:
   version: 9.4.1
   resolution: "commander@npm:9.4.1"
   checksum: 10c0/04ea8ccc6fe3d3d1ca7ca26b06187498af8e6341a2c98b534528d504f8cad95b0c5ac2f3b78a7f0d332da16da9332db2ab9e43cb06241d367e9c7ee75cb76202
-  languageName: node
-  linkType: hard
-
-"commander@npm:^4.0.0":
-  version: 4.1.1
-  resolution: "commander@npm:4.1.1"
-  checksum: 10c0/84a76c08fe6cc08c9c93f62ac573d2907d8e79138999312c92d4155bc2325d487d64d13f669b2000c9f8caf70493c1be2dac74fec3c51d5a04f8bc3ae1830bab
   languageName: node
   linkType: hard
 
@@ -11087,17 +11011,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"mz@npm:^2.7.0":
-  version: 2.7.0
-  resolution: "mz@npm:2.7.0"
-  dependencies:
-    any-promise: "npm:^1.0.0"
-    object-assign: "npm:^4.0.1"
-    thenify-all: "npm:^1.0.0"
-  checksum: 10c0/103114e93f87362f0b56ab5b2e7245051ad0276b646e3902c98397d18bb8f4a77f2ea4a2c9d3ad516034ea3a56553b60d3f5f78220001ca4c404bd711bd0af39
-  languageName: node
-  linkType: hard
-
 "nano-css@npm:^5.6.2":
   version: 5.6.2
   resolution: "nano-css@npm:5.6.2"
@@ -11301,7 +11214,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"object-assign@npm:4.x, object-assign@npm:^4.0.1, object-assign@npm:^4.1.1":
+"object-assign@npm:4.x, object-assign@npm:^4.1.1":
   version: 4.1.1
   resolution: "object-assign@npm:4.1.1"
   checksum: 10c0/1f4df9945120325d041ccf7b86f31e8bcc14e73d29171e37a7903050e96b81323784ec59f93f102ec635bcf6fa8034ba3ea0a8c7e69fa202b87ae3b6cec5a414
@@ -11764,13 +11677,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"pirates@npm:^4.0.1":
-  version: 4.0.7
-  resolution: "pirates@npm:4.0.7"
-  checksum: 10c0/a51f108dd811beb779d58a76864bbd49e239fa40c7984cd11596c75a121a8cc789f1c8971d8bb15f0dbf9d48b76c05bb62fcbce840f89b688c0fa64b37e8478a
-  languageName: node
-  linkType: hard
-
 "pirates@npm:^4.0.6":
   version: 4.0.6
   resolution: "pirates@npm:4.0.6"
@@ -11968,7 +11874,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"prism-react-renderer@npm:^1.3.1, prism-react-renderer@npm:^1.3.5":
+"prism-react-renderer@npm:^1.3.5":
   version: 1.3.5
   resolution: "prism-react-renderer@npm:1.3.5"
   peerDependencies:
@@ -14743,24 +14649,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"sucrase@npm:^3.29.0":
-  version: 3.35.0
-  resolution: "sucrase@npm:3.35.0"
-  dependencies:
-    "@jridgewell/gen-mapping": "npm:^0.3.2"
-    commander: "npm:^4.0.0"
-    glob: "npm:^10.3.10"
-    lines-and-columns: "npm:^1.1.6"
-    mz: "npm:^2.7.0"
-    pirates: "npm:^4.0.1"
-    ts-interface-checker: "npm:^0.1.9"
-  bin:
-    sucrase: bin/sucrase
-    sucrase-node: bin/sucrase-node
-  checksum: 10c0/ac85f3359d2c2ecbf5febca6a24ae9bf96c931f05fde533c22a94f59c6a74895e5d5f0e871878dfd59c2697a75ebb04e4b2224ef0bfc24ca1210735c2ec191ef
-  languageName: node
-  linkType: hard
-
 "sugarss@npm:^5.0.0":
   version: 5.0.0
   resolution: "sugarss@npm:5.0.0"
@@ -14926,24 +14814,6 @@ __metadata:
     mkdirp: "npm:^0.5.1"
     rimraf: "npm:~2.6.2"
   checksum: 10c0/7a1cd75efa65b9ca97fc0dfa752673842d23fa41d9c641a447d86ca986eb7662f0d17771e1edf8d0149e76de3c6e7005faf2ccaa3baf64811c86d1d1a951dda7
-  languageName: node
-  linkType: hard
-
-"thenify-all@npm:^1.0.0":
-  version: 1.6.0
-  resolution: "thenify-all@npm:1.6.0"
-  dependencies:
-    thenify: "npm:>= 3.1.0 < 4"
-  checksum: 10c0/9b896a22735e8122754fe70f1d65f7ee691c1d70b1f116fda04fea103d0f9b356e3676cb789506e3909ae0486a79a476e4914b0f92472c2e093d206aed4b7d6b
-  languageName: node
-  linkType: hard
-
-"thenify@npm:>= 3.1.0 < 4":
-  version: 3.3.1
-  resolution: "thenify@npm:3.3.1"
-  dependencies:
-    any-promise: "npm:^1.0.0"
-  checksum: 10c0/f375aeb2b05c100a456a30bc3ed07ef03a39cbdefe02e0403fb714b8c7e57eeaad1a2f5c4ecfb9ce554ce3db9c2b024eba144843cd9e344566d9fcee73b04767
   languageName: node
   linkType: hard
 
@@ -15120,13 +14990,6 @@ __metadata:
   version: 0.2.0
   resolution: "ts-easing@npm:0.2.0"
   checksum: 10c0/84ec20192310c697ff890ca2e0625e131a32596a7c5956326c9632faca9037abf2dd3de4d81ac358ae9f26a6a2cfe2300f13756b26995f753d882e3d0463e327
-  languageName: node
-  linkType: hard
-
-"ts-interface-checker@npm:^0.1.9":
-  version: 0.1.13
-  resolution: "ts-interface-checker@npm:0.1.13"
-  checksum: 10c0/232509f1b84192d07b81d1e9b9677088e590ac1303436da1e92b296e9be8e31ea042e3e1fd3d29b1742ad2c959e95afe30f63117b8f1bc3a3850070a5142fea7
   languageName: node
   linkType: hard
 
@@ -15562,15 +15425,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"use-editable@npm:^2.3.3":
-  version: 2.3.3
-  resolution: "use-editable@npm:2.3.3"
-  peerDependencies:
-    react: ">= 16.8.0"
-  checksum: 10c0/6e8ae63ed0b9ad9a79d1f88992c6a594da0ad3dd1c67da7c12b73722b2a41f787c611dbe9e640f9cee5738168028219ca3c7b4cf739f096cee8069e82968a7b9
-  languageName: node
-  linkType: hard
-
 "use-isomorphic-layout-effect@npm:^1.1.1":
   version: 1.2.0
   resolution: "use-isomorphic-layout-effect@npm:1.2.0"
@@ -15628,15 +15482,6 @@ __metadata:
   peerDependencies:
     react: ^16.8.0 || ^17.0.0 || ^18.0.0 || ^19.0.0
   checksum: 10c0/ec011a5055962c0f6b509d6e78c0b143f8cd069890ae370528753053c55e3b360d3648e76cfaa854faa7a59eb08d6c5fb1015e60ffde9046d32f5b2a295acea5
-  languageName: node
-  linkType: hard
-
-"use-sync-external-store@npm:^1.2.0":
-  version: 1.6.0
-  resolution: "use-sync-external-store@npm:1.6.0"
-  peerDependencies:
-    react: ^16.8.0 || ^17.0.0 || ^18.0.0 || ^19.0.0
-  checksum: 10c0/35e1179f872a53227bdf8a827f7911da4c37c0f4091c29b76b1e32473d1670ebe7bcd880b808b7549ba9a5605c233350f800ffab963ee4a4ee346ee983b6019b
   languageName: node
   linkType: hard
 

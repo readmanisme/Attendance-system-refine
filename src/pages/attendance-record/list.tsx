@@ -31,7 +31,7 @@ export const AttendanceRecordList = () => {
       },
     ];
   };
-  const { tableProps, setFilters, setCurrent } = useTable({
+  const { tableProps, setFilters, setCurrentPage: setCurrent } = useTable({
     resource: __AttendanceRecord_TableName,
     meta: {
       expand: ["work", "worker_id"],
