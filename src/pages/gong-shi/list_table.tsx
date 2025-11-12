@@ -30,7 +30,7 @@ export default function GongShiList() {
     { value: string; label: string }[]
   >([]);
   // ======================== 暂存 ========================
-  const { tableProps: workerData, setFilters,setCurrent } = useTable({
+  const { tableProps: workerData, setFilters,setCurrentPage: setCurrent } = useTable({
     resource: __Workers_TableName,
     syncWithLocation: false,
     filters: {
@@ -184,7 +184,7 @@ export default function GongShiList() {
 
   // ======================== 获取数据 ========================
 
-  const { data: month_view_data } = useList({
+  const { result: month_view_data } = useList({
     resource: __WorkHours_Month_ViewName,
     // queryOptions: {
     //   enabled: !tableProps.loading,
@@ -195,7 +195,7 @@ export default function GongShiList() {
     },
   });
 
-  const { data: day_view_data } = useList({
+  const { result: day_view_data } = useList({
     resource: __WorkHours_Day_ViewName,
     // queryOptions: {
     //   enabled: !tableProps.loading,
@@ -206,7 +206,7 @@ export default function GongShiList() {
     },
   });
 
-  const { data: attendance_record_data } = useList({
+  const { result: attendance_record_data } = useList({
     resource: __AttendanceRecord_TableName,
     // queryOptions: {
     //   enabled: !tableProps.loading,
@@ -217,7 +217,7 @@ export default function GongShiList() {
     },
   });
 
-  const { data: workType_test_data } = useList({
+  const { result: workType_test_data } = useList({
     resource: __WorkTypes_TableName,
     pagination: {
       mode: "off",

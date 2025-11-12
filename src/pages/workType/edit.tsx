@@ -5,7 +5,7 @@ import React from "react";
 
 export const EditWorkType: React.FC = () => {
   const { formProps, saveButtonProps, form } = useForm();
-  const { data: namelist } = useList({
+  const { result: namelist } = useList({
     pagination: { mode: "off" },
   });
 

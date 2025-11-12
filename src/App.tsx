@@ -2,9 +2,9 @@ import { Refine } from "@refinedev/core";
 import { DevtoolsPanel, DevtoolsProvider } from "@refinedev/devtools";
 import {
   ErrorComponent,
-  ThemedLayoutV2,
-  ThemedSiderV2,
-  ThemedTitleV2,
+  ThemedLayout as ThemedLayoutV2,
+  ThemedSider as ThemedSiderV2,
+  ThemedTitle as ThemedTitleV2,
   useNotificationProvider,
 } from "@refinedev/antd";
 import "@refinedev/antd/dist/reset.css";
@@ -54,13 +54,10 @@ import {
 import {
   IconChecks,
   IconUsers,
-  IconList,
   IconClipboardData,
-  IconLockSquareRounded,
   IconMicroscope,
   IconCoinYen,
   IconReport,
-  IconHome,
   IconBriefcase,
   IconCode,
 } from "@tabler/icons-react";
@@ -201,8 +198,17 @@ function App() {
                 options={{
                   syncWithLocation: false,
                   warnWhenUnsavedChanges: true,
-                  useNewQueryKeys: true,
                   projectId: "1LFZhY-g5ZTkQ-8ndYcP",
+                  reactQuery: {
+                    clientConfig: {
+                      defaultOptions: {
+                        queries: {
+                          staleTime: Infinity, //根据源代码，不会覆盖refine自己的设置
+                          gcTime: 30 * 60 * 1000
+                        },
+                      },
+                    },
+                  },
                 }}
               >
                 <Routes>

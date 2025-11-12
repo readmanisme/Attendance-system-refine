@@ -15,7 +15,7 @@ import { transformFilter } from "./filters";
 export const dataProvider = (pb: PocketBase): DataProvider => ({
   // https://refine.dev/docs/data/data-provider/
   getList: async ({ resource, pagination, filters, sorters, meta }) => {
-    const { current = 1, pageSize = 10, mode = "server" } = pagination ?? {};
+    const { currentPage = 1, pageSize = 10, mode = "server" } = pagination ?? {};
     // refine v5用currentPage，v4用current
     const sort = sorters
       ?.map((s) => `${s.order === "desc" ? "-" : ""}${s.field}`)
@@ -33,7 +33,7 @@ export const dataProvider = (pb: PocketBase): DataProvider => ({
     try {
       if (mode === "server") {
         const { items, totalItems } = await collection.getList(
-          current,
+          currentPage,
           pageSize,
           options
         );

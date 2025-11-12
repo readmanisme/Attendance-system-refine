@@ -1,11 +1,11 @@
 import { QuestionCircleOutlined } from "@ant-design/icons";
-import { useResource } from "@refinedev/core";
+import { useResourceParams } from "@refinedev/core";
 import { FloatButton, Drawer } from "antd";
 import Paragraph from "antd/es/typography/Paragraph";
 import { use, useState } from "react";
 import { useSomeStore } from "@/stores";
 export const GlobalHelp = () => {
-  const { resource } = useResource();
+  const { resource } = useResourceParams();
   const { helpOpen, setHelpOpen } = useSomeStore();
   // 值得注意，由于使用到了useResource这个用到react routerdom的hook，所以需要在路由组件包裹下使用，否则无效
   const helps: Record<string, React.ReactNode> = {
