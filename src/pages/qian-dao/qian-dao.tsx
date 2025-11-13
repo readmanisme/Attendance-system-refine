@@ -13,27 +13,34 @@ import {
   Tag,
   Button,
   Tooltip,
+  Form,
+  InputNumber,
 } from "antd";
 import { IconHelp } from "@tabler/icons-react";
 import { useState, useCallback, useMemo } from "react";
 import dayjs, { Dayjs } from "dayjs";
 import { Card } from "@mantine/core";
-import { useCreateMany } from "@refinedev/core";
-import { ClockCircleOutlined } from "@ant-design/icons";
-import { List, useSelect, useTable } from "@refinedev/antd";
+import { BaseRecord, useCreateMany, useDeleteMany } from "@refinedev/core";
+import { ClockCircleOutlined, DeleteOutlined } from "@ant-design/icons";
+import {
+  DeleteButton,
+  EditButton,
+  List,
+  SaveButton,
+  TextField,
+  useEditableTable,
+  useSelect,
+  useTable,
+} from "@refinedev/antd";
 import { ColumnsType } from "antd/es/table";
 import PySearchSelect from "@/components/PySearchSelect";
-import { useSomeStore } from "@/stores";
 const { Title: AntdTitle } = Typography;
 type WorkerOption = { key: string; label: string; value: string };
 type WorkTypeValue = { value: string; label: string } | undefined;
 
 export default function QianDaoPage() {
   // ======================== useState ========================
-  const { CommonGrouping, setCommonGrouping, setCommonGroupingAll } =
-    useSomeStore();
-  const [cr_value, setCrValue] = useState([]);
-  const [cr_edit, setCrEdit] = useState([true, true, true, true, true]);
+
   const [RangeTime, setRangeTime] = useState<Dayjs[]>([
     dayjs().minute(0).second(0).millisecond(0),
     dayjs().minute(0).second(0).millisecond(0),
@@ -42,7 +49,6 @@ export default function QianDaoPage() {
     () => RangeTime[1].diff(RangeTime[0], "hour", true),
     [RangeTime]
   );
-  console.log(TimeDifference);
   const [CheckDate, setCheckDate] = useState<Dayjs>(
     dayjs().minute(0).second(0).millisecond(0)
   );
@@ -75,12 +81,42 @@ export default function QianDaoPage() {
       lte: formatForDB(end),
     };
   }, [CheckDate, formatForDB]);
+  const formatDateTime = useCallback(
+    (date?: string) =>
+      date ? dayjs(date).format("YYYY-MM-DD HH:mm:ss") : "--",
+    []
+  );
   // ======================== 获取数据 ========================
-  const { tableProps } = useTable({
+  const {
+    tableProps,
+    formProps,
+    isEditing,
+    setId: setEditId,
+    saveButtonProps,
+    cancelButtonProps,
+    editButtonProps,
+    result,
+  } = useEditableTable({
     resource: __AttendanceRecord_TableName,
     pagination: {
       mode: "off",
     },
+    // autoSave: { //不能用autoSave实现在提交之前更改数据，因为你每次修改他都会发送保存请求；如果关掉save那就没这功能了
+    //   enabled: false,
+    //   onFinish: (values) => {
+    //     const hours = values.workTime;
+    //     const check_in = CheckDate.hour(7).minute(0).second(0).millisecond(0);
+    //     const check_out = check_in.add(hours, "hour");
+    //     const r= {
+    //       ...values,
+    //       check_in: formatForDB(check_in),
+    //       check_out: formatForDB(check_out),
+    //     };
+    //     // 去除workTime字段
+    //     const { workTime,...rest } = r;
+    //     return rest;
+    //   },
+    // },
     sorters: {
       permanent: [
         {
@@ -115,7 +151,42 @@ export default function QianDaoPage() {
       expand: ["work", "worker_id"],
     },
   });
+  const handleOnFinish = (values: any) => {
+    //https://refine.dev/docs/ui-integrations/ant-design/hooks/use-form/#how-can-i-change-the-form-data-before-submitting-it-to-the-api
+    const hours = values.workTime;
+    const check_in = CheckDate.hour(7).minute(0).second(0).millisecond(0);
+    const check_out = check_in.add(hours, "hour");
+    const r = {
+      ...values,
+      check_in: formatForDB(check_in),
+      check_out: formatForDB(check_out),
+    };
+    // 去除workTime字段
+    const { workTime, ...rest } = r;
+    if (formProps.onFinish) {
+      formProps.onFinish(rest);
+    }
+    // setEditId(undefined); //不知道为什么在onFinish之后没有退出编辑状态，所以只能手动退出了
+    // 知道了，根据源代码，你需要使用的是formProps.onFinish，而不是直接从useEditableTable返回的onFinish
+  };
+  const statusMap: Record<string, { text: string; color: string }> = {
+    pending: { text: "待签退", color: "warning" },
+    "checked-out": { text: "已签退", color: "default" },
+  };
 
+  const dataSourceWithWorkTime = useMemo(() => {
+    return tableProps.dataSource?.map((item) => {
+      if (!item.check_out) return item;
+      const statuss = item.check_out ? "checked-out" : "pending";
+      const checkIn = dayjs(item.check_in);
+      const checkOut = dayjs(item.check_out);
+      return {
+        ...item,
+        workTime: checkOut.diff(checkIn, "hour", true),
+        statuss: statuss,
+      };
+    });
+  }, [tableProps.dataSource]);
   const { tableProps: kaoqingjilu } = useTable({
     resource: __AttendanceRecord_TableName,
     filters: {
@@ -147,55 +218,28 @@ export default function QianDaoPage() {
 
   // ======================== 表格定义 ========================
 
-  const columns_table: ColumnsType<any> = useMemo(
-    () => [
-      {
-        title: "员工姓名",
-        dataIndex: ["expand", "worker_id", "name"],
-        key: "name",
-      },
-      {
-        title: "签到时间",
-        dataIndex: "check_in",
-        key: "checkInTime",
-        render: (text: string) => (
-          <Space>
-            <ClockCircleOutlined />
-            {dayjs(text).format("YYYY-MM-DD HH:mm:ss")}
-          </Space>
-        ),
-      },
-      {
-        title: "工作",
-        dataIndex: ["expand", "work", "name"],
-        key: "workType",
-      },
-      {
-        title: "状态",
-        key: "status",
-        dataIndex: "status",
-        render: (_: any, record: any) => {
-          const statuss = record.check_out ? "checked-out" : "pending";
-          const statusMap: Record<string, { text: string; color: string }> = {
-            pending: { text: "待签退", color: "warning" },
-            "checked-out": { text: "已签退", color: "default" },
-          };
-          const current = statusMap[statuss];
-          return <Badge status={current.color as any} text={current.text} />;
-        },
-      },
-      {
-        title: "签退时间",
-        dataIndex: "check_out",
-        key: "checkOutTime",
-        render: (text: string) =>
-          text ? dayjs(text).format("YYYY-MM-DD HH:mm:ss") : "-",
-      },
-    ],
-    []
+  // ======================== 设置按钮和提示 ========================
+  const checkOverlap = useCallback(
+    (range2: any) => {
+      const [y, m, d] = [CheckDate.year(), CheckDate.month(), CheckDate.date()];
+      // 确保传入的是dayjs对象
+      const [start1, end1] = RangeTime; //rangetime
+      // 设置start1, end1的年月日
+      start1.year(y).month(m).date(d);
+      end1.year(y).month(m).date(d);
+      // const [start2, end2] = range2.map((time) => dayjs(time));
+      const [start2, end2] = range2;
+
+      // 判断是否有重叠的逻辑
+      return (
+        // (start1.isBefore(end2) || start1.isSame(end2)) &&
+        // (end1.isAfter(start2) || end1.isSame(start2))
+        start1.isBefore(end2) && end1.isAfter(start2)
+      );
+    },
+    [CheckDate, RangeTime]
   );
 
-  // ======================== 设置按钮和提示 ========================
   const {
     luruDisabled,
     alertDescription: AlertDescription,
@@ -216,12 +260,40 @@ export default function QianDaoPage() {
         alertType: "warning" as const,
       };
     }
+    const descs: React.ReactNode[] = [];
+    for (const name of PiLiangNames) {
+      // 找出上一条记录
+      const lastRecord = tableProps.dataSource?.find(
+        (item) => item.worker_id === name.key
+      );
+      if (lastRecord) {
+        // 如果上一条记录存在，判断是否有重叠
+        const lastCheckIn = dayjs(lastRecord.check_in);
+        const lastCheckOut = dayjs(lastRecord.check_out);
+        if (checkOverlap([lastCheckIn, lastCheckOut])) {
+          descs.push(
+            <div key={name.key}>
+              {name.label}，所选时间与上一期签到时间
+              {lastCheckIn.format("YYYY-MM-DD HH:mm:ss")}至
+              {lastCheckOut.format("YYYY-MM-DD HH:mm:ss")}有重叠
+            </div>
+          );
+        }
+      }
+    }
+    if (descs.length > 0) {
+      return {
+        luruDisabled: true,
+        alertDescription: descs,
+        alertType: "error" as const,
+      };
+    }
     return {
       luruDisabled: false,
       alertDescription: "可以录入",
       alertType: "success" as const,
     };
-  }, [PiLiangNames, work_type]);
+  }, [PiLiangNames, checkOverlap, tableProps.dataSource, work_type]);
 
   // ======================== 批量上下班 ========================
 
@@ -257,7 +329,32 @@ export default function QianDaoPage() {
   };
   // ======================== 暂存 ========================
   const hours = [2, 2.5, 5, 7, 7.5, 8, 8.5, 9, 10, 10.5, 12, 13];
+  const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
+  const { mutate: deleteMany } = useDeleteMany();
+  const handleBatchDelete = useCallback(() => {
+    if (!selectedRowKeys.length) return;
+    deleteMany({
+      resource: __AttendanceRecord_TableName,
+      ids: selectedRowKeys as number[],
+    });
+    setSelectedRowKeys([]);
+  }, [deleteMany, selectedRowKeys]);
 
+  // ✅ 用 useMemo 固定 rowSelection 对象引用，避免 tableProps 导致 re-render
+  const rowSelection = useMemo(
+    () => ({
+      selectedRowKeys,
+      onChange: setSelectedRowKeys,
+    }),
+    [selectedRowKeys]
+  );
+  const { selectProps: workSelectProps } = useSelect({
+    resource: __WorkTypes_TableName,
+    optionLabel: "name",
+    pagination: {
+      mode: "off",
+    },
+  });
   // ======================== UI ========================
 
   return (
@@ -313,58 +410,104 @@ export default function QianDaoPage() {
                     mode="multiple"
                     width={702}
                     value={PiLiangNames}
+                    type="qiandao"
+                    // 传不传PiLiangNames，对性能影响似乎不大。如果影响大可以考虑用ref
                   />
                 </Space>
                 <Space direction="vertical">
                   <Space direction="vertical">
-                      <Tooltip title="从7:00开始">
-                        <div className="flex flex-row items-center gap-2">
-                          快速选择工时：
-                          <IconHelp size={16} />
-                        </div>
-                      </Tooltip>
-                      <Space wrap>
-                        {hours.map((hour) => (
-                          <Button
-                            color="blue"
-                            variant="outlined"
-                            key={hour}
-                            size="small"
-                            onClick={() => {
-                              setRangeTime([
-                                dayjs()
-                                  .hour(7)
-                                  .minute(0)
-                                  .second(0)
-                                  .millisecond(0),
-                                dayjs()
-                                  .hour(7)
-                                  .minute(0)
-                                  .second(0)
-                                  .millisecond(0)
-                                  .add(hour, "hour"),
-                              ]);
-                            }}
-                          >
-                            {hour}
-                          </Button>
-                        ))}
-                      </Space>
-                      </Space>
-                      <Space>
-                        <TimePicker.RangePicker
-                          style={{ width: 240 }}
-                          // @ts-expect-error,111
-                          value={RangeTime}
-                          // @ts-expect-error,111
-                          onChange={(time: Dayjs, timeString: string) => {
-                            // @ts-expect-error,111
-                            setRangeTime(time); //这个dayjs仍然有年月日的部分
+                    <Tooltip title="从7:00开始">
+                      <div className="flex flex-row items-center gap-2">
+                        快速选择工时：
+                        <IconHelp size={16} />
+                      </div>
+                    </Tooltip>
+                    <Space wrap>
+                      {hours.map((hour) => (
+                        <Button
+                          color="blue"
+                          variant="filled"
+                          key={hour}
+                          size="small"
+                          onClick={() => {
+                            setRangeTime([
+                              dayjs()
+                                .hour(7)
+                                .minute(0)
+                                .second(0)
+                                .millisecond(0),
+                              dayjs()
+                                .hour(7)
+                                .minute(0)
+                                .second(0)
+                                .millisecond(0)
+                                .add(hour, "hour"),
+                            ]);
                           }}
-                        />
-                        <Tag color="blue" style={{ width: 60 }}>{TimeDifference}小时</Tag>
-                      </Space>
-                  
+                        >
+                          {hour}
+                        </Button>
+                      ))}
+                      <Button
+                        color="blue"
+                        variant="dashed"
+                        size="small"
+                        onClick={() => {
+                          // 如果加了时间之后超出了一天，不作操作
+                          if (
+                            RangeTime[1]
+                              .add(30, "minute")
+                              .isSameOrAfter(dayjs().endOf("day"))
+                          ) {
+                            return;
+                          }
+                          setRangeTime((prev) => [
+                            prev[0], // 保持原来的开始时间不变
+                            dayjs(prev[1]) // 基于原来的结束时间
+                              .add(30, "minute"), // 增加30分钟
+                          ]);
+                        }}
+                      >
+                        +30min
+                      </Button>
+                      <Button
+                        color="blue"
+                        variant="dashed"
+                        size="small"
+                        onClick={() => {
+                          // 如果后面小于等于前面的，不作操作
+                          if (RangeTime[1].isSameOrBefore(RangeTime[0])) {
+                            return;
+                          }
+                          setRangeTime((prev) => [
+                            prev[0], // 保持原来的开始时间不变
+                            dayjs(prev[1]) // 基于原来的结束时间
+                              .subtract(30, "minute"), // 增加30分钟
+                          ]);
+                        }}
+                      >
+                        -30min
+                      </Button>
+                    </Space>
+                  </Space>
+                  <Space>
+                    <TimePicker.RangePicker
+                      style={{ width: 240 }}
+                      allowClear={false}
+                      // @ts-expect-error,111
+                      value={RangeTime}
+                      // @ts-expect-error,111
+                      onChange={(time: Dayjs, timeString: string) => {
+                        // @ts-expect-error,111
+                        setRangeTime(time); //这个dayjs仍然有年月日的部分
+                      }}
+                      format="HH:mm"
+                    />
+                    <Tag color="blue" style={{ width: 60 }}>
+                      {TimeDifference}小时
+                    </Tag>
+                  </Space>
+
                   <Space>
                     <DatePicker
                       style={{ width: 120 }}
@@ -415,73 +558,156 @@ export default function QianDaoPage() {
                 type={AlertType}
                 showIcon
               />
-              <p className="mt-2! mb-0!">常用分组：</p>
-              {/* <Button onClick={()=>setCommonGroupingAll([[],[],[],[],[]])}>修复CommonGrouping</Button> */}
-              {CommonGrouping.map((item, index) => (
-                <Space className="mt-2">
-                  <PySearchSelect
-                    key={index + "select"}
-                    value={item}
-                    onChangeFn={(value: any) => {
-                      setCrValue(value);
-                    }}
-                    placeholder="多选工人,支持拼音"
-                    Laberplaceholder=""
-                    mode="multiple"
-                    width={702}
-                    disabeld={cr_edit[index]}
-                  />
-                  <Button
-                    key={index + "b1"}
-                    onClick={() => {
-                      setCrEdit((prev) => {
-                        const newCrEdit = [...prev];
-                        newCrEdit[index] = !newCrEdit[index]; // 只切换当前index的状态
-                        return newCrEdit;
-                      });
-                    }}
-                  >
-                    {cr_edit[index] ? "编辑" : "取消"}
-                  </Button>
-                  <Button
-                    key={index + "b2"}
-                    danger
-                    onClick={() => {
-                      setCommonGrouping([], index);
-                    }}
-                  >
-                    清空
-                  </Button>
-                  <Button
-                    key={index + "b3"}
-                    onClick={() => {
-                      setCommonGrouping(cr_value, index);
-                    }}
-                  >
-                    保存
-                  </Button>
-                  <Button
-                    key={index + "b4"}
-                    type="primary"
-                    onClick={() => {
-                      setPiLiangNames(item);
-                    }}
-                  >
-                    应用
-                  </Button>
-                </Space>
-              ))}
             </>
           </div>
-          <Table
-            columns={columns_table}
-            {...tableProps}
-            rowKey="id"
-            rowClassName={(record) =>
-              record.check_out === "" ? "bg-blue-50" : ""
-            }
-            // pagination={{ pageSize: 10 }}
-          />
+          <Space direction="vertical">
+            <Space>
+              <Alert
+                type="info"
+                message="在表格中修改工时会使得签到时间变为7:00,如有其他需求可以删除记录然后手动选择时间录入"
+                showIcon
+              />
+              <Popconfirm
+                title="确认删除选中记录？"
+                onConfirm={handleBatchDelete}
+                disabled={!selectedRowKeys.length}
+              >
+                <Button
+                  type="primary"
+                  danger
+                  icon={<DeleteOutlined />}
+                  disabled={!selectedRowKeys.length}
+                >
+                  删除选中 ({selectedRowKeys.length})
+                </Button>
+              </Popconfirm>
+            </Space>
+            <Alert
+              type="info"
+              message="要确定某人是否已经记录，可以1使用Ctrl+F搜索" //还是说已经有记录的显示已录入tag？不推荐，那样的话拼音搜索组件又要改了
+              // showIcon
+            />
+          </Space>
+          <Form {...formProps} onFinish={handleOnFinish}>
+            <Table
+              {...tableProps}
+              className="mt-2"
+              dataSource={dataSourceWithWorkTime}
+              rowKey="id"
+              rowClassName={(record) =>
+                record.check_out === "" ? "bg-blue-50" : ""
+              }
+              rowSelection={rowSelection}
+            >
+              {/* <Table.Column dataIndex="id" title="ID" /> */}
+              <Table.Column
+                dataIndex={["expand", "worker_id", "name"]}
+                title="人员姓名"
+              />
+              <Table.Column
+                dataIndex="statuss"
+                title="状态"
+                render={(value) => {
+                  const current = statusMap[value];
+                  return (
+                    <Badge status={current.color as any} text={current.text} />
+                  );
+                }}
+              />
+              <Table.Column
+                dataIndex="check_in"
+                title="上班时间"
+                render={(value: string) => formatDateTime(value)}
+              />
+              <Table.Column
+                dataIndex="check_out"
+                title="下班时间"
+                render={(value: string) => formatDateTime(value)}
+              />
+              <Table.Column
+                dataIndex="workTime"
+                title="工时"
+                render={(value, record) => {
+                  if (isEditing(record.id)) {
+                    return (
+                      <Form.Item
+                        name="workTime"
+                        style={{ margin: 0 }}
+                        initialValue={value}
+                      >
+                        <InputNumber
+                          min={0}
+                          max={16.5}
+                          step={0.5}
+                          changeOnWheel
+                        />
+                      </Form.Item>
+                    );
+                  }
+                  return <TextField value={value} />;
+                }}
+              />
+              <Table.Column
+                dataIndex={["expand", "work", "name"]}
+                title="工作类型"
+                render={(value, record) => {
+                  if (isEditing(record.id)) {
+                    return (
+                      <Form.Item
+                        name="work"
+                        style={{ margin: 0 }}
+                        // initialValue={record.work} //这里不需要设置，表单根据name自动设置了
+                      >
+                        {/* 这里initialValue要用record.work而不是value，value是汉字，用这个会导致保存的时候保存的是汉字而不是work的id */}
+                        <Select {...workSelectProps} />
+                      </Form.Item>
+                    );
+                  }
+                  return <TextField value={value} />;
+                }}
+              />
+              <Table.Column
+                title="操作"
+                dataIndex="actions"
+                render={(_, record: BaseRecord) => {
+                  // @ts-expect-error,111
+                  if (isEditing(record.id)) {
+                    return (
+                      <Space>
+                        <SaveButton
+                          {...saveButtonProps}
+                          hideText
+                          size="small"
+                        />
+                        <Button {...cancelButtonProps} size="small">
+                          Cancel
+                        </Button>
+                      </Space>
+                    );
+                  }
+                  return (
+                    <Space>
+                      <EditButton
+                        // @ts-expect-error,111
+                        {...editButtonProps(record.id)}
+                        hideText
+                        size="small"
+                        resource={__AttendanceRecord_TableName}
+                        recordItemId={record.id}
+                      />
+                      {/* <ShowButton hideText size="small" recordItemId={record.id} /> */}
+                      <DeleteButton
+                        hideText
+                        size="small"
+                        resource={__AttendanceRecord_TableName}
+                        recordItemId={record.id}
+                      />
+                    </Space>
+                  );
+                }}
+              />
+            </Table>
+          </Form>
         </Card>
       </div>
     </List>

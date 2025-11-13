@@ -7,20 +7,12 @@ import "@mantine/core/styles.css";
 import "./i18nProvider";
 import { Alert, Spin } from "antd";
 import { CustomErrorBoundary } from "@/components/ErrorBoundary";
+import { useSomeStore } from "./stores";
 
-const _error = console.error;
-
-const itemsWarning = "`children` is deprecated. Please use `items` instead";
-// 此处用于禁用Antd的一个不重要警告，为了使用refine
-console.error = function (msg, ...args) {
-  if (!`${msg}`.includes(itemsWarning)) {
-    _error.apply(console, [msg, ...args]);
-  }
-};
 
 const container = document.getElementById("root") as HTMLElement;
 const root = createRoot(container);
-async function pb_health_check() {
+async function pb_health_check(__BACKEND_API_URL__:string) {
   const response = await fetch(__BACKEND_API_URL__ + "/api/health");
   if (!response.ok) {
     throw new Error("Network response was not ok");
@@ -29,6 +21,7 @@ async function pb_health_check() {
 }
 
 const RootComponent = () => {
+    const {__BACKEND_API_URL__ }= useSomeStore();
   const [spinIsOpen, setSpinIsOpen] = React.useState(false);
   // 通过这种方式，我们得以使用useState，不然报错
   const [initializing, setInitializing] = React.useState(true);
@@ -36,7 +29,7 @@ const RootComponent = () => {
     let didCancel = false;
 
     const checkHealth = () => {
-      pb_health_check()
+      pb_health_check(__BACKEND_API_URL__)
         .then((res) => {
           if (!didCancel) {
             setSpinIsOpen(res.code !== 200);

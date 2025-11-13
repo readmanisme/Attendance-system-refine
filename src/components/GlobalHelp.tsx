@@ -110,23 +110,6 @@ export const GlobalHelp = () => {
         </Paragraph>
       </>
     ),
-    后台管理: (
-      <>
-        <Paragraph>
-          1、这里是后台，负责所有数据的储存。仅在完全理解的情况下进行操作。
-        </Paragraph>
-        <Paragraph>
-          2、账号：{__Backend_UserName__} 密码：{__Backend_Password__}
-        </Paragraph>
-        <Paragraph>
-          3、如果觉得此处界面较小，可以点击左下角箭头收起导航栏，或者可以点击
-          <a target="_blank" href={__BACKEND_Admin_URL__}>
-            此处
-          </a>
-          在新标签中打开。密码账号不变
-        </Paragraph>
-      </>
-    ),
     undefined: "当前页面未设置label",
   };
   return (

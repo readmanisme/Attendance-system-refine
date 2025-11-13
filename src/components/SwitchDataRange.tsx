@@ -7,7 +7,7 @@ export const SwitchDataRange = ({ onApplyFn = () => {} }) => {
   const { RangePicker } = DatePicker;
   const [temp, setTemp] = useState<string[]>(recordDateRange);
   return (
-    <div className="flex flex-row justify-end items-center mb-2  gap-2">
+    <div className="flex flex-row justify-end items-center gap-2">
       <RangePicker
         allowClear={false}
         className="w-56"

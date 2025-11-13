@@ -30,7 +30,11 @@ export default function GongShiList() {
     { value: string; label: string }[]
   >([]);
   // ======================== 暂存 ========================
-  const { tableProps: workerData, setFilters,setCurrentPage: setCurrent } = useTable({
+  const {
+    tableProps: workerData,
+    setFilters,
+    setCurrentPage: setCurrent,
+  } = useTable({
     resource: __Workers_TableName,
     syncWithLocation: false,
     filters: {
@@ -377,6 +381,7 @@ export default function GongShiList() {
   }, [dayDuringSalaryMap, daySalaryMap, monthSalaryMap, matchSalaryMap]);
 
   // ======================== 导出xlsx文件 ========================
+  const { __BACKEND_API_URL__ } = useSomeStore();
 
   const exportToExcel = useCallback(async () => {
     setIsExportLoading(true);
@@ -384,11 +389,11 @@ export default function GongShiList() {
       const { default: exportExcel } = await import(
         "@/pages/gong-shi/export_xlsx"
       );
-      await exportExcel(exportRange, SalaryDict);
+      await exportExcel(exportRange, SalaryDict, __BACKEND_API_URL__);
     } finally {
       setIsExportLoading(false);
     }
-  }, [exportRange, SalaryDict]);
+  }, [exportRange, SalaryDict, __BACKEND_API_URL__]);
   // ======================== 拓展表定义 ========================
 
   const TableExpandedRowRender = useCallback(
@@ -623,14 +628,14 @@ export default function GongShiList() {
                 } else {
                   setSelectedPerson([value]);
                 }
-                setCurrent(1)
+                setCurrent(1);
               }}
               placeholder="多选工人,支持拼音"
               mode="multiple"
               needButton={true}
               onClearFn={() => {
                 setSelectedPerson([]);
-                setCurrent(1)
+                setCurrent(1);
               }}
             />
             <Popconfirm

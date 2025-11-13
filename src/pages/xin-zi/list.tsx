@@ -11,7 +11,6 @@ import { Table, Space } from "antd";
 
 export const SalaryTypeList = () => {
   const { tableProps } = useTable({
-    syncWithLocation: true,
     resource: __SalaryType_TableName,
     meta: {
       expand: ["worker_name", "work_type"],
@@ -57,7 +56,7 @@ export const SalaryTypeList = () => {
                 recordItemId={record.id}
                 // disabled={record.expand?.work_type?.name === "基础"}
               />
-              <ShowButton hideText size="small" recordItemId={record.id} />
+              {/* <ShowButton hideText size="small" recordItemId={record.id} /> */}
               <DeleteButton
                 disabled={record.expand?.work_type?.name === "基础"}
                 hideText

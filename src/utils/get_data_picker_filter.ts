@@ -27,6 +27,12 @@ export const useGetDatePickerFilter = () => {
         operator: "lte",
         value: end,
       },
+      {
+        field: "worker_id",
+        // 这里合适着了，不用改成check_out
+        operator: "ne",
+        value: "",
+      },
     ];
   }, [recordDateRange]); // 只有在 recordDateRange 变化时才重新计算
 };

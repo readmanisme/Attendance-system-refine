@@ -6,10 +6,13 @@ import dayjs from "dayjs";
 import "dayjs/locale/zh-cn";
 import timezone from "dayjs/plugin/timezone";
 import utc from "dayjs/plugin/utc";
-
+import isSameOrBefore from "dayjs/plugin/isSameOrBefore";
+import isSameOrAfter from "dayjs/plugin/isSameOrAfter";
 dayjs.locale("zh-cn");
 dayjs.extend(utc);
 dayjs.extend(timezone);
+dayjs.extend(isSameOrBefore);
+dayjs.extend(isSameOrAfter);
 // dayjs.tz.setDefault("Africa/Abidjan")
 // 这个12个月时间都和UTC保持一致，london不一定
 

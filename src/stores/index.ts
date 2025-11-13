@@ -8,9 +8,8 @@ interface SomeState {
   setRecordDateRange: (data: string[]) => void;
   helpOpen: boolean;
   setHelpOpen: (open: boolean) => void;
-  CommonGrouping: any[][];
-  setCommonGrouping: (data: any[][], index: number) => void;
-  setCommonGroupingAll: (data: any[][]) => void;
+  __BACKEND_API_URL__: string;
+  set__BACKEND_API_URL__: (url: string) => void;
 }
 
 export const useSomeStore = create<SomeState>()(
@@ -27,15 +26,10 @@ export const useSomeStore = create<SomeState>()(
           }),
         helpOpen: false,
         setHelpOpen: (open: boolean) => set({ helpOpen: open }),
-        CommonGrouping: [[], [], [], [], []],
-        setCommonGrouping: (data: any[], index: number) =>
-          set((state) => {
-            state.CommonGrouping[index] = data;
-            return state;
-          }),
-        setCommonGroupingAll: (data: any[][]) =>
+        __BACKEND_API_URL__: "http://localhost:29401",
+        set__BACKEND_API_URL__: (url: string) =>
           set({
-            CommonGrouping: data,
+            __BACKEND_API_URL__: url,
           }),
       }),
       {

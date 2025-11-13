@@ -16,7 +16,8 @@ interface PySearchSelectProps {
   needButton?: boolean;
   width?: number;
   disabeld?: boolean;
-  value?: [{ value: string; label: string }];
+  type?: string;
+  value?: any;
 }
 /**
  * 自定义的选择器，支持拼音搜索,
@@ -33,6 +34,7 @@ export default function PySearchSelect({
   needButton = false,
   width = 250,
   disabeld = false,
+  type = undefined,
   value = undefined,
 }: PySearchSelectProps) {
   const [highlightWords, setHighlightWords] = useState<string[]>([]);
@@ -95,8 +97,8 @@ export default function PySearchSelect({
     []
   );
 
-  const otherOptions = {}; //可以用于根据条件加入参数
-  if (value) {
+  const otherOptions:any = {}; //可以用于根据条件加入参数
+  if (type === "qiandao") {
     otherOptions.value = value;
   }
 
@@ -158,7 +160,6 @@ export default function PySearchSelect({
         labelInValue
         optionFilterProp="label"
         style={{ width: width }}
-        // @ts-expect-error, 111
         filterOption={handleFilter}
         onChange={handleChange} //选择和删除选项触发，输入内容不触发
         onClear={handleClear}
