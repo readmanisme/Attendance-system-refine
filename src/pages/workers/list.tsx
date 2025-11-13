@@ -38,7 +38,6 @@ export const WorkersList = () => {
     setFilters,
     setCurrentPage: setCurrent,
   } = useTable({
-    syncWithLocation: true,
     sorters: {
       permanent: [
         {
@@ -95,9 +94,9 @@ console.log("workerData",workerData)
               <EditButton size="small" recordItemId={record.id}>
                 编辑
               </EditButton>
-              <ShowButton size="small" recordItemId={record.id}>
+              {/* <ShowButton size="small" recordItemId={record.id}>
                 查看
-              </ShowButton>
+              </ShowButton> */}
               <DeleteButton size="small" recordItemId={record.id}>
                 删除
               </DeleteButton>

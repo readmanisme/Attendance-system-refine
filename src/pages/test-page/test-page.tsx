@@ -2,15 +2,20 @@ import { useState } from "react";
 import { Alert, Button, Space } from "antd";
 import { sample, sampleSize } from "es-toolkit/array";
 import dayjs from "dayjs";
-import pb from "@/utils/pocketbase";
+// import pb from "@/utils/pocketbase";
+import { useSomeStore } from "@/stores";
+
 import {
   useCreateMany,
   useDeleteMany,
   useMany,
   useUpdateMany,
 } from "@refinedev/core";
+import { getPb } from "@/utils/pocketbase";
 const _ = { sample, sampleSize };
 export function TestPage() {
+  const { __BACKEND_API_URL__ } = useSomeStore();
+  const pb = getPb(__BACKEND_API_URL__);
   const 集合 = {
     考勤记录: __AttendanceRecord_TableName,
     工人: __Workers_TableName,
@@ -90,8 +95,8 @@ export function TestPage() {
     const attendance_record_test_data = () => {
       const attendance_records = [];
       for (const day of validDates) {
-        const that_day_workers = _.sampleSize(workers_2, 80);
-        for (const worker of that_day_workers) {
+        const that_day_workers:any = _.sampleSize(workers_2, 80);
+        for (const worker  of that_day_workers) {
           // const work = _.sample(workType_2).id
           const worker_id = worker.id;
           const work_segments = _.sample([1, 2, 3]);
@@ -118,6 +123,7 @@ export function TestPage() {
             });
             attendance_records.push({
               worker_id: worker_id,
+              // @ts-expect-error,111
               work: _.sample(workType_2)?.id,
               check_in: check_in,
               check_out: check_out,
@@ -165,12 +171,14 @@ export function TestPage() {
             });
             attendance_records.push({
               worker_id: worker_id,
+              // @ts-expect-error,111
               work: _.sample(workType_2)?.id,
               check_in: check_in_1,
               check_out: check_out_1,
             });
             attendance_records.push({
               worker_id: worker_id,
+              // @ts-expect-error,111
               work: _.sample(workType_2)?.id,
               check_in: check_in_2,
               check_out: check_out_2,
@@ -238,18 +246,21 @@ export function TestPage() {
             });
             attendance_records.push({
               worker_id: worker_id,
+              // @ts-expect-error,111
               work: _.sample(workType_2)?.id,
               check_in: check_in_1,
               check_out: check_out_1,
             });
             attendance_records.push({
               worker_id: worker_id,
+              // @ts-expect-error,111
               work: _.sample(workType_2)?.id,
               check_in: check_in_2,
               check_out: check_out_2,
             });
             attendance_records.push({
               worker_id: worker_id,
+              // @ts-expect-error,111
               work: _.sample(workType_2)?.id,
               check_in: check_in_3,
               check_out: check_out_3,

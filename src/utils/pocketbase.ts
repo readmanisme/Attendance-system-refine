@@ -1,7 +1,11 @@
 // src/lib/pocketbase.js
 import PocketBase from "pocketbase";
 
-const pb = new PocketBase(__BACKEND_API_URL__);
-// 或者 const pb = new PocketBase(process.env.REACT_APP_BACKEND_API_URL);
+const instances = new Map();
 
-export default pb;
+export const getPb = (apiUrl: string) => {
+  if (!instances.has(apiUrl)) {
+    instances.set(apiUrl, new PocketBase(apiUrl));
+  }
+  return instances.get(apiUrl);
+};

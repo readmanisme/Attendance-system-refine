@@ -11,7 +11,6 @@ import { Table, Space } from "antd";
 
 export const ListWorkType = () => {
   const { tableProps } = useTable({
-    syncWithLocation: true,
   });
   return (
     <List headerButtons={<CreateButton>添加工作</CreateButton>}>
@@ -43,7 +42,7 @@ export const ListWorkType = () => {
                 recordItemId={record.id}
                 disabled={record.name === "基础"}
               />
-              <ShowButton hideText size="small" recordItemId={record.id} />
+              {/* <ShowButton hideText size="small" recordItemId={record.id} /> */}
               <DeleteButton
                 disabled={record.name === "基础"}
                 hideText

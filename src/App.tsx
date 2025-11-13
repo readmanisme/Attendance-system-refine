@@ -19,38 +19,25 @@ import { BrowserRouter, Outlet, Route, Routes } from "react-router";
 import { Header } from "./components/header";
 import { ColorModeContextProvider } from "./contexts/color-mode";
 import { TestPage } from "./pages/test-page/test-page";
-import {
-  WorkersCreate,
-  WorkersEdit,
-  WorkersList,
-  WorkersShow,
-} from "./pages/workers";
-import { dataProvider as pocketbaseDataProvider } from "./providers/pocketbase";
-import {
-  AttendanceRecordCreate,
-  AttendanceRecordEdit,
-  AttendanceRecordList,
-  AttendanceRecordShow,
-} from "./pages/attendance-record";
-import { Badge, MantineProvider } from "@mantine/core";
+import { WorkersCreate } from "./pages/workers/create";
+import { WorkersEdit } from "./pages/workers/edit";
+import { WorkersList } from "./pages/workers/list";
+import { dataProvider as pocketbaseDataProvider } from "./providers/pocketbase/dataProvider";
+import { AttendanceRecordEdit } from "./pages/attendance-record/edit";
+import { AttendanceRecordList } from "./pages/attendance-record/list";
+import { MantineProvider } from "@mantine/core";
 import logo from "@/public/logo-64.webp?inline";
 import QianDaoPage from "./pages/qian-dao/qian-dao";
-// import XinZiList from "./pages/xin-zi/list";
-// import XinZiShow from "./pages/xin-zi/show";
 import GongShiList from "./pages/gong-shi/list_table";
-// import ZhuYe from "./pages/zhu-ye/zhu-ye";
 import {
   SampleList,
   SampleCreate,
   SampleEdit,
   SampleShow,
 } from "./pages/Inferencer_example";
-import {
-  ShowWorkType,
-  EditWorkType,
-  CreateWorkType,
-  ListWorkType,
-} from "./pages/workType";
+import { EditWorkType } from "./pages/workType/edit";
+import { CreateWorkType } from "./pages/workType/create";
+import { ListWorkType } from "./pages/workType/list";
 import {
   IconChecks,
   IconUsers,
@@ -61,15 +48,13 @@ import {
   IconBriefcase,
   IconCode,
 } from "@tabler/icons-react";
-import {
-  SalaryTypeList,
-  SalaryTypeCreate,
-  SalaryTypeEdit,
-  SalaryTypeShow,
-} from "./pages/xin-zi";
+import { SalaryTypeCreate } from "./pages/xin-zi/create";
+import { SalaryTypeEdit } from "./pages/xin-zi/edit";
+import { SalaryTypeList } from "./pages/xin-zi/list";
 import { GlobalHelp } from "./components/GlobalHelp";
 import { useTranslation } from "react-i18next";
-import pb from "@/utils/pocketbase";
+import { getPb } from "@/utils/pocketbase";
+import { useSomeStore } from "./stores";
 const devOnlyRoutesConfig = import.meta.env.DEV
   ? [
       {
@@ -107,6 +92,8 @@ const devOnlyRoutes = import.meta.env.DEV ? (
 );
 function App() {
   const { t, i18n } = useTranslation();
+  const {__BACKEND_API_URL__ }= useSomeStore();
+  const pb = getPb(__BACKEND_API_URL__);
   const i18nProvider = {
     //@ts-expect-error,正常的
     translate: (key: string, params: object) => t(key, params),
@@ -204,7 +191,7 @@ function App() {
                       defaultOptions: {
                         queries: {
                           staleTime: Infinity, //根据源代码，不会覆盖refine自己的设置
-                          gcTime: 30 * 60 * 1000
+                          gcTime: 30 * 60 * 1000,
                         },
                       },
                     },
@@ -263,34 +250,34 @@ function App() {
                     </Route>
                     <Route path="/attendance-record">
                       <Route index element={<AttendanceRecordList />} />
-                      <Route
+                      {/* <Route
                         path="create"
                         element={<AttendanceRecordCreate />}
-                      />
+                      /> */}
                       <Route
                         path="edit/:id"
                         element={<AttendanceRecordEdit />}
                       />
-                      <Route
+                      {/* <Route
                         path="show/:id"
                         element={<AttendanceRecordShow />}
-                      />
+                      /> */}
                     </Route>
                     <Route path="/workers">
                       <Route index element={<WorkersList />} />
                       <Route path="create" element={<WorkersCreate />} />
                       <Route path="edit/:id" element={<WorkersEdit />} />
-                      <Route path="show/:id" element={<WorkersShow />} />
+                      {/* <Route path="show/:id" element={<WorkersShow />} /> */}
                     </Route>
                     <Route path="/workType">
                       <Route index element={<ListWorkType />} />
                       <Route path="create" element={<CreateWorkType />} />
                       <Route path="edit/:id" element={<EditWorkType />} />
-                      <Route path="show/:id" element={<ShowWorkType />} />
+                      {/* <Route path="show/:id" element={<ShowWorkType />} /> */}
                     </Route>
                     <Route path="/xinzi">
                       <Route index element={<SalaryTypeList />} />
-                      <Route path="show/:id" element={<SalaryTypeShow />} />
+                      {/* <Route path="show/:id" element={<SalaryTypeShow />} /> */}
                       <Route path="create" element={<SalaryTypeCreate />} />
                       <Route path="edit/:id" element={<SalaryTypeEdit />} />
                     </Route>

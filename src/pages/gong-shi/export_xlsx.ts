@@ -1,12 +1,14 @@
 import dayjs from "dayjs";
 import Decimal from "decimal.js";
-
+import { getPb } from "@/utils/pocketbase";
 const exportExcel = async (
   export_range: dayjs.Dayjs[],
-  SalaryDict: Record<string, number>
+  SalaryDict: Record<string, number>,
+  __BACKEND_API_URL__: string,
 ) => {
   const XLSX = await import("xlsx");
-  const { default: pb } = await import("@/utils/pocketbase");
+  // const { default: pb } = await import("@/utils/pocketbase");
+    const pb = getPb(__BACKEND_API_URL__);
   const 集合 = {
     考勤记录: __AttendanceRecord_TableName,
     工人: __Workers_TableName,
@@ -31,14 +33,14 @@ const exportExcel = async (
   const workers = await pb.collection(集合.工人).getFullList();
   const workTypes = await pb.collection(集合.工作类型).getFullList();
   const workerDetails = workers.reduce(
-    (acc: Record<string, string>, worker) => {
+    (acc: Record<string, string>, worker:any) => {
       acc[worker.id] = worker.name;
       return acc;
     },
     {}
   );
   const workTypeDetails = workTypes.reduce(
-    (acc: Record<string, string>, workType) => {
+    (acc: Record<string, string>, workType:any) => {
       acc[workType.id] = workType.name;
       return acc;
     },
@@ -57,7 +59,7 @@ const exportExcel = async (
       "work_date >= '" + start_day + "' && work_date <= '" + end_day + "'",
     // work_date在数据库中的类型不像日期，但确实能这么过滤
   });
-  const attendanceSheetData = attendanceRecords.map((record) => {
+  const attendanceSheetData = attendanceRecords.map((record:any) => {
     const dbID = record.id;
     const duration = Decimal.div(
       dayjs(record.check_out).diff(dayjs(record.check_in)),
@@ -92,7 +94,7 @@ const exportExcel = async (
     };
   });
 
-  const workHoursDaySheetData = workHoursDay.map((record) => {
+  const workHoursDaySheetData = workHoursDay.map((record:any) => {
     const worker_name = workerDetails[record.worker_id];
     const date = record.work_date;
     // 通过attendanceSheetData，筛选worker和date相同的记录，计算每天的薪资
@@ -123,7 +125,7 @@ const exportExcel = async (
     const month = record.work_month;
     // 通过workHoursDaySheetData，筛选worker和month相同的记录，计算每月的薪资
     const work_hours_day_records = workHoursDaySheetData.filter(
-      (record) =>
+      (record:any) =>
         record.工人 === worker_name &&
         dayjs(record.日期).format("YYYY-MM") === month
     );
@@ -132,7 +134,7 @@ const exportExcel = async (
     //   0
     // );
     const xinzi = work_hours_day_records.reduce(
-      (acc, record) => Decimal.add(acc, record.薪资),
+      (acc:any, record:any) => Decimal.add(acc, record.薪资),
       new Decimal(0)
     );
     return {
