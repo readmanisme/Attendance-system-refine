@@ -34,7 +34,7 @@ import { useCreateMany, useGo, useList, useResourceParams } from "@refinedev/cor
     },
   });
   const [inputValue, setInputValue] = useState("");
-  const existingNames = useMemo(() => new Set(namelist?.data.map((i) => i.name) || []), [namelist]);
+  const existingNames = useMemo(() => new Set(namelist?.data.map((i) => i.name) || []), [namelist?.data]);
 
   const validateNames = useCallback(
     (value: string) => {

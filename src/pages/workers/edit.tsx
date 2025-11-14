@@ -27,7 +27,7 @@ import React from "react";
     } else {
       setErrorMsg(null);
     }
-  }, [nameValue, namelist]);
+  }, [nameValue, namelist?.data]);
 
   return (
     <Edit

@@ -53,6 +53,7 @@ export default function QianDaoPage() {
   const TimeDifference = useMemo(() => RangeTime[1].diff(RangeTime[0], "hour", true), [RangeTime]);
   const [CheckDate, setCheckDate] = useState<Dayjs>(dayjs().minute(0).second(0).millisecond(0));
   const IsPast = useMemo(() => CheckDate.isBefore(dayjs(), "day"), [CheckDate]);
+  const IsFuture = useMemo(() => CheckDate.isAfter(dayjs(), "day"), [CheckDate]);
   const [work_type, set_work_type] = useState<WorkTypeValue>(undefined); //签到的时候要用
   const [PiLiangNames, setPiLiangNames] = useState<WorkerOption[]>([]);
 
@@ -82,6 +83,7 @@ export default function QianDaoPage() {
       lte: formatForDB(end),
     };
   }, [CheckDate, formatForDB]);
+
   const formatDateTime = useCallback(
     (date?: string) => (date ? dayjs(date).format("YYYY-MM-DD HH:mm:ss") : "--"),
     []
@@ -185,31 +187,10 @@ export default function QianDaoPage() {
     });
   }, [tableProps.dataSource]);
 
-  const { tableProps: kaoqingjilu } = useTable({
-    resource: __AttendanceRecord_TableName,
-    filters: {
-      // 这里operator是null的实际是不等于null，nnull实际上是等于null
-      permanent: [
-        {
-          field: "check_out",
-          operator: "eq",
-          value: "",
-        },
-      ],
-    },
-  });
-
   // ======================== 计算衍生数据 ========================
-  const dates = useMemo(
-    () => (kaoqingjilu?.dataSource ?? []).map((item) => dayjs(item.check_in).format("YYYY-MM-DD")),
-    [kaoqingjilu?.dataSource]
-  );
-  const uniqueDates = useMemo(() => Array.from(new Set(dates)), [dates]);
 
-  const datesWithoutToday = useMemo(
-    () => uniqueDates.filter((date) => date !== CheckDate.format("YYYY-MM-DD")),
-    [uniqueDates, CheckDate]
-  );
+
+
 
   // ======================== 表格定义 ========================
 
@@ -313,7 +294,7 @@ export default function QianDaoPage() {
       alertDescription: "可以录入",
       alertType: "success" as const,
     };
-  }, [PiLiangNames, checkOverlap, tableProps.dataSource, work_type]);
+  }, [PiLiangNames, checkOverlap, recordsByWorkerId, work_type]);
 
   // ======================== 批量上下班 ========================
 
@@ -402,30 +383,13 @@ export default function QianDaoPage() {
               签到录入系统
             </AntdTitle>
             <>
-              <Alert
-                className={datesWithoutToday.length ? "" : "hidden!"}
-                message={"以下日期存在未下班人员：" + datesWithoutToday.join(", ")}
-                type="error"
-                showIcon
-              />
               <div className="flex flex-col sm:flex-row gap-4 justify-between items-end mb-6 mt-2">
                 <Space direction="vertical" className="w-full">
                   <Flex gap="small">
                     <Alert
                       className="flex-1"
-                      message={
-                        datesWithoutToday.length > 0
-                          ? `以下日期存在未下班人员：${datesWithoutToday.join(", ")}`
-                          : "往日不存在未下班人员"
-                      }
-                      type={datesWithoutToday.length > 0 ? "error" : "success"}
-                      showIcon
-                    />
-
-                    <Alert
-                      className="flex-1"
-                      message={IsPast ? "你正在过去日期中进行操作" : "你正在录入今日数据"}
-                      type={IsPast ? "warning" : "success"}
+                      message={IsPast ? "你正在过去日期中进行操作" : IsFuture ? "你正在未来日期中进行操作" : "你正在录入今日数据"}
+                      type={IsPast ? "warning" : IsFuture ? "error" : "success"}
                       showIcon
                     />
                   </Flex>

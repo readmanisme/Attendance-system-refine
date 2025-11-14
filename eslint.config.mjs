@@ -1,15 +1,13 @@
 import reactRefresh from "eslint-plugin-react-refresh";
 import globals from "globals";
 import tsParser from "@typescript-eslint/parser";
-import path from "node:path";
-import { fileURLToPath } from "node:url";
-import * as reactHooks from "eslint-plugin-react-hooks";
+import reactHooks from "eslint-plugin-react-hooks";
 import tseslint from "typescript-eslint";
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+import { defineConfig } from "eslint/config";
 
-export default [
-  reactHooks.configs.recommended,
+export default defineConfig(
+  reactHooks.configs.flat.recommended,
+  reactRefresh.configs.vite,
   ...tseslint.configs.recommended,
   {
     files: ["**/*.ts", "**/*.tsx"],
@@ -22,13 +20,14 @@ export default [
       },
     },
     plugins: {
-      "react-refresh": reactRefresh,
+      // "react-hooks": reactHooks,
+      // "react-refresh": reactRefresh,
     },
     rules: {
-      "react-refresh/only-export-components": "warn",
-      "@typescript-eslint/no-unused-vars": "warn",
-      "@typescript-eslint/no-explicit-any": "warn",
-      "react-hooks/react-compiler": "error",
+      // "react-refresh/only-export-components": "warn",
+      "@typescript-eslint/no-unused-vars": "off",
+      "@typescript-eslint/no-explicit-any": "off",
+      // "react-hooks/react-compiler": "error",
     },
-  },
-];
+  }
+);

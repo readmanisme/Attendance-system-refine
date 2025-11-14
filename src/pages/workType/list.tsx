@@ -1,4 +1,4 @@
-import { BaseRecord } from "@refinedev/core";
+import { BaseRecord, useList } from "@refinedev/core";
 import {
   useTable,
   List,
@@ -9,8 +9,10 @@ import {
 } from "@refinedev/antd";
 import { Table, Space, Alert } from "antd";
 
- const ListWorkType = () => {
+const ListWorkType = () => {
   const { tableProps } = useTable({});
+  const { result } = useList({ resource: __WorkRecordNum_TableName, pagination: { mode: "off" } });
+  const WorkRecordNum = new Map(result.data.map((item: any) => [item.work_id, item.record_count]));
   return (
     <List headerButtons={<CreateButton>添加工作</CreateButton>}>
       <Alert
@@ -19,6 +21,13 @@ import { Table, Space, Alert } from "antd";
         type="info"
         showIcon
       />
+      <Alert
+        className="mb-2!"
+        message="删除工作将一并删除与之相关的考勤记录和薪资计算方式"
+        type="warning"
+        showIcon
+      />
+
       <Table {...tableProps} rowKey="id">
         {/* <Table.Column
                     dataIndex="collectionName"
@@ -31,6 +40,11 @@ import { Table, Space, Alert } from "antd";
                 /> */}
         <Table.Column dataIndex="id" title="Id" />
         <Table.Column dataIndex="name" title="名字" />
+        <Table.Column
+          dataIndex="num"
+          title="考勤记录数"
+          render={(text: any, record: any) => WorkRecordNum.get(record.id)}
+        />
         {/* <Table.Column
                     dataIndex={["updated"]}
                     title="Updated"
@@ -48,12 +62,18 @@ import { Table, Space, Alert } from "antd";
                 disabled={record.name === "基础"}
               />
               {/* <ShowButton hideText size="small" recordItemId={record.id} /> */}
+
               <DeleteButton
                 disabled={record.name === "基础"}
-                hideText
+                type={WorkRecordNum.get(record.id) > 0 ? "link" : "dashed"}
+                confirmTitle={
+                  WorkRecordNum.get(record.id) > 0
+                    ? "删除工作将一并删除相关考勤记录！"
+                    : "确定删除吗？"
+                }
                 size="small"
                 recordItemId={record.id}
-              />
+              ></DeleteButton>
             </Space>
           )}
         />

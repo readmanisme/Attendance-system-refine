@@ -36,7 +36,7 @@ import React, { useCallback, useMemo, useState } from "react";
   const [inputValue, setInputValue] = useState("");
 
   /** ✅ 提前缓存已有姓名集合，O(1) 查找 */
-  const existingNames = useMemo(() => new Set(namelist?.data.map((i) => i.name) || []), [namelist]);
+  const existingNames = useMemo(() => new Set(namelist?.data.map((i) => i.name) || []), [namelist?.data]);
 
   /** ✅ 校验逻辑提取为纯函数 */
   const validateNames = useCallback(
