@@ -8,6 +8,7 @@ import {
   CreateButton,
 } from "@refinedev/antd";
 import { Table, Space } from "antd";
+import { useMemo } from "react";
 
 export const SalaryTypeList = () => {
   const { tableProps } = useTable({
@@ -17,7 +18,8 @@ export const SalaryTypeList = () => {
     },
   });
   // 重新排序，让["expand", "work_type", "name"]为“基础”的排在第一行
-  const sortedDataSource = [...(tableProps?.dataSource || [])].sort((a, b) => {
+const sortedDataSource = useMemo(() => {
+  return [...(tableProps?.dataSource || [])].sort((a, b) => {
     if (
       a.expand?.work_type?.name === "基础" &&
       b.expand?.work_type?.name !== "基础"
@@ -32,6 +34,8 @@ export const SalaryTypeList = () => {
     }
     return 0;
   });
+}, [tableProps?.dataSource]); // 依赖项：仅当 dataSource 变化时重新计算
+
   return (
     <List headerButtons={<CreateButton>添加记录</CreateButton>}>
       <Table {...tableProps} dataSource={sortedDataSource} rowKey="id">

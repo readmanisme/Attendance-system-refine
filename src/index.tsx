@@ -1,68 +1,79 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import { createRoot } from "react-dom/client";
 import "@ant-design/v5-patch-for-react-19";
-import App from "./App";
-import "./style/index.css";
 import "@mantine/core/styles.css";
+import "./style/index.css";
 import "./i18nProvider";
+
 import { Alert, Spin } from "antd";
+import App from "./App";
 import { CustomErrorBoundary } from "@/components/ErrorBoundary";
 import { useSomeStore } from "./stores";
 
-
-const container = document.getElementById("root") as HTMLElement;
+const container = document.getElementById("root")!;
 const root = createRoot(container);
-async function pb_health_check(__BACKEND_API_URL__:string) {
-  const response = await fetch(__BACKEND_API_URL__ + "/api/health");
-  if (!response.ok) {
-    throw new Error("Network response was not ok");
+
+async function pbHealthCheck(apiUrl: string) {
+  try {
+    const res = await fetch(`${apiUrl}/api/health`, { cache: "no-store" });
+    if (!res.ok) throw new Error("Network error");
+    return res.json();
+  } catch {
+    return { code: -1 }; // 统一返回结构，避免捕获层级过深
   }
-  return await response.json();
 }
 
-const RootComponent = () => {
-    const {__BACKEND_API_URL__ }= useSomeStore();
-  const [spinIsOpen, setSpinIsOpen] = React.useState(false);
-  // 通过这种方式，我们得以使用useState，不然报错
-  const [initializing, setInitializing] = React.useState(true);
+const RootComponent: React.FC = () => {
+  const { __BACKEND_API_URL__ } = useSomeStore();
+  const [status, setStatus] = useState<"loading" | "ok" | "error">("loading");
+
+  const checkHealth = useCallback(async () => {
+    const result = await pbHealthCheck(__BACKEND_API_URL__);
+    setStatus(result.code === 200 ? "ok" : "error");
+  }, [__BACKEND_API_URL__]);
+
   useEffect(() => {
-    let didCancel = false;
+    let cancelled = false;
 
-    const checkHealth = () => {
-      pb_health_check(__BACKEND_API_URL__)
-        .then((res) => {
-          if (!didCancel) {
-            setSpinIsOpen(res.code !== 200);
-            setInitializing(false);
-          }
-        })
-        .catch(() => {
-          if (!didCancel) {
-            setSpinIsOpen(true);
-            setInitializing(false);
-          }
-        });
+    const runCheck = async () => {
+      await checkHealth();
+      if (!cancelled) {
+        // 每 5 秒检测一次
+        const interval = setInterval(checkHealth, 5000);
+        return () => clearInterval(interval);
+      }
     };
-    checkHealth();
-    // 首先执行一次 0.5s 的健康检查
-    // const fastInterval = setInterval(checkHealth, 500);
-    // setTimeout(() => {
-    // clearInterval(fastInterval);
 
-    // 然后执行 5s 的健康检查
-    const slowInterval = setInterval(checkHealth, 5000);
+    runCheck();
 
     return () => {
-      didCancel = true;
-      clearInterval(slowInterval);
+      cancelled = true;
     };
-  }, []);
+  }, [checkHealth]);
+
+  if (status === "loading") {
+    return (
+      <Spin
+        size="large"
+        fullscreen
+        tip={
+          <Alert
+            className="mt-4"
+            message="正在初始化"
+            description="请稍候"
+            type="info"
+            showIcon
+          />
+        }
+      />
+    );
+  }
 
   return (
     <React.StrictMode>
       <CustomErrorBoundary>
         <App />
-        {spinIsOpen && (
+        {status === "error" && (
           <Spin
             size="large"
             fullscreen
@@ -75,22 +86,7 @@ const RootComponent = () => {
                 showIcon
               />
             }
-          ></Spin>
-        )}
-        {initializing && (
-          <Spin
-            size="large"
-            fullscreen
-            tip={
-              <Alert
-                className="mt-4"
-                message="正在初始化"
-                description="请稍候"
-                type="info"
-                showIcon
-              />
-            }
-          ></Spin>
+          />
         )}
       </CustomErrorBoundary>
     </React.StrictMode>

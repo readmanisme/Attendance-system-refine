@@ -1,9 +1,13 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
+// import react from '@vitejs/plugin-react-swc'
 import tsconfigPaths from "vite-tsconfig-paths";
 import { visualizer } from "rollup-plugin-visualizer";
-
+// import browserslist from "browserslist"; //报错但是可以运行，如果import * as rolldown vite会报错
+// import { browserslistToTargets } from "lightningcss";
 import * as path from "path";
+import tailwindcss from '@tailwindcss/vite'
+
 
 const visualizerConfigs = [
   // https://github.com/btd/rollup-plugin-visualizer
@@ -27,6 +31,7 @@ export default defineConfig({
       },
     }),
     tsconfigPaths(),
+    tailwindcss(),
     // visualizer(),
     ...visualizerConfigs.map((config) => visualizer(config)),
   ],
@@ -63,9 +68,16 @@ export default defineConfig({
     port: 5173,
     // open: true,
   },
+  // css: {
+  //   transformer: "lightningcss",
+  //   lightningcss: {
+  //     targets: browserslistToTargets(browserslist(">= 0.25%")),
+  //   },
+  // },
   build: {
     outDir: "dist",
     sourcemap: true,
+    // cssMinify: 'lightningcss'
     // assetsDir: 'assets',
     // emptyOutDir: true,
 
