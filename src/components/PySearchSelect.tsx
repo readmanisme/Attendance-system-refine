@@ -56,18 +56,6 @@ export default function PySearchSelect({
     ],
   });
 
-  // ✅ useMemo 避免 options 每次都重建
-  // const finalOptions = useMemo(() => {
-  //   if (options) return options;
-  //   if (rawWorkers?.data) {
-  //     return rawWorkers.data.map((w) => ({
-  //       label: w.name,
-  //       value: w.id,
-  //     }));
-  //   }
-  //   return [];
-  // }, [options, rawWorkers]);
-
   /** 判断输入是否是拼音字母 */
   const isPinyin = (input: string) => /^[a-zA-Z]+$/.test(input);
 

@@ -3,7 +3,7 @@ import { useList } from "@refinedev/core";
 import { Form, Select, InputNumber, Alert } from "antd";
 import { useState, useEffect, useMemo } from "react";
 
- const SalaryTypeCreate = () => {
+const SalaryTypeCreate = () => {
   const { formProps, saveButtonProps } = useForm({
     // resource: __SalaryType_TableName,
     meta: { expand: ["worker_name", "work_type"] },
@@ -27,33 +27,34 @@ import { useState, useEffect, useMemo } from "react";
     meta: { expand: ["worker_name", "work_type"] },
   });
 
-  const records = useMemo(() => recordsData?.data || [], [recordsData]);
-
   const [workerName, setWorkerName] = useState<any>(null);
   const [workType, setWorkType] = useState<any>(null);
-  const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  // 移除 errorMsg 的 useState
 
-  // 校验逻辑
-  useEffect(() => {
+  // 校验逻辑：使用 useMemo 代替 useEffect
+  const errorMsg = useMemo<string | null>(() => {
     if (!workerName && !workType) {
-      setErrorMsg("工人和工种不能全为空");
-      return;
+      return "工人和工种不能全为空";
     }
 
-    const duplicate = records.find((record) => {
-      const sameWorker = record.worker_name === workerName || (!record.worker_name && !workerName);
-      const sameType = record.work_type === workType || (!record.work_type && !workType);
+    const duplicate = recordsData?.data.find((record: any) => {
+      // 注意：这里的类型推断可能需要根据实际数据结构调整，我添加了any
+      const sameWorker =
+        record.worker_name === workerName ||
+        (!record.worker_name && !workerName);
+      const sameType =
+        record.work_type === workType || (!record.work_type && !workType);
       return sameWorker && sameType;
     });
 
     if (duplicate) {
       const workerText = duplicate.expand?.worker_name?.name || "无工人";
       const typeText = duplicate.expand?.work_type?.name || "无工种";
-      setErrorMsg(`当前记录与 ${workerText} / ${typeText} 重复`);
-    } else {
-      setErrorMsg(null);
+      return `当前记录与 ${workerText} / ${typeText} 重复`;
     }
-  }, [workerName, workType, records]);
+
+    return null;
+  }, [workerName, workType, recordsData?.data]);
 
   return (
     <Create

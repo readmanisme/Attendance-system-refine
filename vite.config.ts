@@ -50,6 +50,8 @@ export default defineConfig({
     __WorkHours_Day_ViewName: JSON.stringify("workHour_day_view_test"),
     __WorkHours_Month_ViewName: JSON.stringify("workHour_month_view_test"),
     __SalaryType_TableName: JSON.stringify("SalaryType_test"),
+    __WorkerRecordNum_TableName: JSON.stringify("worker_record_num"),
+    __WorkRecordNum_TableName: JSON.stringify("work_record_num"),
     __SystemName__: JSON.stringify("工人考勤系统"),
     __Backend_UserName__: JSON.stringify("shed2705@outlook.com"),
     __Backend_Password__: JSON.stringify("bPWU8GCMuqwKF9z"),

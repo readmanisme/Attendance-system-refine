@@ -7,7 +7,7 @@ import {
   DeleteButton,
   CreateButton,
 } from "@refinedev/antd";
-import { Table, Space } from "antd";
+import { Table, Space, Alert } from "antd";
 import { useMemo } from "react";
 
  const SalaryTypeList = () => {
@@ -32,6 +32,7 @@ import { useMemo } from "react";
 
   return (
     <List headerButtons={<CreateButton>添加记录</CreateButton>}>
+      <Alert className="mb-2!" message="没有设置薪资的工作会按照基础工作的时薪计算" type="info" showIcon/>
       <Table {...tableProps} dataSource={sortedDataSource} rowKey="id">
         <Table.Column dataIndex="id" title="ID" />
         <Table.Column dataIndex={["expand", "worker_name", "name"]} title="工人" />

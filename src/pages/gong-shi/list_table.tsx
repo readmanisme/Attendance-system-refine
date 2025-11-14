@@ -1,5 +1,5 @@
-import { List as LList, useSimpleList, useTable } from "@refinedev/antd";
-import { Button, Space, Popconfirm, Table, Tooltip, DatePicker, Alert } from "antd";
+import { List as LList, useSelect, useSimpleList, useTable } from "@refinedev/antd";
+import { Button, Space, Popconfirm, Table, Tooltip, DatePicker, Alert, Select } from "antd";
 const { RangePicker } = DatePicker;
 import { CrudFilter, useList } from "@refinedev/core";
 import { IconHelp } from "@tabler/icons-react";
@@ -15,6 +15,7 @@ export default function GongShiList() {
   const { recordDateRange, setRecordDateRange } = useSomeStore();
   const [isExportLoading, setIsExportLoading] = useState(false);
   const [exportRange, setExportRange] = useState([dayjs().startOf("year"), dayjs().endOf("year")]);
+  const [exportPerson, setExportPerson] = useState<string>("");
   const [SelectedPerson, setSelectedPerson] = useState<{ value: string; label: string }[]>([]);
   // ======================== 暂存 ========================
   const {
@@ -27,6 +28,11 @@ export default function GongShiList() {
     filters: {
       defaultBehavior: "replace",
     },
+  });
+  const { selectProps } = useSelect({
+    resource: __Workers_TableName,
+    optionLabel: "name",
+    pagination: { mode: "off" },
   });
 
   const workerMap = useMemo(() => {
@@ -341,11 +347,11 @@ export default function GongShiList() {
     setIsExportLoading(true);
     try {
       const { default: exportExcel } = await import("@/pages/gong-shi/export_xlsx");
-      await exportExcel(exportRange, SalaryDict, __BACKEND_API_URL__);
+      await exportExcel(exportRange,exportPerson, SalaryDict, __BACKEND_API_URL__);
     } finally {
       setIsExportLoading(false);
     }
-  }, [exportRange, SalaryDict, __BACKEND_API_URL__]);
+  }, [exportRange, exportPerson, SalaryDict, __BACKEND_API_URL__]);
   // ======================== 拓展表定义 ========================
 
   const TableExpandedRowRender = useCallback(
@@ -565,23 +571,6 @@ export default function GongShiList() {
         <>
           {defaultButtons}
           <Space>
-            <PySearchSelect
-              onChangeFn={(value: { value: string; label: string }) => {
-                if (Array.isArray(value)) {
-                  setSelectedPerson(value);
-                } else {
-                  setSelectedPerson([value]);
-                }
-                setCurrent(1);
-              }}
-              placeholder="多选工人,支持拼音"
-              mode="multiple"
-              needButton={true}
-              onClearFn={() => {
-                setSelectedPerson([]);
-                setCurrent(1);
-              }}
-            />
             <Popconfirm
               title="导出考勤记录"
               description={
@@ -602,6 +591,19 @@ export default function GongShiList() {
                       setExportRange(date);
                     }}
                   />
+                  <Space>
+                    {/* @ts-expect-error,111 */}
+                    <Select {...selectProps} style={{ width: 120 }} onChange={(value:string)=> {
+                      setExportPerson(value);
+                    }}/>
+                    <Tooltip title="选择人名可导出单人记录，不选择导出全部人的记录">
+                      <div className="flex flex-row items-center gap-2">
+                        <IconHelp size={16} />
+                      </div>
+                    </Tooltip>
+                     
+                  </Space>
+                 
                 </div>
               }
               onConfirm={exportToExcel}
@@ -614,16 +616,33 @@ export default function GongShiList() {
         </>
       )}
     >
-      <Alert message="未下班记录将不被计入" type="info" showIcon className="mb-2!" />
-      <div className="flex items-center justify-end mb-2">
-        {get_un_salary_work !== "" && (
-          <Alert
-            message={get_un_salary_work}
-            type="warning"
-            showIcon
-            className="mb-2! mr-2! w-full"
-          />
-        )}
+      {get_un_salary_work !== "" && (
+        <Alert
+          message={get_un_salary_work}
+          type="warning"
+          showIcon
+          className="mb-2! mr-2! w-full"
+        />
+      )}
+      {/* <Alert message="未下班记录将不被计入" type="info" showIcon className="mb-2!" /> */}
+      <div className="flex items-center justify-between mb-2">
+        <PySearchSelect
+          onChangeFn={(value: { value: string; label: string }) => {
+            if (Array.isArray(value)) {
+              setSelectedPerson(value);
+            } else {
+              setSelectedPerson([value]);
+            }
+            setCurrent(1);
+          }}
+          placeholder="多选工人,支持拼音"
+          mode="multiple"
+          needButton={true}
+          onClearFn={() => {
+            setSelectedPerson([]);
+            setCurrent(1);
+          }}
+        />
         <SwitchDataRange />
       </div>
       <Table

@@ -4,6 +4,7 @@ import { getPb } from "@/utils/pocketbase";
 
 const exportExcel = async (
   export_range: dayjs.Dayjs[],
+  exportPerson: string,
   SalaryDict: Record<string, number>,
   __BACKEND_API_URL__: string
 ) => {
@@ -30,15 +31,23 @@ const exportExcel = async (
   // ✅ 并行加载所有数据
   const [attendanceRecords, workers, workTypes, workHoursMonth, workHoursDay] = await Promise.all([
     pb.collection(集合.考勤记录).getFullList({
-      filter: `check_in != null && check_out != null && check_in >= '${start}' && check_in <= '${end}'`,
+      filter:
+        `check_in != null && check_out != null && check_in >= '${start}' && check_in <= '${end}'` +
+        (exportPerson ? ` && worker_id == '${exportPerson}'` : ""),
     }),
-    pb.collection(集合.工人).getFullList(),
+    pb.collection(集合.工人).getFullList({
+      filter: exportPerson ? `id == '${exportPerson}'` : "",
+    }),
     pb.collection(集合.工作类型).getFullList(),
     pb.collection(集合.月工时).getFullList({
-      filter: `work_month >= '${start_month}' && work_month <= '${end_month}'`,
+      filter:
+        `work_month >= '${start_month}' && work_month <= '${end_month}'` +
+        (exportPerson ? ` && worker_id == '${exportPerson}'` : ""),
     }),
     pb.collection(集合.日工时).getFullList({
-      filter: `work_date >= '${start_day}' && work_date <= '${end_day}'`,
+      filter:
+        `work_date >= '${start_day}' && work_date <= '${end_day}'` +
+        (exportPerson ? ` && worker_id == '${exportPerson}'` : ""),
     }),
   ]);
 

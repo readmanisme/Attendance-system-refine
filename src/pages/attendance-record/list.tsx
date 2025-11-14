@@ -6,7 +6,7 @@ import {
   ShowButton,
   useTable,
 } from "@refinedev/antd";
-import { CrudFilter, useDeleteMany, BaseRecord } from "@refinedev/core";
+import { CrudFilter, useDeleteMany, BaseRecord, useList } from "@refinedev/core";
 import { Space, Table, Switch, Button, Popconfirm, Alert, Tooltip } from "antd";
 import dayjs from "dayjs";
 import { useMemo, useCallback, useState, useEffect } from "react";
@@ -16,11 +16,10 @@ import PySearchSelect from "@/components/PySearchSelect";
 import { DeleteOutlined, PlusSquareOutlined } from "@ant-design/icons";
 import { useResourceParams } from "@refinedev/core";
 
- const AttendanceRecordList = () => {
+const AttendanceRecordList = () => {
   const datePickerFilter = useGetDatePickerFilter();
   const { resource } = useResourceParams();
   const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
-  const [unclockoutfilter, setUnclockoutfilter] = useState(false);
 
   // useMemo 避免每次渲染都重新创建过滤函数
   const getFilter = useCallback((values: any) => {
@@ -50,6 +49,7 @@ import { useResourceParams } from "@refinedev/core";
       defaultBehavior: "replace",
     },
   });
+
   // 为tableProps.dataSource的每一个数据添加workTime字段，值为check_out - check_in
   const dataSourceWithWorkTime = useMemo(() => {
     return tableProps.dataSource?.map((item) => {
@@ -64,15 +64,6 @@ import { useResourceParams } from "@refinedev/core";
   }, [tableProps.dataSource]);
 
   const { mutate: deleteMany } = useDeleteMany();
-
-  // 🚀 用 useEffect 优化过滤逻辑
-  useEffect(() => {
-    const filters = unclockoutfilter ? [{ field: "check_out", operator: "eq", value: "" }] : [];
-    // @ts-expect-error,111
-    setFilters(filters, "replace");
-    setCurrentPage(1);
-    setSelectedRowKeys([]);
-  }, [unclockoutfilter, setFilters, setCurrentPage]);
 
   const handleBatchDelete = useCallback(() => {
     if (!selectedRowKeys.length) return;
@@ -128,8 +119,6 @@ import { useResourceParams } from "@refinedev/core";
       {/* 顶部操作区 */}
       <div className="flex flex-row justify-between items-center mb-2">
         <div className="flex flex-row gap-2 items-center">
-          <span className="text-black">过滤未下班记录</span>
-          <Switch checked={unclockoutfilter} onChange={setUnclockoutfilter} />
         </div>
 
         <div className="flex gap-2 items-center">
@@ -179,6 +168,10 @@ import { useResourceParams } from "@refinedev/core";
       <Table
         {...tableProps}
         dataSource={dataSourceWithWorkTime}
+        pagination={{
+          ...tableProps.pagination,
+          showSizeChanger: true,
+        }}
         rowKey="id"
         rowSelection={rowSelection}
         className="mt-2"

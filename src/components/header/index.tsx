@@ -60,7 +60,6 @@ export const Header: React.FC<RefineThemedLayoutHeaderProps> = ({ sticky = true 
     (e: any) => {
       const newPort = e.target.value;
       set__BACKEND_API_URL__(`http://localhost:${newPort}`);
-      // 避免 full reload 可改成 soft reload / refetch
       window.location.reload();
     },
     [set__BACKEND_API_URL__]
