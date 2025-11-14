@@ -1,105 +1,3 @@
-// import { Edit, TextField, useForm, useSelect } from "@refinedev/antd";
-// import { useOne } from "@refinedev/core";
-// import { DatePicker, Form, Input, InputNumber, Select } from "antd";
-// import dayjs from "dayjs";
-
-// export const AttendanceRecordEdit = () => {
-//   const { formProps, saveButtonProps, query, formLoading, form } = useForm({
-//     meta: {
-//       expand: ["worker_id"],
-//     },
-//   });
-//   const { selectProps: workSelectProps } = useSelect({
-//     resource: __WorkTypes_TableName,
-//     optionLabel: "name",
-//   });
-
-//   // if (formProps.initialValues) {
-//   //   formProps.initialValues.workTime = TimeDifference;
-//   //   console.log(formProps.initialValues.workTime);
-//   // }
-//   const check_in = Form.useWatch("check_in", form);
-//   const check_out = Form.useWatch("check_out", form);
-//   const TimeDifference = dayjs(check_out).diff(dayjs(check_in), "hour", true);
-//   form.setFieldValue("workTime", TimeDifference);
-//   //   const TimeDifference = dayjs(formProps.initialValues?.check_out).diff(
-//   //   dayjs(formProps.initialValues?.check_in),
-//   //   "hour",
-//   //   true
-//   // );
-//   // const {
-//   //   result: names,
-//   //   query: { isLoading: namesLoading },
-//   // } = useOne({
-//   //   resource: __Workers_TableName,
-//   //   id: query?.data?.worker_id || "",
-//   // });
-//   return (
-//     <Edit saveButtonProps={saveButtonProps} isLoading={formLoading}>
-//       <Form {...formProps} layout="vertical">
-//         <Form.Item
-//           label={"人员姓名"} //虽然也会被提交但并没有什么影响，除了使用onfinish修改数据好像没别的方法
-//           name={["expand", "worker_id", "name"]}
-//           // rules={[
-//           //   {
-//           //     required: true,
-//           //   },
-//           // ]}
-//         >
-//           <TextField value="123" />
-//         </Form.Item>
-//         <Form.Item
-//           label={"签到时间"}
-//           name={["check_in"]}
-//           getValueProps={(value) => ({ value: value ? dayjs(value) : "" })}
-//           rules={[
-//             {
-//               required: true,
-//             },
-//           ]}
-//         >
-//           <DatePicker showTime allowClear={false} format="YYYY-MM-DD HH:mm"/>
-//         </Form.Item>
-//         <Form.Item
-//           label={"工作类型"}
-//           name={["work"]}
-//           rules={[
-//             {
-//               required: true,
-//             },
-//           ]}
-//         >
-//           <Select {...workSelectProps} allowClear />
-//         </Form.Item>
-//         <Form.Item
-//           label={"签出时间"}
-//           name={["check_out"]}
-//           getValueProps={(value) => ({ value: value ? dayjs(value) : "" })}
-//           rules={[
-//             {
-//               required: true,
-//             },
-//           ]}
-//         >
-//           <DatePicker showTime allowClear={false} format="YYYY-MM-DD HH:mm" />
-//         </Form.Item>
-//         <Form.Item
-//           label={"工时"}
-//           name={["workTime"]}
-
-//           // rules={[
-//           //   {
-//           // required: true,
-//           //   },
-//           // ]}
-//         >
-//           <InputNumber disabled step={0.5} changeOnWheel />
-//         </Form.Item>
-//       </Form>
-//     </Edit>
-//   );
-// };
-
 import { Edit, TextField, useForm, useSelect } from "@refinedev/antd";
 import { DatePicker, Form, InputNumber, Select, message } from "antd";
 import dayjs from "dayjs";
@@ -113,6 +11,7 @@ export const AttendanceRecordEdit = () => {
   const { selectProps: workSelectProps } = useSelect({
     resource: __WorkTypes_TableName,
     optionLabel: "name",
+    pagination: { mode: "off" },
   });
 
   const check_in = Form.useWatch("check_in", form);

@@ -32,11 +32,16 @@ import {
   useSelect,
   useTable,
 } from "@refinedev/antd";
-import { ColumnsType } from "antd/es/table";
 import PySearchSelect from "@/components/PySearchSelect";
 const { Title: AntdTitle } = Typography;
 type WorkerOption = { key: string; label: string; value: string };
 type WorkTypeValue = { value: string; label: string } | undefined;
+
+const statusMap: Record<string, { text: string; color: string }> = {
+  pending: { text: "待签退", color: "warning" },
+  "checked-out": { text: "已签退", color: "default" },
+};
+const hours = [2, 2.5, 5, 7, 7.5, 8, 8.5, 9, 10, 10.5, 12, 13];
 
 export default function QianDaoPage() {
   // ======================== useState ========================
@@ -63,6 +68,7 @@ export default function QianDaoPage() {
   const { selectProps: workTypeSelectProps } = useSelect({
     resource: __WorkTypes_TableName,
     optionLabel: "name",
+    pagination: { mode: "off" },
   });
 
   // ======================== 暂存 ========================
@@ -151,42 +157,40 @@ export default function QianDaoPage() {
       expand: ["work", "worker_id"],
     },
   });
-  const handleOnFinish = (values: any) => {
-    //https://refine.dev/docs/ui-integrations/ant-design/hooks/use-form/#how-can-i-change-the-form-data-before-submitting-it-to-the-api
-    const hours = values.workTime;
-    const check_in = CheckDate.hour(7).minute(0).second(0).millisecond(0);
-    const check_out = check_in.add(hours, "hour");
-    const r = {
-      ...values,
-      check_in: formatForDB(check_in),
-      check_out: formatForDB(check_out),
-    };
-    // 去除workTime字段
-    const { workTime, ...rest } = r;
-    if (formProps.onFinish) {
-      formProps.onFinish(rest);
-    }
-    // setEditId(undefined); //不知道为什么在onFinish之后没有退出编辑状态，所以只能手动退出了
-    // 知道了，根据源代码，你需要使用的是formProps.onFinish，而不是直接从useEditableTable返回的onFinish
-  };
-  const statusMap: Record<string, { text: string; color: string }> = {
-    pending: { text: "待签退", color: "warning" },
-    "checked-out": { text: "已签退", color: "default" },
-  };
-
+  const handleOnFinish = useCallback(
+    (values: any) => {
+      const hours = values.workTime;
+      const check_in = CheckDate.set("hour", 7)
+        .set("minute", 0)
+        .set("second", 0)
+        .set("millisecond", 0);
+      const check_out = check_in.add(hours, "hour");
+      const r = {
+        ...values,
+        check_in: formatForDB(check_in),
+        check_out: formatForDB(check_out),
+      };
+      const { workTime, ...rest } = r;
+      if (formProps.onFinish) {
+        formProps.onFinish(rest);
+      }
+    },
+    [CheckDate, formatForDB, formProps]
+  );
   const dataSourceWithWorkTime = useMemo(() => {
-    return tableProps.dataSource?.map((item) => {
+    const ds = tableProps.dataSource ?? [];
+    return ds.map((item: any) => {
       if (!item.check_out) return item;
-      const statuss = item.check_out ? "checked-out" : "pending";
       const checkIn = dayjs(item.check_in);
       const checkOut = dayjs(item.check_out);
       return {
         ...item,
         workTime: checkOut.diff(checkIn, "hour", true),
-        statuss: statuss,
+        statuss: "checked-out",
       };
     });
   }, [tableProps.dataSource]);
+
   const { tableProps: kaoqingjilu } = useTable({
     resource: __AttendanceRecord_TableName,
     filters: {
@@ -223,10 +227,10 @@ export default function QianDaoPage() {
     (range2: any) => {
       const [y, m, d] = [CheckDate.year(), CheckDate.month(), CheckDate.date()];
       // 确保传入的是dayjs对象
-      const [start1, end1] = RangeTime; //rangetime
+      // const [start1, end1] = RangeTime; //rangetime
       // 设置start1, end1的年月日
-      start1.year(y).month(m).date(d);
-      end1.year(y).month(m).date(d);
+      const start1 = RangeTime[0].set("year", y).set("month", m).set("date", d);
+      const end1 = RangeTime[1].set("year", y).set("month", m).set("date", d);
       // const [start2, end2] = range2.map((time) => dayjs(time));
       const [start2, end2] = range2;
 
@@ -239,6 +243,28 @@ export default function QianDaoPage() {
     },
     [CheckDate, RangeTime]
   );
+  const recordsByWorkerId = useMemo(() => {
+    const map = new Map();
+    if (tableProps.dataSource) {
+      for (const record of tableProps.dataSource) {
+        if (record.worker_id) {
+          // 预先创建 dayjs 对象
+          const processedRecord = {
+            ...record,
+            recordCheckIn: dayjs(record.check_in),
+            recordCheckOut: dayjs(record.check_out),
+          };
+
+          if (map.has(record.worker_id)) {
+            map.get(record.worker_id).push(processedRecord);
+          } else {
+            map.set(record.worker_id, [processedRecord]);
+          }
+        }
+      }
+    }
+    return map;
+  }, [tableProps.dataSource]); // 依赖项是 dataSource
 
   const {
     luruDisabled,
@@ -262,25 +288,28 @@ export default function QianDaoPage() {
     }
     const descs: React.ReactNode[] = [];
     for (const name of PiLiangNames) {
-      // 找出上一条记录
-      const lastRecord = tableProps.dataSource?.find(
-        (item) => item.worker_id === name.key
-      );
-      if (lastRecord) {
-        // 如果上一条记录存在，判断是否有重叠
-        const lastCheckIn = dayjs(lastRecord.check_in);
-        const lastCheckOut = dayjs(lastRecord.check_out);
-        if (checkOverlap([lastCheckIn, lastCheckOut])) {
-          descs.push(
-            <div key={name.key}>
-              {name.label}，所选时间与上一期签到时间
-              {lastCheckIn.format("YYYY-MM-DD HH:mm:ss")}至
-              {lastCheckOut.format("YYYY-MM-DD HH:mm:ss")}有重叠
-            </div>
-          );
+      // O(1) 查找所有历史记录
+      const allRecords = recordsByWorkerId.get(name.key);
+
+      if (allRecords && allRecords.length > 0) {
+        // 检查每条历史记录
+        for (const record of allRecords) {
+          // 直接使用预处理的 dayjs 对象
+          const { recordCheckIn, recordCheckOut } = record;
+
+          if (checkOverlap([recordCheckIn, recordCheckOut])) {
+            descs.push(
+              <div key={`${name.key}-${record.id}`}>
+                {name.label}，所选时间与历史签到时间
+                {recordCheckIn.format("YYYY-MM-DD HH:mm:ss")}至
+                {recordCheckOut.format("YYYY-MM-DD HH:mm:ss")}有重叠
+              </div>
+            );
+          }
         }
       }
     }
+
     if (descs.length > 0) {
       return {
         luruDisabled: true,
@@ -300,25 +329,24 @@ export default function QianDaoPage() {
   const handleQiandao_PILIANG = () => {
     const [y, m, d] = [CheckDate.year(), CheckDate.month(), CheckDate.date()];
     const CheckIn = RangeTime[0]
-      .year(y)
-      .month(m)
-      .date(d)
-      .millisecond(0)
-      .toISOString()
-      .replace("T", " ");
+      .set("year", y)
+      .set("month", m)
+      .set("date", d)
+      .set("millisecond", 0);
     const CheckOut = RangeTime[1]
-      .year(y)
-      .month(m)
-      .date(d)
-      .millisecond(0)
-      .toISOString()
-      .replace("T", " ");
+      .set("year", y)
+      .set("month", m)
+      .set("date", d)
+      .set("millisecond", 0);
+
+    const checkInStr = formatForDB(CheckIn);
+    const checkOutStr = formatForDB(CheckOut);
     // 不设置millisecond为0的话会有一个随机值，这是dayjs的行为；这会导致出现看起来一个时间但是出现早于上班时间的错误，不过只有在同一个时间才会这样，正常使用中不会触发bug
     const records = PiLiangNames.map((name) => {
       return {
         worker_id: name.key,
-        check_in: CheckIn,
-        check_out: CheckOut,
+        check_in: checkInStr,
+        check_out: checkOutStr,
         // @ts-expect-error,111
         work: work_type.value,
       };
@@ -328,7 +356,6 @@ export default function QianDaoPage() {
     });
   };
   // ======================== 暂存 ========================
-  const hours = [2, 2.5, 5, 7, 7.5, 8, 8.5, 9, 10, 10.5, 12, 13];
   const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
   const { mutate: deleteMany } = useDeleteMany();
   const handleBatchDelete = useCallback(() => {
@@ -348,13 +375,37 @@ export default function QianDaoPage() {
     }),
     [selectedRowKeys]
   );
-  const { selectProps: workSelectProps } = useSelect({
-    resource: __WorkTypes_TableName,
-    optionLabel: "name",
-    pagination: {
-      mode: "off",
+  const setRangeForHour = useCallback(
+    (hour: number) => {
+      const base = CheckDate.set("hour", 7)
+        .set("minute", 0)
+        .set("second", 0)
+        .set("millisecond", 0);
+      const end = base.add(hour, "hour");
+      setRangeTime([base, end]);
     },
-  });
+    [CheckDate]
+  );
+  // +30 / -30 按钮的安全实现（使用函数式 setState，并且基于 prev 保持不变性）
+  const addThirty = useCallback(() => {
+    setRangeTime((prev) => {
+      const nextEnd = prev[1].add(30, "minute");
+      // 超出当天结束则不变
+      const dayEnd = prev[0]
+        .set("hour", 23)
+        .set("minute", 59)
+        .set("second", 59);
+      if (nextEnd.isAfter(dayEnd)) return prev;
+      return [prev[0], nextEnd];
+    });
+  }, []);
+  const subThirty = useCallback(() => {
+    setRangeTime((prev) => {
+      const nextEnd = prev[1].subtract(30, "minute");
+      if (nextEnd.isSameOrBefore(prev[0])) return prev;
+      return [prev[0], nextEnd];
+    });
+  }, []);
   // ======================== UI ========================
 
   return (
@@ -429,21 +480,7 @@ export default function QianDaoPage() {
                           variant="filled"
                           key={hour}
                           size="small"
-                          onClick={() => {
-                            setRangeTime([
-                              dayjs()
-                                .hour(7)
-                                .minute(0)
-                                .second(0)
-                                .millisecond(0),
-                              dayjs()
-                                .hour(7)
-                                .minute(0)
-                                .second(0)
-                                .millisecond(0)
-                                .add(hour, "hour"),
-                            ]);
-                          }}
+                          onClick={() => setRangeForHour(hour)}
                         >
                           {hour}
                         </Button>
@@ -452,21 +489,7 @@ export default function QianDaoPage() {
                         color="blue"
                         variant="dashed"
                         size="small"
-                        onClick={() => {
-                          // 如果加了时间之后超出了一天，不作操作
-                          if (
-                            RangeTime[1]
-                              .add(30, "minute")
-                              .isSameOrAfter(dayjs().endOf("day"))
-                          ) {
-                            return;
-                          }
-                          setRangeTime((prev) => [
-                            prev[0], // 保持原来的开始时间不变
-                            dayjs(prev[1]) // 基于原来的结束时间
-                              .add(30, "minute"), // 增加30分钟
-                          ]);
-                        }}
+                        onClick={addThirty}
                       >
                         +30min
                       </Button>
@@ -474,17 +497,7 @@ export default function QianDaoPage() {
                         color="blue"
                         variant="dashed"
                         size="small"
-                        onClick={() => {
-                          // 如果后面小于等于前面的，不作操作
-                          if (RangeTime[1].isSameOrBefore(RangeTime[0])) {
-                            return;
-                          }
-                          setRangeTime((prev) => [
-                            prev[0], // 保持原来的开始时间不变
-                            dayjs(prev[1]) // 基于原来的结束时间
-                              .subtract(30, "minute"), // 增加30分钟
-                          ]);
-                        }}
+                        onClick={subThirty}
                       >
                         -30min
                       </Button>
@@ -659,7 +672,7 @@ export default function QianDaoPage() {
                         // initialValue={record.work} //这里不需要设置，表单根据name自动设置了
                       >
                         {/* 这里initialValue要用record.work而不是value，value是汉字，用这个会导致保存的时候保存的是汉字而不是work的id */}
-                        <Select {...workSelectProps} />
+                        <Select {...workTypeSelectProps} />
                       </Form.Item>
                     );
                   }

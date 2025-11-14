@@ -55,6 +55,8 @@ import { GlobalHelp } from "./components/GlobalHelp";
 import { useTranslation } from "react-i18next";
 import { getPb } from "@/utils/pocketbase";
 import { useSomeStore } from "./stores";
+import { useMemo } from "react";
+import React from "react";
 const devOnlyRoutesConfig = import.meta.env.DEV
   ? [
       {
@@ -90,16 +92,31 @@ const devOnlyRoutes = import.meta.env.DEV ? (
 ) : (
   <></>
 );
+// 独立 Title 组件（Memo 避免重复渲染）
+const AppTitle = React.memo(({ collapsed }: { collapsed: boolean }) => (
+  <ThemedTitleV2
+    collapsed={collapsed}
+    icon={
+      <Space>
+        <Avatar src={logo} alt="Company Logo" size={collapsed ? "default" : "large"} />
+        {!collapsed && <Typography.Text className="whitespace-nowrap">{__SystemName__}</Typography.Text>}
+      </Space>
+    }
+    text={null}
+  />
+));
 function App() {
   const { t, i18n } = useTranslation();
   const {__BACKEND_API_URL__ }= useSomeStore();
-  const pb = getPb(__BACKEND_API_URL__);
-  const i18nProvider = {
-    //@ts-expect-error,正常的
-    translate: (key: string, params: object) => t(key, params),
-    changeLocale: (lang: string) => i18n.changeLanguage(lang),
-    getLocale: () => i18n.language,
-  };
+  const pb = useMemo(() => getPb(__BACKEND_API_URL__), [__BACKEND_API_URL__]);
+  const i18nProvider = useMemo(
+    () => ({
+      translate: (key: string, params: any) => t(key, params),
+      changeLocale: (lang: string) => i18n.changeLanguage(lang),
+      getLocale: () => i18n.language,
+    }),
+    [t, i18n]
+  );
   return (
     <BrowserRouter>
       <MantineProvider>
@@ -110,9 +127,9 @@ function App() {
                 dataProvider={{
                   default: pocketbaseDataProvider(pb),
                 }}
+                // @ts-expect-error,111
                 i18nProvider={i18nProvider}
-                // eslint-disable-next-line react-hooks/react-compiler
-                notificationProvider={useNotificationProvider}
+                notificationProvider={useNotificationProvider()}
                 routerProvider={routerBindings}
                 resources={[
                   {
@@ -202,38 +219,7 @@ function App() {
                   <Route
                     element={
                       <ThemedLayoutV2
-                        Title={({ collapsed }) => (
-                          <ThemedTitleV2
-                            // collapsed is a boolean value that indicates whether the <Sidebar> is collapsed or not
-                            collapsed={collapsed}
-                            icon={
-                              collapsed ? (
-                                <Space>
-                                  <Avatar
-                                    src={logo}
-                                    alt="Company Logo"
-                                    size="default"
-                                  />
-                                  <Typography.Text className="whitespace-nowrap ">
-                                    {__SystemName__}
-                                  </Typography.Text>
-                                </Space>
-                              ) : (
-                                <Space>
-                                  <Avatar
-                                    src={logo}
-                                    alt="Company Logo"
-                                    size="large"
-                                  />
-                                  <Typography.Text className="whitespace-nowrap ">
-                                    {__SystemName__}
-                                  </Typography.Text>
-                                </Space>
-                              )
-                            }
-                            text={null}
-                          />
-                        )}
+                        Title={AppTitle}
                         Header={() => <Header sticky />}
                         Sider={(props) => <ThemedSiderV2 {...props} fixed />}
                       >

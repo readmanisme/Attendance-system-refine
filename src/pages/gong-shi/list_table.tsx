@@ -1,13 +1,5 @@
 import { List as LList, useSimpleList, useTable } from "@refinedev/antd";
-import {
-  Button,
-  Space,
-  Popconfirm,
-  Table,
-  Tooltip,
-  DatePicker,
-  Alert,
-} from "antd";
+import { Button, Space, Popconfirm, Table, Tooltip, DatePicker, Alert } from "antd";
 const { RangePicker } = DatePicker;
 import { CrudFilter, useList } from "@refinedev/core";
 import { IconHelp } from "@tabler/icons-react";
@@ -22,13 +14,8 @@ export default function GongShiList() {
   const [SalaryLoading, setSalaryLoading] = useState(true);
   const { recordDateRange, setRecordDateRange } = useSomeStore();
   const [isExportLoading, setIsExportLoading] = useState(false);
-  const [exportRange, setExportRange] = useState([
-    dayjs().startOf("year"),
-    dayjs().endOf("year"),
-  ]);
-  const [SelectedPerson, setSelectedPerson] = useState<
-    { value: string; label: string }[]
-  >([]);
+  const [exportRange, setExportRange] = useState([dayjs().startOf("year"), dayjs().endOf("year")]);
+  const [SelectedPerson, setSelectedPerson] = useState<{ value: string; label: string }[]>([]);
   // ======================== 暂存 ========================
   const {
     tableProps: workerData,
@@ -50,10 +37,7 @@ export default function GongShiList() {
     return m;
   }, [workerData.dataSource]);
 
-  const selectedIds = useMemo(
-    () => SelectedPerson.map((p) => p.value),
-    [SelectedPerson]
-  );
+  const selectedIds = useMemo(() => SelectedPerson.map((p) => p.value), [SelectedPerson]);
 
   const idFilters = useMemo(() => {
     if (!selectedIds.length) {
@@ -119,16 +103,12 @@ export default function GongShiList() {
           {
             field: "work_date",
             operator: "gte",
-            value: dayjs(recordDateRange[0])
-              .startOf("month")
-              .format("YYYY-MM-DD"),
+            value: dayjs(recordDateRange[0]).startOf("month").format("YYYY-MM-DD"),
           },
           {
             field: "work_date",
             operator: "lte",
-            value: dayjs(recordDateRange[1])
-              .endOf("month")
-              .format("YYYY-MM-DD"),
+            value: dayjs(recordDateRange[1]).endOf("month").format("YYYY-MM-DD"),
           },
         ],
       },
@@ -153,18 +133,12 @@ export default function GongShiList() {
           {
             field: "check_in",
             operator: "gte",
-            value: dayjs(recordDateRange[0])
-              .startOf("month")
-              .toISOString()
-              .replace("T", " "),
+            value: dayjs(recordDateRange[0]).startOf("month").toISOString().replace("T", " "),
           },
           {
             field: "check_in",
             operator: "lte",
-            value: dayjs(recordDateRange[1])
-              .endOf("month")
-              .toISOString()
-              .replace("T", " "),
+            value: dayjs(recordDateRange[1]).endOf("month").toISOString().replace("T", " "),
           },
           {
             field: "check_out",
@@ -283,85 +257,70 @@ export default function GongShiList() {
     return dict;
   }, [listProps?.dataSource]);
 
-  const { dayDuringSalaryMap, daySalaryMap, monthSalaryMap, matchSalaryMap } =
-    useMemo(() => {
-      const dayDuringSalaryMap = new Map<string, Decimal>();
-      const daySalaryMap = new Map<string, Map<string, Decimal>>();
-      const monthSalaryMap = new Map<string, Map<string, Decimal>>();
-      const matchSalaryMap = new Map<string, string>();
+  const { dayDuringSalaryMap, daySalaryMap, monthSalaryMap, matchSalaryMap } = useMemo(() => {
+    const dayDuringSalaryMap = new Map<string, Decimal>();
+    const daySalaryMap = new Map<string, Map<string, Decimal>>();
+    const monthSalaryMap = new Map<string, Map<string, Decimal>>();
+    const matchSalaryMap = new Map<string, string>();
 
-      const salaryDict = SalaryDict; // local ref
-      const attendanceList = attendance_record_data?.data || [];
+    const salaryDict = SalaryDict; // local ref
+    const attendanceList = attendance_record_data?.data || [];
 
-      for (const rec of attendanceList) {
-        const dbID = rec.id as string;
-        const workerName = workerMap.get(rec.worker_id) || "未知";
-        const workName = workTypeMap.get(rec.work) || "未知";
-        // 计算时长小时
-        const checkIn = dayjs(rec.check_in);
-        const checkOut = dayjs(rec.check_out);
-        // 防止异常数据
-        if (
-          !checkIn.isValid() ||
-          !checkOut.isValid() ||
-          checkOut.isBefore(checkIn)
-        ) {
-          continue;
-        }
-        const durationHours = new Decimal(checkOut.diff(checkIn)).dividedBy(
-          1000 * 60 * 60
-        );
-
-        const day = checkIn.format("YYYY-MM-DD");
-        //const day = dayjs(item.check_in).format("YYYY-MM-DD").slice(0, 10);
-
-        const month = day.slice(0, 7);
-
-        const salaryKey =
-          `${workerName}_${workName}` in salaryDict
-            ? `${workerName}_${workName}`
-            : workerName in salaryDict
-            ? workerName
-            : workName in salaryDict
-            ? workName
-            : "基础";
-        const salaryNum = new Decimal(salaryDict[salaryKey] ?? 0);
-        // 单条记录工资
-        const recordSalary = durationHours.mul(salaryNum);
-
-        const uniqueKey = `${workerName}_${workName}_${day}_${dbID}`;
-
-        dayDuringSalaryMap.set(uniqueKey, recordSalary);
-
-        // match salary mapping
-        matchSalaryMap.set(dbID, `${salaryKey}:${salaryNum.toString()}`);
-
-        // accumulate daySalaryMap
-        if (!daySalaryMap.has(workerName))
-          daySalaryMap.set(workerName, new Map());
-        const workerDayMap = daySalaryMap.get(workerName)!;
-        workerDayMap.set(
-          day,
-          (workerDayMap.get(day) || new Decimal(0)).plus(recordSalary)
-        );
-
-        // accumulate monthSalaryMap
-        if (!monthSalaryMap.has(workerName))
-          monthSalaryMap.set(workerName, new Map());
-        const workerMonthMap = monthSalaryMap.get(workerName)!;
-        workerMonthMap.set(
-          month,
-          (workerMonthMap.get(month) || new Decimal(0)).plus(recordSalary)
-        );
+    for (const rec of attendanceList) {
+      const dbID = rec.id as string;
+      const workerName = workerMap.get(rec.worker_id) || "未知";
+      const workName = workTypeMap.get(rec.work) || "未知";
+      // 计算时长小时
+      const checkIn = dayjs(rec.check_in);
+      const checkOut = dayjs(rec.check_out);
+      // 防止异常数据
+      if (!checkIn.isValid() || !checkOut.isValid() || checkOut.isBefore(checkIn)) {
+        continue;
       }
+      const durationHours = new Decimal(checkOut.diff(checkIn)).dividedBy(1000 * 60 * 60);
 
-      return {
-        dayDuringSalaryMap,
-        daySalaryMap,
-        monthSalaryMap,
-        matchSalaryMap,
-      };
-    }, [attendance_record_data?.data, SalaryDict, workerMap, workTypeMap]);
+      const day = checkIn.format("YYYY-MM-DD");
+      //const day = dayjs(item.check_in).format("YYYY-MM-DD").slice(0, 10);
+
+      const month = day.slice(0, 7);
+
+      const salaryKey =
+        `${workerName}_${workName}` in salaryDict
+          ? `${workerName}_${workName}`
+          : workerName in salaryDict
+          ? workerName
+          : workName in salaryDict
+          ? workName
+          : "基础";
+      const salaryNum = new Decimal(salaryDict[salaryKey] ?? 0);
+      // 单条记录工资
+      const recordSalary = durationHours.mul(salaryNum);
+
+      const uniqueKey = `${workerName}_${workName}_${day}_${dbID}`;
+
+      dayDuringSalaryMap.set(uniqueKey, recordSalary);
+
+      // match salary mapping
+      matchSalaryMap.set(dbID, `${salaryKey}:${salaryNum.toString()}`);
+
+      // accumulate daySalaryMap
+      if (!daySalaryMap.has(workerName)) daySalaryMap.set(workerName, new Map());
+      const workerDayMap = daySalaryMap.get(workerName)!;
+      workerDayMap.set(day, (workerDayMap.get(day) || new Decimal(0)).plus(recordSalary));
+
+      // accumulate monthSalaryMap
+      if (!monthSalaryMap.has(workerName)) monthSalaryMap.set(workerName, new Map());
+      const workerMonthMap = monthSalaryMap.get(workerName)!;
+      workerMonthMap.set(month, (workerMonthMap.get(month) || new Decimal(0)).plus(recordSalary));
+    }
+
+    return {
+      dayDuringSalaryMap,
+      daySalaryMap,
+      monthSalaryMap,
+      matchSalaryMap,
+    };
+  }, [attendance_record_data?.data, SalaryDict, workerMap, workTypeMap]);
 
   // useEffect(() => {
   //   if (monthSalaryMap.size !== 0) {
@@ -370,12 +329,7 @@ export default function GongShiList() {
   // }, [monthSalaryMap.size]);
   useEffect(() => {
     // 只要这些计算结果存在，说明计算已完成
-    if (
-      dayDuringSalaryMap &&
-      daySalaryMap &&
-      monthSalaryMap &&
-      matchSalaryMap
-    ) {
+    if (dayDuringSalaryMap && daySalaryMap && monthSalaryMap && matchSalaryMap) {
       setSalaryLoading(false);
     }
   }, [dayDuringSalaryMap, daySalaryMap, monthSalaryMap, matchSalaryMap]);
@@ -386,9 +340,7 @@ export default function GongShiList() {
   const exportToExcel = useCallback(async () => {
     setIsExportLoading(true);
     try {
-      const { default: exportExcel } = await import(
-        "@/pages/gong-shi/export_xlsx"
-      );
+      const { default: exportExcel } = await import("@/pages/gong-shi/export_xlsx");
       await exportExcel(exportRange, SalaryDict, __BACKEND_API_URL__);
     } finally {
       setIsExportLoading(false);
@@ -408,9 +360,7 @@ export default function GongShiList() {
         const workerName = workerMap.get(r.worker_id) || "未知";
         const month = r.work_month;
         const total_work_hours = r.total_work_hours;
-        const xinzi = (
-          monthSalaryMap.get(workerName)?.get(month) || new Decimal(0)
-        ).toString();
+        const xinzi = (monthSalaryMap.get(workerName)?.get(month) || new Decimal(0)).toString();
         return {
           key: month,
           worker: workerName,
@@ -434,9 +384,7 @@ export default function GongShiList() {
       // depth2 render
       const expandedRowRender_d2 = (rowRecord: any) => {
         const work_month = rowRecord.month;
-        const records = day_records.filter((d: any) =>
-          d.work_date.startsWith(work_month)
-        );
+        const records = day_records.filter((d: any) => d.work_date.startsWith(work_month));
         const dataSource_d2 = records.map((r: any) => {
           const worker_name = workerMap.get(r.worker_id) || "未知";
           const xinzi = (
@@ -488,9 +436,7 @@ export default function GongShiList() {
                 .dividedBy(1000 * 60 * 60)
                 .toString(),
               matchvalue: matchSalaryMap.get(dbID) || "",
-              xinzi: (
-                dayDuringSalaryMap.get(uniqueKey) || new Decimal(0)
-              ).toString(),
+              xinzi: (dayDuringSalaryMap.get(uniqueKey) || new Decimal(0)).toString(),
             };
           });
 
@@ -574,9 +520,7 @@ export default function GongShiList() {
 
   const get_un_salary_work = useMemo(() => {
     const work_types = [...workTypeMap.values()];
-    const un_salary_work_types = work_types.filter(
-      (item) => !(item in SalaryDict)
-    );
+    const un_salary_work_types = work_types.filter((item) => !(item in SalaryDict));
     if (!un_salary_work_types.length) return "";
     return `未设置工资的工作类型：${un_salary_work_types.join(
       ","
@@ -670,12 +614,7 @@ export default function GongShiList() {
         </>
       )}
     >
-      <Alert
-        message="未下班记录将不被计入"
-        type="info"
-        showIcon
-        className="mb-2!"
-      />
+      <Alert message="未下班记录将不被计入" type="info" showIcon className="mb-2!" />
       <div className="flex items-center justify-end mb-2">
         {get_un_salary_work !== "" && (
           <Alert

@@ -15,7 +15,7 @@ import { getPb } from "@/utils/pocketbase";
 const _ = { sample, sampleSize };
 export function TestPage() {
   const { __BACKEND_API_URL__ } = useSomeStore();
-  const pb = getPb(__BACKEND_API_URL__);
+  const pb = useMemo(() => getPb(__BACKEND_API_URL__), [__BACKEND_API_URL__]);
   const 集合 = {
     考勤记录: __AttendanceRecord_TableName,
     工人: __Workers_TableName,
