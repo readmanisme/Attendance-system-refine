@@ -3,7 +3,7 @@ import { useList } from "@refinedev/core";
 import { Alert, Form, Input, Space } from "antd";
 import React from "react";
 
-export const WorkersEdit = () => {
+ const WorkersEdit = () => {
   const { formProps, saveButtonProps, form } = useForm();
   const { result: namelist } = useList({
     pagination: {
@@ -57,3 +57,4 @@ export const WorkersEdit = () => {
     </Edit>
   );
 };
+export default WorkersEdit;

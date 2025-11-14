@@ -3,7 +3,7 @@ import { useList } from "@refinedev/core";
 import { Alert, Form, Input, Space } from "antd";
 import React from "react";
 
-export const EditWorkType: React.FC = () => {
+ const EditWorkType: React.FC = () => {
   const { formProps, saveButtonProps, form } = useForm();
   const { result: namelist } = useList({
     pagination: { mode: "off" },
@@ -56,3 +56,4 @@ export const EditWorkType: React.FC = () => {
     </Edit>
   );
 };
+export default EditWorkType;
