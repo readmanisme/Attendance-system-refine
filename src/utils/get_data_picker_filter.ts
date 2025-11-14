@@ -7,14 +7,8 @@ export const useGetDatePickerFilter = () => {
   // 这个只有考勤记录哪里能用，因为不同的记录要用的筛选器时间级别不一样
   return useMemo(() => {
     let [start, end] = recordDateRange;
-    start = dayjs(recordDateRange[0])
-      .startOf("month")
-      .toISOString()
-      .replace("T", " ");
-    end = dayjs(recordDateRange[1])
-      .endOf("month")
-      .toISOString()
-      .replace("T", " ");
+    start = dayjs(recordDateRange[0]).startOf("month").toISOString().replace("T", " ");
+    end = dayjs(recordDateRange[1]).endOf("month").toISOString().replace("T", " ");
     return [
       {
         field: "check_in",

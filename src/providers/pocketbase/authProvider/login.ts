@@ -1,13 +1,6 @@
-import type {
-  AuthActionResponse,
-  SuccessNotificationResponse,
-} from "@refinedev/core";
+import type { AuthActionResponse, SuccessNotificationResponse } from "@refinedev/core";
 import type PocketBase from "pocketbase";
-import type {
-  CommonOptions,
-  OAuth2AuthConfig,
-  RecordOptions,
-} from "pocketbase";
+import type { CommonOptions, OAuth2AuthConfig, RecordOptions } from "pocketbase";
 import type { OtpHandler } from "../hooks/useOtp";
 import { isClientResponseError } from "../utils";
 import type { RequiredAuthOptions, TranslateFn } from ".";
@@ -32,16 +25,10 @@ const OTP_HOOK_ERROR = "otpHook must be defined for passwordless login";
 
 export const login =
   (pb: PocketBase, options: RequiredAuthOptions) =>
-  async ({
-    translate,
-    ...loginArgs
-  }: LoginArgs): Promise<AuthActionResponse> => {
+  async ({ translate, ...loginArgs }: LoginArgs): Promise<AuthActionResponse> => {
     const successNotification = translate
       ? {
-          message: translate(
-            "authProvider.login.successMessage",
-            "Login successful"
-          ),
+          message: translate("authProvider.login.successMessage", "Login successful"),
           description: translate(
             "authProvider.login.successDescription",
             "You're now signed in and ready to go."
@@ -55,21 +42,9 @@ export const login =
       } else if (isLoginWithEmail(loginArgs)) {
         // passwordless login
         if (!loginArgs.password) {
-          return loginWithOtp(
-            pb,
-            loginArgs,
-            options,
-            successNotification,
-            translate
-          );
+          return loginWithOtp(pb, loginArgs, options, successNotification, translate);
         }
-        return loginWithPassword(
-          pb,
-          loginArgs,
-          options,
-          successNotification,
-          translate
-        );
+        return loginWithPassword(pb, loginArgs, options, successNotification, translate);
       }
     } catch (e: unknown) {
       if ((e as Error)?.message === OTP_HOOK_ERROR) {
@@ -80,10 +55,7 @@ export const login =
         error: translate
           ? {
               statusCode: 401,
-              name: translate(
-                "authProvider.login.errorName",
-                "Something went wrong"
-              ),
+              name: translate("authProvider.login.errorName", "Something went wrong"),
               message: translate(
                 "authProvider.login.errorMessage",
                 "We couldn’t complete your request. Please refresh or try again later."
@@ -98,10 +70,7 @@ export const login =
       error: translate
         ? {
             statusCode: 400,
-            name: translate(
-              "authProvider.login.unsupportedLoginName",
-              "Unsupported login"
-            ),
+            name: translate("authProvider.login.unsupportedLoginName", "Unsupported login"),
             message: translate(
               "authProvider.login.unsupportedLoginMessage",
               "This authentication method isn’t available. Try another way to sign in."
@@ -167,10 +136,7 @@ const loginWithOtp = async (
       success: false,
       error: translate
         ? {
-            name: translate(
-              "authProvider.login.otpCanceled",
-              "Verification canceled"
-            ),
+            name: translate("authProvider.login.otpCanceled", "Verification canceled"),
             message: translate(
               "authProvider.login.otpCanceledMessage",
               "You stopped entering the code. Try again when you’re ready."
@@ -180,9 +146,7 @@ const loginWithOtp = async (
     };
   }
 
-  await pb
-    .collection(options.collection)
-    .authWithOTP(otpId, otp, loginArgs.options);
+  await pb.collection(options.collection).authWithOTP(otpId, otp, loginArgs.options);
 
   if (pb.authStore.isValid) {
     return {
@@ -195,10 +159,7 @@ const loginWithOtp = async (
       success: false,
       error: translate
         ? {
-            name: translate(
-              "authProvider.login.otpInvalid",
-              "Invalid verification code"
-            ),
+            name: translate("authProvider.login.otpInvalid", "Invalid verification code"),
             message: translate(
               "authProvider.login.otpInvalidMessage",
               "The code you entered is invalid or has expired. Request a new one and try again."
@@ -256,10 +217,7 @@ const loginWithPassword = async (
           success: false,
           error: translate
             ? {
-                name: translate(
-                  "authProvider.login.otpCanceled",
-                  "Verification canceled"
-                ),
+                name: translate("authProvider.login.otpCanceled", "Verification canceled"),
                 message: translate(
                   "authProvider.login.otpCanceledMessage",
                   "You stopped entering the code. Try again when you’re ready."
@@ -286,10 +244,7 @@ const loginWithPassword = async (
           error: translate
             ? {
                 statusCode: 400,
-                name: translate(
-                  "authProvider.login.mfaError",
-                  "Verification failed"
-                ),
+                name: translate("authProvider.login.mfaError", "Verification failed"),
                 message: translate(
                   "authProvider.login.mfaErrorMessage",
                   "Multi-factor authentication was not completed successfully. Please try again."
@@ -304,10 +259,7 @@ const loginWithPassword = async (
         error: translate
           ? {
               statusCode: 400,
-              name: translate(
-                "authProvider.login.credentialsError",
-                "Invalid credentials"
-              ),
+              name: translate("authProvider.login.credentialsError", "Invalid credentials"),
               message: translate(
                 "authProvider.login.credentialsErrorMessage",
                 "The email or password you entered is incorrect. Please try again."

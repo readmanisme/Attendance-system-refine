@@ -34,10 +34,7 @@ export const CreateWorkType = () => {
     },
   });
   const [inputValue, setInputValue] = useState("");
-  const existingNames = useMemo(
-    () => new Set(namelist?.data.map((i) => i.name) || []),
-    [namelist]
-  );
+  const existingNames = useMemo(() => new Set(namelist?.data.map((i) => i.name) || []), [namelist]);
 
   const validateNames = useCallback(
     (value: string) => {
@@ -90,10 +87,7 @@ export const CreateWorkType = () => {
     },
     [existingNames]
   );
-  const { status, error } = useMemo(
-    () => validateNames(inputValue),
-    [inputValue, validateNames]
-  );
+  const { status, error } = useMemo(() => validateNames(inputValue), [inputValue, validateNames]);
   const handleSave = useCallback(() => {
     const names = inputValue
       .split("\n")

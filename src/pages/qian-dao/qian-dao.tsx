@@ -50,13 +50,8 @@ export default function QianDaoPage() {
     dayjs().minute(0).second(0).millisecond(0),
     dayjs().minute(0).second(0).millisecond(0),
   ]);
-  const TimeDifference = useMemo(
-    () => RangeTime[1].diff(RangeTime[0], "hour", true),
-    [RangeTime]
-  );
-  const [CheckDate, setCheckDate] = useState<Dayjs>(
-    dayjs().minute(0).second(0).millisecond(0)
-  );
+  const TimeDifference = useMemo(() => RangeTime[1].diff(RangeTime[0], "hour", true), [RangeTime]);
+  const [CheckDate, setCheckDate] = useState<Dayjs>(dayjs().minute(0).second(0).millisecond(0));
   const IsPast = useMemo(() => CheckDate.isBefore(dayjs(), "day"), [CheckDate]);
   const [work_type, set_work_type] = useState<WorkTypeValue>(undefined); //签到的时候要用
   const [PiLiangNames, setPiLiangNames] = useState<WorkerOption[]>([]);
@@ -88,8 +83,7 @@ export default function QianDaoPage() {
     };
   }, [CheckDate, formatForDB]);
   const formatDateTime = useCallback(
-    (date?: string) =>
-      date ? dayjs(date).format("YYYY-MM-DD HH:mm:ss") : "--",
+    (date?: string) => (date ? dayjs(date).format("YYYY-MM-DD HH:mm:ss") : "--"),
     []
   );
   // ======================== 获取数据 ========================
@@ -207,10 +201,7 @@ export default function QianDaoPage() {
 
   // ======================== 计算衍生数据 ========================
   const dates = useMemo(
-    () =>
-      (kaoqingjilu?.dataSource ?? []).map((item) =>
-        dayjs(item.check_in).format("YYYY-MM-DD")
-      ),
+    () => (kaoqingjilu?.dataSource ?? []).map((item) => dayjs(item.check_in).format("YYYY-MM-DD")),
     [kaoqingjilu?.dataSource]
   );
   const uniqueDates = useMemo(() => Array.from(new Set(dates)), [dates]);
@@ -377,10 +368,7 @@ export default function QianDaoPage() {
   );
   const setRangeForHour = useCallback(
     (hour: number) => {
-      const base = CheckDate.set("hour", 7)
-        .set("minute", 0)
-        .set("second", 0)
-        .set("millisecond", 0);
+      const base = CheckDate.set("hour", 7).set("minute", 0).set("second", 0).set("millisecond", 0);
       const end = base.add(hour, "hour");
       setRangeTime([base, end]);
     },
@@ -391,10 +379,7 @@ export default function QianDaoPage() {
     setRangeTime((prev) => {
       const nextEnd = prev[1].add(30, "minute");
       // 超出当天结束则不变
-      const dayEnd = prev[0]
-        .set("hour", 23)
-        .set("minute", 59)
-        .set("second", 59);
+      const dayEnd = prev[0].set("hour", 23).set("minute", 59).set("second", 59);
       if (nextEnd.isAfter(dayEnd)) return prev;
       return [prev[0], nextEnd];
     });
@@ -419,9 +404,7 @@ export default function QianDaoPage() {
             <>
               <Alert
                 className={datesWithoutToday.length ? "" : "hidden!"}
-                message={
-                  "以下日期存在未下班人员：" + datesWithoutToday.join(", ")
-                }
+                message={"以下日期存在未下班人员：" + datesWithoutToday.join(", ")}
                 type="error"
                 showIcon
               />
@@ -432,9 +415,7 @@ export default function QianDaoPage() {
                       className="flex-1"
                       message={
                         datesWithoutToday.length > 0
-                          ? `以下日期存在未下班人员：${datesWithoutToday.join(
-                              ", "
-                            )}`
+                          ? `以下日期存在未下班人员：${datesWithoutToday.join(", ")}`
                           : "往日不存在未下班人员"
                       }
                       type={datesWithoutToday.length > 0 ? "error" : "success"}
@@ -443,11 +424,7 @@ export default function QianDaoPage() {
 
                     <Alert
                       className="flex-1"
-                      message={
-                        IsPast
-                          ? "你正在过去日期中进行操作"
-                          : "你正在录入今日数据"
-                      }
+                      message={IsPast ? "你正在过去日期中进行操作" : "你正在录入今日数据"}
                       type={IsPast ? "warning" : "success"}
                       showIcon
                     />
@@ -485,20 +462,10 @@ export default function QianDaoPage() {
                           {hour}
                         </Button>
                       ))}
-                      <Button
-                        color="blue"
-                        variant="dashed"
-                        size="small"
-                        onClick={addThirty}
-                      >
+                      <Button color="blue" variant="dashed" size="small" onClick={addThirty}>
                         +30min
                       </Button>
-                      <Button
-                        color="blue"
-                        variant="dashed"
-                        size="small"
-                        onClick={subThirty}
-                      >
+                      <Button color="blue" variant="dashed" size="small" onClick={subThirty}>
                         -30min
                       </Button>
                     </Space>
@@ -607,24 +574,17 @@ export default function QianDaoPage() {
               className="mt-2"
               dataSource={dataSourceWithWorkTime}
               rowKey="id"
-              rowClassName={(record) =>
-                record.check_out === "" ? "bg-blue-50" : ""
-              }
+              rowClassName={(record) => (record.check_out === "" ? "bg-blue-50" : "")}
               rowSelection={rowSelection}
             >
               {/* <Table.Column dataIndex="id" title="ID" /> */}
-              <Table.Column
-                dataIndex={["expand", "worker_id", "name"]}
-                title="人员姓名"
-              />
+              <Table.Column dataIndex={["expand", "worker_id", "name"]} title="人员姓名" />
               <Table.Column
                 dataIndex="statuss"
                 title="状态"
                 render={(value) => {
                   const current = statusMap[value];
-                  return (
-                    <Badge status={current.color as any} text={current.text} />
-                  );
+                  return <Badge status={current.color as any} text={current.text} />;
                 }}
               />
               <Table.Column
@@ -643,17 +603,8 @@ export default function QianDaoPage() {
                 render={(value, record) => {
                   if (isEditing(record.id)) {
                     return (
-                      <Form.Item
-                        name="workTime"
-                        style={{ margin: 0 }}
-                        initialValue={value}
-                      >
-                        <InputNumber
-                          min={0}
-                          max={16.5}
-                          step={0.5}
-                          changeOnWheel
-                        />
+                      <Form.Item name="workTime" style={{ margin: 0 }} initialValue={value}>
+                        <InputNumber min={0} max={16.5} step={0.5} changeOnWheel />
                       </Form.Item>
                     );
                   }
@@ -687,11 +638,7 @@ export default function QianDaoPage() {
                   if (isEditing(record.id)) {
                     return (
                       <Space>
-                        <SaveButton
-                          {...saveButtonProps}
-                          hideText
-                          size="small"
-                        />
+                        <SaveButton {...saveButtonProps} hideText size="small" />
                         <Button {...cancelButtonProps} size="small">
                           Cancel
                         </Button>

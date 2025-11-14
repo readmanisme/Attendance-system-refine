@@ -36,10 +36,7 @@ export const WorkersCreate: React.FC = () => {
   const [inputValue, setInputValue] = useState("");
 
   /** ✅ 提前缓存已有姓名集合，O(1) 查找 */
-  const existingNames = useMemo(
-    () => new Set(namelist?.data.map((i) => i.name) || []),
-    [namelist]
-  );
+  const existingNames = useMemo(() => new Set(namelist?.data.map((i) => i.name) || []), [namelist]);
 
   /** ✅ 校验逻辑提取为纯函数 */
   const validateNames = useCallback(
@@ -95,10 +92,7 @@ export const WorkersCreate: React.FC = () => {
   );
 
   /** ✅ 实时校验 */
-  const { status, error } = useMemo(
-    () => validateNames(inputValue),
-    [inputValue, validateNames]
-  );
+  const { status, error } = useMemo(() => validateNames(inputValue), [inputValue, validateNames]);
 
   /** ✅ 提交处理 */
   const handleSave = useCallback(() => {

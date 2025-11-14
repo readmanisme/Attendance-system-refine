@@ -57,13 +57,7 @@ const RootComponent: React.FC = () => {
         size="large"
         fullscreen
         tip={
-          <Alert
-            className="mt-4"
-            message="正在初始化"
-            description="请稍候"
-            type="info"
-            showIcon
-          />
+          <Alert className="mt-4" message="正在初始化" description="请稍候" type="info" showIcon />
         }
       />
     );

@@ -16,9 +16,7 @@ dayjs.extend(isSameOrAfter);
 // dayjs.tz.setDefault("Africa/Abidjan")
 // 这个12个月时间都和UTC保持一致，london不一定
 
-export const ColorModeContextProvider: React.FC<PropsWithChildren> = ({
-  children,
-}) => {
+export const ColorModeContextProvider: React.FC<PropsWithChildren> = ({ children }) => {
   return (
     <ConfigProvider
       locale={locale}

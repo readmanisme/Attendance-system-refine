@@ -40,7 +40,7 @@ export const SalaryTypeCreate = () => {
       return;
     }
 
-    const duplicate = records.find(record => {
+    const duplicate = records.find((record) => {
       const sameWorker = record.worker_name === workerName || (!record.worker_name && !workerName);
       const sameType = record.work_type === workType || (!record.work_type && !workType);
       return sameWorker && sameType;
@@ -71,11 +71,7 @@ export const SalaryTypeCreate = () => {
           <Select {...typeSelectProps} allowClear onChange={setWorkType} />
         </Form.Item>
 
-        <Form.Item
-          label="时薪"
-          name={["SalaryNum"]}
-          rules={[{ required: true }]}
-        >
+        <Form.Item label="时薪" name={["SalaryNum"]} rules={[{ required: true }]}>
           <InputNumber min={0} defaultValue={10} changeOnWheel />
         </Form.Item>
 

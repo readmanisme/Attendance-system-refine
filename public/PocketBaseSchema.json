@@ -268,13 +268,7 @@
         "id": "file376926767",
         "maxSelect": 1,
         "maxSize": 0,
-        "mimeTypes": [
-          "image/jpeg",
-          "image/png",
-          "image/svg+xml",
-          "image/gif",
-          "image/webp"
-        ],
+        "mimeTypes": ["image/jpeg", "image/png", "image/svg+xml", "image/gif", "image/webp"],
         "name": "avatar",
         "presentable": false,
         "protected": false,
@@ -1010,9 +1004,7 @@
         "type": "autodate"
       }
     ],
-    "indexes": [
-      "CREATE UNIQUE INDEX `idx_1ZGxvIK63W` ON `workType_test` (`name`)"
-    ],
+    "indexes": ["CREATE UNIQUE INDEX `idx_1ZGxvIK63W` ON `workType_test` (`name`)"],
     "system": false
   },
   {
@@ -1074,9 +1066,7 @@
         "type": "autodate"
       }
     ],
-    "indexes": [
-      "CREATE UNIQUE INDEX `idx_5IMNDpkM4d` ON `workers_test` (`name`)"
-    ],
+    "indexes": ["CREATE UNIQUE INDEX `idx_5IMNDpkM4d` ON `workers_test` (`name`)"],
     "system": false
   },
   {

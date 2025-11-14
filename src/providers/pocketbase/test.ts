@@ -12,11 +12,7 @@ test("value serialization", (t) => {
     [null, "null"],
     [{ a: "don't" }, `'{"a":"don\\'t"}'`],
   ].forEach(([value, output]) => {
-    t.equals(
-      serialize(value),
-      output,
-      `should serialize ${value} (${typeof value})`
-    );
+    t.equals(serialize(value), output, `should serialize ${value} (${typeof value})`);
   });
   t.end();
 });
@@ -182,11 +178,7 @@ test("deeply nested logical filters", (t) => {
     ["in", [2, 3, 4], "(((a = 2 || a = 3 || a = 4) && (b = '4')) || (c > 1))"],
     ["nin", [], "(((b = '4')) || (c > 1))"],
     ["nin", [1], "(((a != 1) && (b = '4')) || (c > 1))"],
-    [
-      "nin",
-      [2, 3, 4],
-      "(((a != 2 && a != 3 && a != 4) && (b = '4')) || (c > 1))",
-    ],
+    ["nin", [2, 3, 4], "(((a != 2 && a != 3 && a != 4) && (b = '4')) || (c > 1))"],
     ["between", [], "(((b = '4')) || (c > 1))"],
     ["between", [1], "(((a >= 1) && (b = '4')) || (c > 1))"],
     ["between", [undefined, 2], "(((a <= 2) && (b = '4')) || (c > 1))"],

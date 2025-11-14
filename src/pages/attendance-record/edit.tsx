@@ -45,7 +45,7 @@ export const AttendanceRecordEdit = () => {
   }, [check_in, check_out, form]);
 
   // 🔹 限制只能选择与签到日期相同的日期
-  const disabledDate = (current:any) => {
+  const disabledDate = (current: any) => {
     if (!check_in) return false;
     return !dayjs(current).isSame(dayjs(check_in), "day");
   };

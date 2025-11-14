@@ -6,8 +6,7 @@ import { visualizer } from "rollup-plugin-visualizer";
 // import browserslist from "browserslist"; //报错但是可以运行，如果import * as rolldown vite会报错
 // import { browserslistToTargets } from "lightningcss";
 import * as path from "path";
-import tailwindcss from '@tailwindcss/vite'
-
+import tailwindcss from "@tailwindcss/vite";
 
 const visualizerConfigs = [
   // https://github.com/btd/rollup-plugin-visualizer

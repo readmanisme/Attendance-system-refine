@@ -17,9 +17,7 @@ export const dataProvider = (pb: PocketBase): DataProvider => ({
   getList: async ({ resource, pagination, filters, sorters, meta }) => {
     const { currentPage = 1, pageSize = 10, mode = "server" } = pagination ?? {};
     // refine v5用currentPage，v4用current
-    const sort = sorters
-      ?.map((s) => `${s.order === "desc" ? "-" : ""}${s.field}`)
-      .join(",");
+    const sort = sorters?.map((s) => `${s.order === "desc" ? "-" : ""}${s.field}`).join(",");
     // console.log("untransformed filters", filters)
     const options: RecordListOptions = {
       requestKey: meta?.requestKey ?? null,
@@ -32,11 +30,7 @@ export const dataProvider = (pb: PocketBase): DataProvider => ({
     const collection = pb.collection(resource);
     try {
       if (mode === "server") {
-        const { items, totalItems } = await collection.getList(
-          currentPage,
-          pageSize,
-          options
-        );
+        const { items, totalItems } = await collection.getList(currentPage, pageSize, options);
 
         return {
           data: items,
@@ -61,11 +55,9 @@ export const dataProvider = (pb: PocketBase): DataProvider => ({
 
   create: async ({ resource, variables, meta }) => {
     try {
-      const data = await pb
-        .collection(resource)
-        .create(variables as Record<string, unknown>, {
-          requestKey: meta?.requestKey ?? null,
-        });
+      const data = await pb.collection(resource).create(variables as Record<string, unknown>, {
+        requestKey: meta?.requestKey ?? null,
+      });
 
       return { data } as CreateResponse<any>;
     } catch (e: unknown) {
@@ -124,13 +116,9 @@ export const dataProvider = (pb: PocketBase): DataProvider => ({
         meta.updates.forEach((update: any) => {
           batch
             .collection(resource)
-            .update(
-              update.id as string,
-              update.values as Record<string, unknown>,
-              {
-                requestKey: meta?.requestKey ?? null,
-              }
-            );
+            .update(update.id as string, update.values as Record<string, unknown>, {
+              requestKey: meta?.requestKey ?? null,
+            });
         });
         const results = await batch.send(); //{"body": 一个object,"status": 200}
         const data = results.map((result) => result.body);
@@ -146,11 +134,9 @@ export const dataProvider = (pb: PocketBase): DataProvider => ({
       try {
         const batch = pb.createBatch();
         ids.forEach((id) => {
-          batch
-            .collection(resource)
-            .update(id as string, variables as Record<string, unknown>, {
-              requestKey: meta?.requestKey ?? null,
-            });
+          batch.collection(resource).update(id as string, variables as Record<string, unknown>, {
+            requestKey: meta?.requestKey ?? null,
+          });
         });
         const results = await batch.send(); //{"body": 一个object,"status": 200}
         const data = results.map((result) => result.body);
@@ -221,9 +207,7 @@ export const dataProvider = (pb: PocketBase): DataProvider => ({
     try {
       const batch = pb.createBatch();
       ids.forEach((id) => {
-        batch
-          .collection(resource)
-          .delete(id as string, { requestKey: meta?.requestKey ?? null });
+        batch.collection(resource).delete(id as string, { requestKey: meta?.requestKey ?? null });
       });
       const results = await batch.send(); //{"body": null,"status": 204}
       return { data: ids } as any; //报错那就一个都删不了，不用判断每个的状态

@@ -1,29 +1,19 @@
 import { QuestionCircleOutlined } from "@ant-design/icons";
 import { Badge } from "@mantine/core";
 import type { RefineThemedLayoutHeaderProps } from "@refinedev/antd";
-import {
-  Layout as AntdLayout,
-  Button,
-  Radio,
-  Space,
-  theme,
-  Tooltip,
-} from "antd";
+import { Layout as AntdLayout, Button, Radio, Space, theme, Tooltip } from "antd";
 import React, { useMemo, useCallback } from "react";
 import { useInvalidate, useResourceParams } from "@refinedev/core";
 import { useSomeStore } from "@/stores";
 
 const { useToken } = theme;
 
-export const Header: React.FC<RefineThemedLayoutHeaderProps> = ({
-  sticky = true,
-}) => {
+export const Header: React.FC<RefineThemedLayoutHeaderProps> = ({ sticky = true }) => {
   const { token } = useToken();
   const invalidate = useInvalidate();
   const { resource } = useResourceParams();
 
-  const { helpOpen, setHelpOpen, __BACKEND_API_URL__, set__BACKEND_API_URL__ } =
-    useSomeStore();
+  const { helpOpen, setHelpOpen, __BACKEND_API_URL__, set__BACKEND_API_URL__ } = useSomeStore();
 
   // --- ✅ 样式 useMemo 化，避免每次渲染都重新创建对象 ---
   const headerStyles = useMemo<React.CSSProperties>(

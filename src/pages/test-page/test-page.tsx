@@ -5,12 +5,7 @@ import dayjs from "dayjs";
 // import pb from "@/utils/pocketbase";
 import { useSomeStore } from "@/stores";
 
-import {
-  useCreateMany,
-  useDeleteMany,
-  useMany,
-  useUpdateMany,
-} from "@refinedev/core";
+import { useCreateMany, useDeleteMany, useMany, useUpdateMany } from "@refinedev/core";
 import { getPb } from "@/utils/pocketbase";
 const _ = { sample, sampleSize };
 export function TestPage() {
@@ -26,9 +21,7 @@ export function TestPage() {
   // you can also fetch all records at once via getFullList
   const records_time_test = async () => {
     // console.log("Fetching records...");
-    const records = await pb
-      .collection(__AttendanceRecord_TableName)
-      .getFullList({});
+    const records = await pb.collection(__AttendanceRecord_TableName).getFullList({});
     // const end_time = Date.now();
     // console.log(`${records.length} records fetched in ${(end_time - start_time)/1000}s`);
     // 43925 records fetched in 2.597s
@@ -68,21 +61,14 @@ export function TestPage() {
     const workType_2 = await pb.collection(集合["工作类型"]).getFullList();
     set_status("开始插入考勤记录数据");
 
-    function getAllValidDates(
-      startMonth: number,
-      endMonth: number,
-      year: number
-    ) {
+    function getAllValidDates(startMonth: number, endMonth: number, year: number) {
       const dates = [];
       let currentDate = dayjs(`${year}-${startMonth}-01`);
 
       // 结束日期为下一年 1 月 1 日的前一天
       const endDate = dayjs(`${year}-${endMonth}-01`).endOf("month");
 
-      while (
-        currentDate.isBefore(endDate) ||
-        currentDate.isSame(endDate, "day")
-      ) {
+      while (currentDate.isBefore(endDate) || currentDate.isSame(endDate, "day")) {
         dates.push(currentDate.format("YYYY-MM-DD"));
         currentDate = currentDate.add(1, "day");
       }
@@ -95,22 +81,16 @@ export function TestPage() {
     const attendance_record_test_data = () => {
       const attendance_records = [];
       for (const day of validDates) {
-        const that_day_workers:any = _.sampleSize(workers_2, 80);
-        for (const worker  of that_day_workers) {
+        const that_day_workers: any = _.sampleSize(workers_2, 80);
+        for (const worker of that_day_workers) {
           // const work = _.sample(workType_2).id
           const worker_id = worker.id;
           const work_segments = _.sample([1, 2, 3]);
           if (work_segments === 1) {
             const start_time = dayjs(day).set("hour", 8).toISOString();
-            const check_in_time = dayjs(day)
-              .set("hour", 8)
-              .set("minute", 30)
-              .toISOString();
+            const check_in_time = dayjs(day).set("hour", 8).set("minute", 30).toISOString();
             const end_time = dayjs(day).set("hour", 18).toISOString();
-            const check_out_time = dayjs(day)
-              .set("hour", 18)
-              .set("minute", 30)
-              .toISOString();
+            const check_out_time = dayjs(day).set("hour", 18).set("minute", 30).toISOString();
             const check_in = faker.date.between({
               from: start_time,
               to: check_in_time,
@@ -130,25 +110,13 @@ export function TestPage() {
             });
           } else if (work_segments === 2) {
             const start_time_1 = dayjs(day).set("hour", 8).toISOString();
-            const check_in_time_1 = dayjs(day)
-              .set("hour", 8)
-              .set("minute", 30)
-              .toISOString();
+            const check_in_time_1 = dayjs(day).set("hour", 8).set("minute", 30).toISOString();
             const end_time_1 = dayjs(day).set("hour", 12).toISOString();
-            const check_out_time_1 = dayjs(day)
-              .set("hour", 12)
-              .set("minute", 30)
-              .toISOString();
+            const check_out_time_1 = dayjs(day).set("hour", 12).set("minute", 30).toISOString();
             const start_time_2 = dayjs(day).set("hour", 13).toISOString();
-            const check_in_time_2 = dayjs(day)
-              .set("hour", 13)
-              .set("minute", 30)
-              .toISOString();
+            const check_in_time_2 = dayjs(day).set("hour", 13).set("minute", 30).toISOString();
             const end_time_2 = dayjs(day).set("hour", 18).toISOString();
-            const check_out_time_2 = dayjs(day)
-              .set("hour", 18)
-              .set("minute", 30)
-              .toISOString();
+            const check_out_time_2 = dayjs(day).set("hour", 18).set("minute", 30).toISOString();
             const check_in_1 = faker.date.between({
               from: start_time_1,
               to: check_in_time_1,
@@ -185,35 +153,17 @@ export function TestPage() {
             });
           } else if (work_segments === 3) {
             const start_time_1 = dayjs(day).set("hour", 8).toISOString();
-            const check_in_time_1 = dayjs(day)
-              .set("hour", 8)
-              .set("minute", 30)
-              .toISOString();
+            const check_in_time_1 = dayjs(day).set("hour", 8).set("minute", 30).toISOString();
             const end_time_1 = dayjs(day).set("hour", 12).toISOString();
-            const check_out_time_1 = dayjs(day)
-              .set("hour", 12)
-              .set("minute", 30)
-              .toISOString();
+            const check_out_time_1 = dayjs(day).set("hour", 12).set("minute", 30).toISOString();
             const start_time_2 = dayjs(day).set("hour", 13).toISOString();
-            const check_in_time_2 = dayjs(day)
-              .set("hour", 13)
-              .set("minute", 30)
-              .toISOString();
+            const check_in_time_2 = dayjs(day).set("hour", 13).set("minute", 30).toISOString();
             const end_time_2 = dayjs(day).set("hour", 16).toISOString();
-            const check_out_time_2 = dayjs(day)
-              .set("hour", 16)
-              .set("minute", 30)
-              .toISOString();
+            const check_out_time_2 = dayjs(day).set("hour", 16).set("minute", 30).toISOString();
             const start_time_3 = dayjs(day).set("hour", 18).toISOString();
-            const check_in_time_3 = dayjs(day)
-              .set("hour", 18)
-              .set("minute", 30)
-              .toISOString();
+            const check_in_time_3 = dayjs(day).set("hour", 18).set("minute", 30).toISOString();
             const end_time_3 = dayjs(day).set("hour", 22).toISOString();
-            const check_out_time_3 = dayjs(day)
-              .set("hour", 22)
-              .set("minute", 30)
-              .toISOString();
+            const check_out_time_3 = dayjs(day).set("hour", 22).set("minute", 30).toISOString();
             const check_in_1 = faker.date.between({
               from: start_time_1,
               to: check_in_time_1,
@@ -271,9 +221,7 @@ export function TestPage() {
       return attendance_records;
     };
     for (const attendance_record of attendance_record_test_data()) {
-      const record = await pb
-        .collection(集合["考勤记录"])
-        .create(attendance_record);
+      const record = await pb.collection(集合["考勤记录"]).create(attendance_record);
     }
     set_status("数据插入完成");
   };
@@ -347,9 +295,7 @@ export function TestPage() {
 
   return (
     <div>
-      <h1 className="text-4xl font-bold text-blue-500">
-        TailwindCSS 安装检测，此处文字应该是蓝色
-      </h1>
+      <h1 className="text-4xl font-bold text-blue-500">TailwindCSS 安装检测，此处文字应该是蓝色</h1>
       <Button onClick={gen_and_push_fake_data} disabled={true}>
         向 PocketBase 推送假数据
       </Button>

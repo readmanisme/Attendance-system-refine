@@ -9,10 +9,7 @@ export interface ForgotPasswordArgs {
 
 export const forgotPassword =
   (pb: PocketBase, options: RequiredAuthOptions) =>
-  async ({
-    email,
-    translate,
-  }: ForgotPasswordArgs): Promise<AuthActionResponse> => {
+  async ({ email, translate }: ForgotPasswordArgs): Promise<AuthActionResponse> => {
     try {
       await pb.collection(options.collection).requestPasswordReset(email);
 

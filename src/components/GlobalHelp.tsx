@@ -36,30 +36,20 @@ export const GlobalHelp = () => {
     ),
     考勤记录: (
       <>
-        <Paragraph>
-          1、！不要有签到和签退为空的记录，会导致薪资计算和工时显示出现错误。
-        </Paragraph>
+        <Paragraph>1、！不要有签到和签退为空的记录，会导致薪资计算和工时显示出现错误。</Paragraph>
         <Paragraph>2、右上角可以通过单月和区间筛选考勤记录。</Paragraph>
         <Paragraph>
           3、这个页面添加和修改考勤记录的时候，并不存在“人员签到”界面中的那些约束，请注意不要出现数据异常。
         </Paragraph>
-        <Paragraph>
-          4、表的左上角可能筛选单人或多人，支持汉字搜索，不支持拼音搜索。
-        </Paragraph>
-        <Paragraph>
-          5、表的左上角还可以通过一个开关切换是否显示未打卡的记录。
-        </Paragraph>
+        <Paragraph>4、表的左上角可能筛选单人或多人，支持汉字搜索，不支持拼音搜索。</Paragraph>
+        <Paragraph>5、表的左上角还可以通过一个开关切换是否显示未打卡的记录。</Paragraph>
       </>
     ),
     人员管理: (
       <>
-        <Paragraph>
-          1、人员名字中不可含有下划线"_" ！，否则会影响到薪资计算。
-        </Paragraph>
+        <Paragraph>1、人员名字中不可含有下划线"_" ！，否则会影响到薪资计算。</Paragraph>
         <Paragraph>2、人员名字不可以为空，也不可以重复。</Paragraph>
-        <Paragraph>
-          3、表的左上角可能筛选单人或多人，支持汉字搜索，不支持拼音搜索。
-        </Paragraph>
+        <Paragraph>3、表的左上角可能筛选单人或多人，支持汉字搜索，不支持拼音搜索。</Paragraph>
         <Paragraph>3、批量录入的时候，一行一个姓名，空行将不被计入。</Paragraph>
       </>
     ),
@@ -68,9 +58,7 @@ export const GlobalHelp = () => {
         <Paragraph>
           1、此处的“基础”工作类型为系统内置，不可删除或修改，只能查看。用于作为基础薪资的计算。
         </Paragraph>
-        <Paragraph>
-          2、工作不能重复，并且名字不能为空，也不能包含下划线，否则不会被创建。
-        </Paragraph>
+        <Paragraph>2、工作不能重复，并且名字不能为空，也不能包含下划线，否则不会被创建。</Paragraph>
       </>
     ),
     薪资设置: (
@@ -92,15 +80,9 @@ export const GlobalHelp = () => {
     ),
     "工时&薪资显示": (
       <>
-        <Paragraph>
-          1、如果表格一直在转圈，则表示发生未知错误，请联系管理员。
-        </Paragraph>
-        <Paragraph>
-          2、未下班记录将不被计入，此外未设置时薪的工作都按照基础时薪计算。
-        </Paragraph>
-        <Paragraph>
-          3、右上角可以按照人员筛选记录，支持汉字搜索和拼音搜索，支持多选。
-        </Paragraph>
+        <Paragraph>1、如果表格一直在转圈，则表示发生未知错误，请联系管理员。</Paragraph>
+        <Paragraph>2、未下班记录将不被计入，此外未设置时薪的工作都按照基础时薪计算。</Paragraph>
+        <Paragraph>3、右上角可以按照人员筛选记录，支持汉字搜索和拼音搜索，支持多选。</Paragraph>
         <Paragraph>
           4、右上角可以导出选择月份范围内的考勤记录到Excel(包括每人每月，每日，每日的具体记录的工时和薪资)，如果范围较广，则需要一定的时间，请耐心等待，如果误点击二次确认中的导出按钮，可刷新页面阻止导出。
         </Paragraph>

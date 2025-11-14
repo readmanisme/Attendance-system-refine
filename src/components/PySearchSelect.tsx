@@ -72,32 +72,29 @@ export default function PySearchSelect({
   const isPinyin = (input: string) => /^[a-zA-Z]+$/.test(input);
 
   /** ✅ 统一的搜索逻辑函数 */
-  const handleFilter = useCallback(
-    (input: string, option?: { label?: string; value?: string }) => {
-      if (!option?.label) return false;
-      const label = option.label;
+  const handleFilter = useCallback((input: string, option?: { label?: string; value?: string }) => {
+    if (!option?.label) return false;
+    const label = option.label;
 
-      if (isPinyin(input)) {
-        const result = match(label, input);
-        if (result) {
-          const matchedChars = result.map((idx) => label[idx]);
-          setHighlightWords((prev) => [...prev, ...matchedChars]);
-          return true;
-        }
-        return false;
-      }
-
-      const lower = input.toLowerCase();
-      if (label.toLowerCase().includes(lower)) {
-        setHighlightWords([input]);
+    if (isPinyin(input)) {
+      const result = match(label, input);
+      if (result) {
+        const matchedChars = result.map((idx) => label[idx]);
+        setHighlightWords((prev) => [...prev, ...matchedChars]);
         return true;
       }
       return false;
-    },
-    []
-  );
+    }
 
-  const otherOptions:any = {}; //可以用于根据条件加入参数
+    const lower = input.toLowerCase();
+    if (label.toLowerCase().includes(lower)) {
+      setHighlightWords([input]);
+      return true;
+    }
+    return false;
+  }, []);
+
+  const otherOptions: any = {}; //可以用于根据条件加入参数
   if (type === "qiandao") {
     otherOptions.value = value;
   }
@@ -145,9 +142,7 @@ export default function PySearchSelect({
   return (
     <Space>
       {Laberplaceholder && (
-        <span style={{ width: Laberplaceholder ? 100 : 0 }}>
-          {Laberplaceholder}
-        </span>
+        <span style={{ width: Laberplaceholder ? 100 : 0 }}>{Laberplaceholder}</span>
       )}
       <Select
         {...selectProps}

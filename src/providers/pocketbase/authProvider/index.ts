@@ -42,10 +42,7 @@ const defaultOptions: RequiredAuthOptions = {
   requestVerification: false,
 };
 
-export const authProvider = (
-  pb: PocketBase,
-  authOptions?: AuthOptions
-): AuthProvider => {
+export const authProvider = (pb: PocketBase, authOptions?: AuthOptions): AuthProvider => {
   const options: RequiredAuthOptions & AuthOptions = {
     ...defaultOptions,
     ...authOptions,
