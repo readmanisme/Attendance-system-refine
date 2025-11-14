@@ -10,11 +10,15 @@ import {
 import { Table, Space, Alert } from "antd";
 
 export const ListWorkType = () => {
-  const { tableProps } = useTable({
-  });
+  const { tableProps } = useTable({});
   return (
     <List headerButtons={<CreateButton>添加工作</CreateButton>}>
-      <Alert className="mb-2!" message="基础工作类型一经创建便不可编辑和删除" type="info" showIcon />
+      <Alert
+        className="mb-2!"
+        message="基础工作类型一经创建便不可编辑和删除"
+        type="info"
+        showIcon
+      />
       <Table {...tableProps} rowKey="id">
         {/* <Table.Column
                     dataIndex="collectionName"

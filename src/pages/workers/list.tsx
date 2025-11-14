@@ -1,12 +1,6 @@
 import { useCallback, useMemo } from "react";
 import PySearchSelect from "@/components/PySearchSelect";
-import {
-  DeleteButton,
-  EditButton,
-  List,
-  useTable,
-  CreateButton,
-} from "@refinedev/antd";
+import { DeleteButton, EditButton, List, useTable, CreateButton } from "@refinedev/antd";
 import type { BaseRecord } from "@refinedev/core";
 import { Space, Table } from "antd";
 
@@ -33,7 +27,7 @@ export const WorkersList = () => {
             },
           ]
         : [];
-        // @ts-expect-error，111
+      // @ts-expect-error，111
       setFilters(filters);
       setCurrentPage(1);
     },
@@ -66,7 +60,7 @@ export const WorkersList = () => {
   return (
     <List headerButtons={<CreateButton>添加人员</CreateButton>}>
       <PySearchSelect
-      // @ts-expect-error，111
+        // @ts-expect-error，111
         onChangeFn={handleChange}
         placeholder="多选工人，支持拼音"
         mode="multiple"

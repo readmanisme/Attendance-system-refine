@@ -78,7 +78,10 @@ const exportExcel = async (
   });
 
   // ✅ 用 Map 聚合日薪资
-  const daySalaryMap = new Map<string, { 工人: string; 日期: string; 总工时: number; 薪资: Decimal }>();
+  const daySalaryMap = new Map<
+    string,
+    { 工人: string; 日期: string; 总工时: number; 薪资: Decimal }
+  >();
   for (const rec of attendanceSheetData) {
     const key = `${rec.工人}_${rec.日期}`;
     const existing = daySalaryMap.get(key);
@@ -110,7 +113,10 @@ const exportExcel = async (
   });
 
   // ✅ 聚合月薪资
-  const monthSalaryMap = new Map<string, { 工人: string; 月份: string; 总工时: number; 薪资: Decimal }>();
+  const monthSalaryMap = new Map<
+    string,
+    { 工人: string; 月份: string; 总工时: number; 薪资: Decimal }
+  >();
   for (const rec of workHoursDaySheetData) {
     const month = dayjs(rec.日期).format("YYYY-MM");
     const key = `${rec.工人}_${month}`;

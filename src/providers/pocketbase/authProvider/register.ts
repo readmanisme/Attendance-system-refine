@@ -71,10 +71,7 @@ export const register =
         error: translate
           ? {
               statusCode: 400,
-              name: translate(
-                "authProvider.register.errorName",
-                "Registration failed"
-              ),
+              name: translate("authProvider.register.errorName", "Registration failed"),
               message: translate(
                 "authProvider.register.errorMessage",
                 "Something went wrong while creating your account. Please try again."

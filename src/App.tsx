@@ -29,12 +29,7 @@ import { MantineProvider } from "@mantine/core";
 import logo from "@/public/logo-64.webp?inline";
 import QianDaoPage from "./pages/qian-dao/qian-dao";
 import GongShiList from "./pages/gong-shi/list_table";
-import {
-  SampleList,
-  SampleCreate,
-  SampleEdit,
-  SampleShow,
-} from "./pages/Inferencer_example";
+import { SampleList, SampleCreate, SampleEdit, SampleShow } from "./pages/Inferencer_example";
 import { EditWorkType } from "./pages/workType/edit";
 import { CreateWorkType } from "./pages/workType/create";
 import { ListWorkType } from "./pages/workType/list";
@@ -99,7 +94,9 @@ const AppTitle = React.memo(({ collapsed }: { collapsed: boolean }) => (
     icon={
       <Space>
         <Avatar src={logo} alt="Company Logo" size={collapsed ? "default" : "large"} />
-        {!collapsed && <Typography.Text className="whitespace-nowrap">{__SystemName__}</Typography.Text>}
+        {!collapsed && (
+          <Typography.Text className="whitespace-nowrap">{__SystemName__}</Typography.Text>
+        )}
       </Space>
     }
     text={null}
@@ -107,7 +104,7 @@ const AppTitle = React.memo(({ collapsed }: { collapsed: boolean }) => (
 ));
 function App() {
   const { t, i18n } = useTranslation();
-  const {__BACKEND_API_URL__ }= useSomeStore();
+  const { __BACKEND_API_URL__ } = useSomeStore();
   const pb = useMemo(() => getPb(__BACKEND_API_URL__), [__BACKEND_API_URL__]);
   const i18nProvider = useMemo(
     () => ({
@@ -227,10 +224,7 @@ function App() {
                       </ThemedLayoutV2>
                     }
                   >
-                    <Route
-                      index
-                      element={<NavigateToResource resource="qiandao" />}
-                    />
+                    <Route index element={<NavigateToResource resource="qiandao" />} />
                     <Route path="/qiandao">
                       <Route index element={<QianDaoPage />} />
                     </Route>
@@ -240,10 +234,7 @@ function App() {
                         path="create"
                         element={<AttendanceRecordCreate />}
                       /> */}
-                      <Route
-                        path="edit/:id"
-                        element={<AttendanceRecordEdit />}
-                      />
+                      <Route path="edit/:id" element={<AttendanceRecordEdit />} />
                       {/* <Route
                         path="show/:id"
                         element={<AttendanceRecordShow />}

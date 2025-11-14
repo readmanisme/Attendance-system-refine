@@ -10,7 +10,7 @@ export const SalaryTypeEdit = () => {
       expand: ["worker_name", "work_type"],
     },
   });
-  const workName=formProps.initialValues?.expand?.work_type?.name;
+  const workName = formProps.initialValues?.expand?.work_type?.name;
   const { selectProps: nameSelectProps } = useSelect({
     resource: __Workers_TableName,
     optionLabel: "name",
@@ -73,7 +73,9 @@ export const SalaryTypeEdit = () => {
           return {
             alertContent: (
               <Alert
-                message={`当前记录与 ${record.expand?.worker_name?.name || "未知"} 工人（无工种）重复`}
+                message={`当前记录与 ${
+                  record.expand?.worker_name?.name || "未知"
+                } 工人（无工种）重复`}
                 type="error"
                 showIcon
               />
@@ -117,11 +119,21 @@ export const SalaryTypeEdit = () => {
         </Form.Item>
 
         <Form.Item label="工人" name={["worker_name"]}>
-          <Select {...nameSelectProps} allowClear onChange={setWorkerName} disabled={workName==="基础"}/>
+          <Select
+            {...nameSelectProps}
+            allowClear
+            onChange={setWorkerName}
+            disabled={workName === "基础"}
+          />
         </Form.Item>
 
         <Form.Item label="工种" name={["work_type"]}>
-          <Select {...typeSelectProps} allowClear onChange={setWorkType} disabled={workName==="基础"} />
+          <Select
+            {...typeSelectProps}
+            allowClear
+            onChange={setWorkType}
+            disabled={workName === "基础"}
+          />
         </Form.Item>
 
         <Form.Item label="时薪" name={["SalaryNum"]} rules={[{ required: true }]}>

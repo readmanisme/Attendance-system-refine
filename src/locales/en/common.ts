@@ -95,18 +95,15 @@ const en = {
     clone: "Clone",
     notAccessTitle: "You don't have permission to access",
   },
-  warnWhenUnsavedChanges:
-    "Are you sure you want to leave? You have unsaved changes.",
+  warnWhenUnsavedChanges: "Are you sure you want to leave? You have unsaved changes.",
   notifications: {
     success: "Successful",
     error: "Error (status code: {{statusCode}})",
     undoable: "You have {{seconds}} seconds to undo",
     createSuccess: "Successfully created {{resource}}",
-    createError:
-      "There was an error creating {{resource}} (status code: {{statusCode}})",
+    createError: "There was an error creating {{resource}} (status code: {{statusCode}})",
     deleteSuccess: "Successfully deleted {{resource}}",
-    deleteError:
-      "Error when deleting {{resource}} (status code: {{statusCode}})",
+    deleteError: "Error when deleting {{resource}} (status code: {{statusCode}})",
     editSuccess: "Successfully edited {{resource}}",
     editError: "Error when editing {{resource}} (status code: {{statusCode}})",
     importProgress: "Importing: {{processed}}/{{total}}",

@@ -67,9 +67,7 @@ export const AttendanceRecordList = () => {
 
   // 🚀 用 useEffect 优化过滤逻辑
   useEffect(() => {
-    const filters = unclockoutfilter
-      ? [{ field: "check_out", operator: "eq", value: "" }]
-      : [];
+    const filters = unclockoutfilter ? [{ field: "check_out", operator: "eq", value: "" }] : [];
     // @ts-expect-error,111
     setFilters(filters, "replace");
     setCurrentPage(1);
@@ -97,17 +95,18 @@ export const AttendanceRecordList = () => {
 
   // ✅ 封装格式化函数，避免在每个 cell render 中新建 dayjs 实例
   const formatDateTime = useCallback(
-    (date?: string) =>
-      date ? dayjs(date).format("YYYY-MM-DD HH:mm:ss") : "--",
+    (date?: string) => (date ? dayjs(date).format("YYYY-MM-DD HH:mm:ss") : "--"),
     []
   );
 
   return (
     <List
       headerButtons={
-        <Tooltip title="请到签到页面添加记录"> 
-        {/* 因为CreateButton会导致tooltip位置异常，所以换成普通的button，无所谓，反正不用 */}
-          <Button disabled icon={<PlusSquareOutlined />}>添加记录</Button>
+        <Tooltip title="请到签到页面添加记录">
+          {/* 因为CreateButton会导致tooltip位置异常，所以换成普通的button，无所谓，反正不用 */}
+          <Button disabled icon={<PlusSquareOutlined />}>
+            添加记录
+          </Button>
         </Tooltip>
       }
     >
@@ -185,10 +184,7 @@ export const AttendanceRecordList = () => {
         className="mt-2"
       >
         <Table.Column dataIndex="id" title="ID" />
-        <Table.Column
-          dataIndex={["expand", "worker_id", "name"]}
-          title="人员姓名"
-        />
+        <Table.Column dataIndex={["expand", "worker_id", "name"]} title="人员姓名" />
         <Table.Column
           dataIndex="check_in"
           title="上班时间"
