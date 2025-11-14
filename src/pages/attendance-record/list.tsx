@@ -16,7 +16,7 @@ import PySearchSelect from "@/components/PySearchSelect";
 import { DeleteOutlined, PlusSquareOutlined } from "@ant-design/icons";
 import { useResourceParams } from "@refinedev/core";
 
-export const AttendanceRecordList = () => {
+ const AttendanceRecordList = () => {
   const datePickerFilter = useGetDatePickerFilter();
   const { resource } = useResourceParams();
   const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
@@ -216,3 +216,4 @@ export const AttendanceRecordList = () => {
     </List>
   );
 };
+export default AttendanceRecordList;

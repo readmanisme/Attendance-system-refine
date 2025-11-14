@@ -4,7 +4,7 @@ import { DeleteButton, EditButton, List, useTable, CreateButton } from "@refined
 import type { BaseRecord } from "@refinedev/core";
 import { Space, Table } from "antd";
 
-export const WorkersList = () => {
+ const WorkersList = () => {
   const { tableProps, setFilters, setCurrentPage } = useTable({
     sorters: {
       permanent: [{ field: "created", order: "desc" }],
@@ -78,3 +78,5 @@ export const WorkersList = () => {
     </List>
   );
 };
+
+export default WorkersList;

@@ -3,7 +3,7 @@ import { useList } from "@refinedev/core";
 import { Form, Input, Select, InputNumber, Alert } from "antd";
 import { useState, useMemo } from "react";
 
-export const SalaryTypeEdit = () => {
+ const SalaryTypeEdit = () => {
   const { formProps, saveButtonProps } = useForm({
     // resource: __SalaryType_TableName,
     meta: {
@@ -146,3 +146,4 @@ export const SalaryTypeEdit = () => {
     </Edit>
   );
 };
+export default SalaryTypeEdit;

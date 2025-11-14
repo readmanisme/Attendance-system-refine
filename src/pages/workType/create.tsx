@@ -3,7 +3,7 @@ import { Create, SaveButton, useForm } from "@refinedev/antd";
 import { Alert, Form, Input, Space, Tag } from "antd";
 import { useCreateMany, useGo, useList, useResourceParams } from "@refinedev/core";
 
-export const CreateWorkType = () => {
+ const CreateWorkType = () => {
   const [IsError, setIsError] = React.useState(true);
   const { resource } = useResourceParams();
   const go = useGo();
@@ -148,3 +148,4 @@ export const CreateWorkType = () => {
     </Create>
   );
 };
+export default CreateWorkType;

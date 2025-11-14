@@ -3,7 +3,7 @@ import { DatePicker, Form, InputNumber, Select, message } from "antd";
 import dayjs from "dayjs";
 import { useEffect } from "react";
 
-export const AttendanceRecordEdit = () => {
+ const AttendanceRecordEdit = () => {
   const { formProps, saveButtonProps, formLoading, form } = useForm({
     meta: { expand: ["worker_id"] },
   });
@@ -106,3 +106,4 @@ export const AttendanceRecordEdit = () => {
     </Edit>
   );
 };
+export default AttendanceRecordEdit;

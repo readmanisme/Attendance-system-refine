@@ -10,7 +10,7 @@ import {
 import { Table, Space } from "antd";
 import { useMemo } from "react";
 
-export const SalaryTypeList = () => {
+ const SalaryTypeList = () => {
   const { tableProps } = useTable({
     resource: __SalaryType_TableName,
     meta: {
@@ -62,3 +62,4 @@ export const SalaryTypeList = () => {
     </List>
   );
 };
+export default SalaryTypeList;

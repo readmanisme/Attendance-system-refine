@@ -3,7 +3,7 @@ import { useCreateMany, useGo, useList, useResourceParams } from "@refinedev/cor
 import { Alert, Input, Tag } from "antd";
 import React, { useCallback, useMemo, useState } from "react";
 
-export const WorkersCreate: React.FC = () => {
+ const WorkersCreate: React.FC = () => {
   const { resource } = useResourceParams();
   const go = useGo();
 
@@ -155,3 +155,4 @@ export const WorkersCreate: React.FC = () => {
     </Create>
   );
 };
+export default WorkersCreate;

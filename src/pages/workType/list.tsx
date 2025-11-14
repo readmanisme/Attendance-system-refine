@@ -9,7 +9,7 @@ import {
 } from "@refinedev/antd";
 import { Table, Space, Alert } from "antd";
 
-export const ListWorkType = () => {
+ const ListWorkType = () => {
   const { tableProps } = useTable({});
   return (
     <List headerButtons={<CreateButton>添加工作</CreateButton>}>
@@ -61,3 +61,4 @@ export const ListWorkType = () => {
     </List>
   );
 };
+export default ListWorkType;
