@@ -85,7 +85,7 @@ const SalaryTypeEdit = React.lazy(() => import("./pages/xin-zi/edit"));
 // 统一 Loading 组件（可替换为 Skeleton）
 const RouteLoading = () => (
   <div className="flex items-center justify-center h-full min-h-96">
-    <Spin size="large" tip="加载中..." />
+    <Spin size="large"/>
   </div>
 );
 const devOnlyRoutesConfig = import.meta.env.DEV

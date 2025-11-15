@@ -15,12 +15,12 @@ import { useGetDatePickerFilter } from "@/utils/get_data_picker_filter";
 import PySearchSelect from "@/components/PySearchSelect";
 import { DeleteOutlined, PlusSquareOutlined } from "@ant-design/icons";
 import { useResourceParams } from "@refinedev/core";
-
+import { useSomeStore } from "@/stores";
 const AttendanceRecordList = () => {
   const datePickerFilter = useGetDatePickerFilter();
   const { resource } = useResourceParams();
   const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
-
+  const { KaoQingPresons, setKaoQingPresons } = useSomeStore();
   // useMemo 避免每次渲染都重新创建过滤函数
   const getFilter = useCallback((values: any) => {
     if (!values?.length) return [];
@@ -118,8 +118,7 @@ const AttendanceRecordList = () => {
 
       {/* 顶部操作区 */}
       <div className="flex flex-row justify-between items-center mb-2">
-        <div className="flex flex-row gap-2 items-center">
-        </div>
+        <div className="flex flex-row gap-2 items-center"></div>
 
         <div className="flex gap-2 items-center">
           <Popconfirm
@@ -151,6 +150,7 @@ const AttendanceRecordList = () => {
         onChangeFn={(value: any) => {
           // @ts-expect-error,111
           setFilters(getFilter(value));
+          setKaoQingPresons(value);
           setCurrentPage(1);
           setSelectedRowKeys([]);
         }}
@@ -162,6 +162,8 @@ const AttendanceRecordList = () => {
           setSelectedRowKeys([]);
         }}
         needButton
+        type="qiandao"
+        value={KaoQingPresons}
       />
 
       {/* 表格部分 */}
