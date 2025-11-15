@@ -100,7 +100,7 @@ const WorkersList = () => {
         rowKey="id"
         columns={columns}
         className="mt-2"
-        pagination={tableProps.pagination}
+        pagination={{ ...tableProps.pagination, showSizeChanger: true }}
       />
     </List>
   );

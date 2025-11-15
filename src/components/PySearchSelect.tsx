@@ -121,7 +121,7 @@ export default function PySearchSelect({
   const handleChange = useCallback(
     (value: { value: string; label: string }) => {
       setHighlightWords([]);
-      if (!needButton) onChangeFn(value);
+      if (!needButton) onChangeFn(value); //needButton的作用是避免即时筛选
       SelectValue.current = value;
     },
     [needButton, onChangeFn]

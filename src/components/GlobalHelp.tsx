@@ -9,6 +9,7 @@ export const GlobalHelp = () => {
   const helps: Record<string, React.ReactNode> = {
     人员签到: (
       <>
+        <Paragraph strong>0、右上角刷新数据按钮，用于应对需要打开两个页面的情况，当在其中一个页面刷新数据后，点击此按钮在另一个页面中同步新的数据。</Paragraph>
         <Paragraph>1、签到是上下班一起，选择人员，选择工作，选择日期，选择时间，然后录入即可。</Paragraph>
         <Paragraph>
           2、选择人员可以搜索，支持拼音搜索和汉字搜索，支持多选。

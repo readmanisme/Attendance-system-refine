@@ -5,7 +5,7 @@ import { Layout as AntdLayout, Button, Radio, Space, theme, Tooltip } from "antd
 import React, { useMemo, useCallback } from "react";
 import { useInvalidate, useResourceParams } from "@refinedev/core";
 import { useSomeStore } from "@/stores";
-
+import GradientButton from "../GradientButton";
 const { useToken } = theme;
 
 export const Header: React.FC<RefineThemedLayoutHeaderProps> = ({ sticky = true }) => {
@@ -42,16 +42,41 @@ export const Header: React.FC<RefineThemedLayoutHeaderProps> = ({ sticky = true 
 
   // --- ✅ 刷新逻辑优化：修正条件判断错误 ---
   const handleRefresh = useCallback(() => {
-    let name = resource?.name;
+    const name = resource?.name;
     // 修正: 原代码中 `if ((name = "qiandao"))` 是赋值，不是比较
+    const names = [];
     if (name === "qiandao") {
-      name = "__AttendanceRecord_TableName";
+      names.push(__AttendanceRecord_TableName);
+      names.push(__Workers_TableName); // 拼音搜索组件
+      names.push(__WorkTypes_TableName);
+    } else if (name === __AttendanceRecord_TableName) {
+      names.push(__Workers_TableName);
+      names.push(__AttendanceRecord_TableName);
+    } else if (name === __Workers_TableName) {
+      names.push(__Workers_TableName);
+      names.push(__WorkerRecordNum_TableName);
+    } else if (name === __WorkTypes_TableName) {
+      names.push(__WorkTypes_TableName);
+      names.push(__WorkRecordNum_TableName);
+    } else if (name === __SalaryType_TableName) {
+      names.push(__SalaryType_TableName);
+      names.push(__WorkTypes_TableName);
+      names.push(__Workers_TableName);
+    } else if (name === "gongshi") {
+      names.push(__SalaryType_TableName);
+      names.push(__WorkTypes_TableName);
+      names.push(__Workers_TableName);
+      names.push(__AttendanceRecord_TableName);
+      names.push(__WorkHours_Day_ViewName);
+      names.push(__WorkHours_Month_ViewName);
     }
-    if (name) {
-      invalidate({
-        resource: name,
-        invalidates: ["resourceAll"],
-      });
+    if (names.length > 0) {
+      for (const n of names) {
+        invalidate({
+          resource: n,
+          invalidates: ["resourceAll"],
+        });
+      }
     }
   }, [invalidate, resource]);
 
@@ -68,8 +93,8 @@ export const Header: React.FC<RefineThemedLayoutHeaderProps> = ({ sticky = true 
   return (
     <AntdLayout.Header style={headerStyles}>
       <Space>
-        <Button onClick={handleRefresh}>刷新数据</Button>
-
+        {/* <Button onClick={handleRefresh}>刷新数据</Button> */}
+          <GradientButton title="刷新数据" onClick={handleRefresh} />
         {ports.length > 0 && (
           <Radio.Group
             options={radioOptions}
@@ -78,7 +103,7 @@ export const Header: React.FC<RefineThemedLayoutHeaderProps> = ({ sticky = true 
           />
         )}
 
-        <Badge color="blue" variant="light" style={{ width: 120 }}>
+        <Badge color="red" variant="light" style={{ width: 120 }}>
           {__VERSION__}
         </Badge>
 

@@ -36,7 +36,7 @@ import PySearchSelect from "@/components/PySearchSelect";
 const { Title: AntdTitle } = Typography;
 type WorkerOption = { key: string; label: string; value: string };
 type WorkTypeValue = { value: string; label: string } | undefined;
-
+import { useSomeStore } from "@/stores";
 const statusMap: Record<string, { text: string; color: string }> = {
   pending: { text: "待签退", color: "warning" },
   "checked-out": { text: "已签退", color: "default" },
@@ -45,13 +45,14 @@ const hours = [2, 2.5, 5, 7, 7.5, 8, 8.5, 9, 10, 10.5, 12, 13];
 
 export default function QianDaoPage() {
   // ======================== useState ========================
-
+  const {CheckDate:CheckDate1, setCheckDate}=useSomeStore();
+  const CheckDate=dayjs(CheckDate1)
   const [RangeTime, setRangeTime] = useState<Dayjs[]>([
     dayjs().minute(0).second(0).millisecond(0),
     dayjs().minute(0).second(0).millisecond(0),
   ]);
   const TimeDifference = useMemo(() => RangeTime[1].diff(RangeTime[0], "hour", true), [RangeTime]);
-  const [CheckDate, setCheckDate] = useState<Dayjs>(dayjs().minute(0).second(0).millisecond(0));
+  // const [CheckDate, setCheckDate] = useState<Dayjs>(dayjs().minute(0).second(0).millisecond(0));
   const IsPast = useMemo(() => CheckDate.isBefore(dayjs(), "day"), [CheckDate]);
   const IsFuture = useMemo(() => CheckDate.isAfter(dayjs(), "day"), [CheckDate]);
   const [work_type, set_work_type] = useState<WorkTypeValue>(undefined); //签到的时候要用
@@ -528,7 +529,7 @@ export default function QianDaoPage() {
             </Space>
             <Alert
               type="info"
-              message="要确定某人是否已经记录，可以1使用Ctrl+F搜索" //还是说已经有记录的显示已录入tag？不推荐，那样的话拼音搜索组件又要改了
+              message="要确定某人是否已经记录，可以使用Ctrl+F搜索" //还是说已经有记录的显示已录入tag？不推荐，那样的话拼音搜索组件又要改了
               // showIcon
             />
           </Space>

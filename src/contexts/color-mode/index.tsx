@@ -3,7 +3,7 @@ import { ConfigProvider } from "antd";
 import { type PropsWithChildren } from "react";
 import locale from "antd/locale/zh_CN";
 import dayjs from 'dayjs';
-import "dayjs/locale/zh-cn";
+import 'dayjs/locale/zh-cn';
 import timezone from "dayjs/plugin/timezone";
 import utc from "dayjs/plugin/utc";
 import isSameOrBefore from "dayjs/plugin/isSameOrBefore";
@@ -17,6 +17,7 @@ dayjs.extend(isSameOrBefore);
 dayjs.extend(isSameOrAfter);
 dayjs.extend(weekday);
 dayjs.extend(localeData);
+
 // dayjs.tz.setDefault("Africa/Abidjan")
 // 这个12个月时间都和UTC保持一致，london不一定
 
