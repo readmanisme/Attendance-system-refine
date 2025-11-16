@@ -3,7 +3,7 @@ import { useCreateMany, useGo, useList, useResourceParams } from "@refinedev/cor
 import { Alert, Input, Tag } from "antd";
 import React, { useCallback, useMemo, useState } from "react";
 
- const WorkersCreate: React.FC = () => {
+const WorkersCreate: React.FC = () => {
   const { resource } = useResourceParams();
   const go = useGo();
 
@@ -36,8 +36,11 @@ import React, { useCallback, useMemo, useState } from "react";
   const [inputValue, setInputValue] = useState("");
 
   /** ✅ 提前缓存已有姓名集合，O(1) 查找 */
-  const existingNames = useMemo(() => new Set(namelist?.data.map((i) => i.name) || []), [namelist?.data]);
-
+  const existingNames = useMemo(
+    () => new Set(namelist?.data.map((i) => i.name) || []),
+    [namelist?.data]
+  );
+  const specialChars = useMemo(() => /[./\\|"'`<>:?*%$]/, []);
   /** ✅ 校验逻辑提取为纯函数 */
   const validateNames = useCallback(
     (value: string) => {
@@ -56,6 +59,23 @@ import React, { useCallback, useMemo, useState } from "react";
               以下姓名包含下划线：
               {names
                 .filter((n) => n.includes("_"))
+                .map((n, i) => (
+                  <Tag color="red" key={i}>
+                    {n}
+                  </Tag>
+                ))}
+            </span>
+          ),
+        };
+      }
+      if (names.some((n) => specialChars.test(n))) {
+        return {
+          status: "error",
+          error: (
+            <span>
+              以下姓名包含特殊字符：
+              {names
+                .filter((n) => specialChars.test(n))
                 .map((n, i) => (
                   <Tag color="red" key={i}>
                     {n}
@@ -88,7 +108,7 @@ import React, { useCallback, useMemo, useState } from "react";
 
       return { status: "success", error: "" };
     },
-    [existingNames]
+    [existingNames, specialChars]
   );
 
   /** ✅ 实时校验 */
@@ -109,18 +129,21 @@ import React, { useCallback, useMemo, useState } from "react";
     switch (status) {
       case "success":
         return {
+          "data-testid": "success-alert",
           message: "校验通过",
           description: "数据校验通过，可以提交",
           type: "success",
         };
       case "error":
         return {
+          "data-testid": "error-alert",
           message: "校验不通过",
           description: error,
           type: "error",
         };
       default:
         return {
+          "data-testid": "unknown-alert",
           message: "未知",
           description: "请输入数据进行检查；",
           type: "info",
@@ -131,12 +154,13 @@ import React, { useCallback, useMemo, useState } from "react";
   return (
     <Create
       footerButtons={() => (
-        <SaveButton onClick={handleSave} disabled={status !== "success"}>
+        <SaveButton data-testid="save-button" onClick={handleSave} disabled={status !== "success"}>
           保存
         </SaveButton>
       )}
     >
       <Input.TextArea
+        data-testid="name-input"
         rows={15}
         value={inputValue}
         onChange={(e) => setInputValue(e.target.value)}
@@ -145,6 +169,7 @@ import React, { useCallback, useMemo, useState } from "react";
       />
 
       <Alert
+        data-testid="format-requirement-alert"
         className="mt-2!"
         message="要求：姓名不能为空、不能包含下划线、且不能与已有姓名重复, 重复姓名可以通过添加说明进行区分。空行、前后空格将被忽略"
         type="info"

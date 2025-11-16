@@ -1,7 +1,8 @@
 import { useResourceParams } from "@refinedev/core";
 import { FloatButton, Drawer } from "antd";
-import Paragraph from "antd/es/typography/Paragraph";
+import { Typography } from "antd";
 import { useSomeStore } from "@/stores";
+const { Title, Paragraph } = Typography;
 export const GlobalHelp = () => {
   const { resource } = useResourceParams();
   const { helpOpen, setHelpOpen } = useSomeStore();
@@ -9,13 +10,19 @@ export const GlobalHelp = () => {
   const helps: Record<string, React.ReactNode> = {
     人员签到: (
       <>
-        <Paragraph strong>0、右上角刷新数据按钮，用于应对需要打开两个页面的情况，当在其中一个页面刷新数据后，点击此按钮在另一个页面中同步新的数据。</Paragraph>
-        <Paragraph>1、签到是上下班一起，选择人员，选择工作，选择日期，选择时间，然后录入即可。</Paragraph>
+        <Title level={3} className="text-center">
+          人员签到页面
+        </Title>
         <Paragraph>
-          2、选择人员可以搜索，支持拼音搜索和汉字搜索，支持多选。
+          0、右上角刷新数据按钮，用于应对需要打开两个页面的情况，当在其中一个页面刷新数据后，点击此按钮在另一个页面中同步新的数据。同时也起到更方便的刷新页面的作用。
         </Paragraph>
         <Paragraph>
-          3、选择时间的时候，既可以手动选择时间区间，可以点击 快速选择工时 下方的按钮快速设置时间，这种方式设置的时间必定以7:00开始。同时旁边显示当前所选时间区间是多少工时；
+          1、签到是上下班一起，选择人员，选择工作，选择日期，选择时间，然后录入即可。
+        </Paragraph>
+        <Paragraph>2、选择人员可以搜索，支持拼音搜索和汉字搜索，支持多选。</Paragraph>
+        <Paragraph>
+          3、选择时间的时候，既可以手动选择时间区间，可以点击 快速选择工时
+          下方的按钮快速设置时间，这种方式设置的时间必定以7:00开始。同时旁边显示当前所选时间区间是多少工时；
           <br />
           为保证数据正确性，选择的时间不能与之前相关人员已有的签到记录的时间范围冲突。
         </Paragraph>
@@ -40,22 +47,37 @@ export const GlobalHelp = () => {
     ),
     考勤记录: (
       <>
-        <Paragraph>1、右上角可以按照日期筛选考勤记录；左上角可以按照姓名搜索记录，可以多选。</Paragraph>
+        <Title level={3} className="text-center">
+          考勤记录页面
+        </Title>
+        <Paragraph>
+          1、右上角可以按照日期筛选考勤记录；左上角可以按照姓名搜索记录，可以多选。
+        </Paragraph>
         <Paragraph>2、可以使用左边复选框进行批量删除。</Paragraph>
         <Paragraph>3、添加考勤记录请到签到页面录入。</Paragraph>
       </>
     ),
     人员管理: (
       <>
+        <Title level={3} className="text-center">
+          人员管理页面
+        </Title>
         <Paragraph>1、表的左上角可以筛选单人或多人，支持拼音和汉字搜索。</Paragraph>
       </>
     ),
     工作管理: (
       <>
+        <Title level={3} className="text-center">
+          工作管理页面
+        </Title>
       </>
     ),
+
     薪资设置: (
       <>
+        <Title level={3} className="text-center">
+          薪资设置页面
+        </Title>
         <Paragraph>1、此处可设置不同人员或不同工作的时薪。</Paragraph>
         <Paragraph>
           2、薪资计算顺序为：首先匹配（人员，工作，时薪），然后匹配（人员，时薪），最后匹配（工作，时薪），如果都没有匹配到，则使用基础。
@@ -67,6 +89,9 @@ export const GlobalHelp = () => {
     ),
     "工时&薪资显示": (
       <>
+        <Title level={3} className="text-center">
+          工时&薪资显示页面
+        </Title>
         <Paragraph>1、如果表格一直在转圈，则表示发生未知错误，请联系管理员。</Paragraph>
         <Paragraph>2、此外未设置时薪的工作都按照基础时薪计算。</Paragraph>
         <Paragraph>3、右上角可以按照人员筛选记录，支持汉字搜索和拼音搜索，支持多选。</Paragraph>

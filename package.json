@@ -52,7 +52,7 @@
     "antd-style": "^3.7.1",
     "autoprefixer": "^10.4.22",
     "browserslist": "^4.28.0",
-    "dayjs": "^1.11.13",
+    "dayjs": "1.11.13",
     "decimal.js": "^10.6.0",
     "embla-carousel-react": "^8.6.0",
     "es-toolkit": "^1.41.0",
