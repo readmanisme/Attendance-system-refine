@@ -3,7 +3,7 @@ import { Create, SaveButton, useForm } from "@refinedev/antd";
 import { Alert, Form, Input, Space, Tag } from "antd";
 import { useCreateMany, useGo, useList, useResourceParams } from "@refinedev/core";
 
- const CreateWorkType = () => {
+const CreateWorkType = () => {
   const [IsError, setIsError] = React.useState(true);
   const { resource } = useResourceParams();
   const go = useGo();
@@ -34,8 +34,11 @@ import { useCreateMany, useGo, useList, useResourceParams } from "@refinedev/cor
     },
   });
   const [inputValue, setInputValue] = useState("");
-  const existingNames = useMemo(() => new Set(namelist?.data.map((i) => i.name) || []), [namelist?.data]);
-
+  const existingNames = useMemo(
+    () => new Set(namelist?.data.map((i) => i.name) || []),
+    [namelist?.data]
+  );
+  const specialChars = useMemo(() => /[./\\|"'`<>:?*%$]/, []);
   const validateNames = useCallback(
     (value: string) => {
       const names = value
@@ -50,7 +53,7 @@ import { useCreateMany, useGo, useList, useResourceParams } from "@refinedev/cor
           status: "error",
           error: (
             <span>
-              以下姓名包含下划线：
+              以下工作包含下划线：
               {names
                 .filter((n) => n.includes("_"))
                 .map((n, i) => (
@@ -62,7 +65,23 @@ import { useCreateMany, useGo, useList, useResourceParams } from "@refinedev/cor
           ),
         };
       }
-
+      if (names.some((n) => specialChars.test(n))) {
+        return {
+          status: "error",
+          error: (
+            <span>
+              以下工作包含特殊字符：
+              {names
+                .filter((n) => specialChars.test(n))
+                .map((n, i) => (
+                  <Tag color="red" key={i}>
+                    {n}
+                  </Tag>
+                ))}
+            </span>
+          ),
+        };
+      }
       const duplicates = names.filter((n, i) => names.indexOf(n) !== i);
       const existings = names.filter((n) => existingNames.has(n));
       const conflictNames = [...new Set([...duplicates, ...existings])];
@@ -72,7 +91,7 @@ import { useCreateMany, useGo, useList, useResourceParams } from "@refinedev/cor
           status: "error",
           error: (
             <span>
-              以下姓名重复或已存在：
+              以下工作重复或已存在：
               {conflictNames.map((n, i) => (
                 <Tag color="red" key={i}>
                   {n}
@@ -85,7 +104,7 @@ import { useCreateMany, useGo, useList, useResourceParams } from "@refinedev/cor
 
       return { status: "success", error: "" };
     },
-    [existingNames]
+    [existingNames, specialChars]
   );
   const { status, error } = useMemo(() => validateNames(inputValue), [inputValue, validateNames]);
   const handleSave = useCallback(() => {
@@ -102,18 +121,21 @@ import { useCreateMany, useGo, useList, useResourceParams } from "@refinedev/cor
     switch (status) {
       case "success":
         return {
+          "data-testid": "success-alert",
           message: "校验通过",
           description: "数据校验通过，可以提交",
           type: "success",
         };
       case "error":
         return {
+          "data-testid": "error-alert",
           message: "校验不通过",
           description: error,
           type: "error",
         };
       default:
         return {
+          "data-testid": "unknown-alert",
           message: "未知",
           description: "请输入数据进行检查；",
           type: "info",
@@ -124,12 +146,13 @@ import { useCreateMany, useGo, useList, useResourceParams } from "@refinedev/cor
   return (
     <Create
       footerButtons={() => (
-        <SaveButton onClick={handleSave} disabled={status !== "success"}>
+        <SaveButton onClick={handleSave} disabled={status !== "success"} data-testid="save-button">
           保存
         </SaveButton>
       )}
     >
       <Input.TextArea
+        data-testid="name-input"
         rows={15}
         value={inputValue}
         onChange={(e) => setInputValue(e.target.value)}
@@ -138,6 +161,7 @@ import { useCreateMany, useGo, useList, useResourceParams } from "@refinedev/cor
       />
 
       <Alert
+        data-testid="format-requirement-alert"
         className="mt-2!"
         message="要求：工作不能为空、不能包含下划线、且不能与已有工作重复, 空行、前后空格将被忽略"
         type="info"

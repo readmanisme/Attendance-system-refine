@@ -1,7 +1,7 @@
 // useSomeStore.ts (修订版)
 import { create } from "zustand";
 import { devtools, persist } from "zustand/middleware";
-import type {} from "@redux-devtools/extension"; 
+import type {} from "@redux-devtools/extension";
 import dayjs, { Dayjs } from "dayjs";
 
 interface SomeState {
@@ -11,9 +11,7 @@ interface SomeState {
   setHelpOpen: (open: boolean) => void;
   __BACKEND_API_URL__: string;
   set__BACKEND_API_URL__: (url: string) => void;
-  CheckDate: string; //dayjs会自动变成字符串
-  setCheckDate: (date: Dayjs) => void;
-  KaoQingPresons:any,
+  KaoQingPresons: any;
   setKaoQingPresons: (data: any) => void;
 }
 
@@ -33,19 +31,17 @@ export const useSomeStore = create<SomeState>()(
           dayjs().add(1, "month").format("YYYY-MM"),
           // 要包含后一个月
         ],
-        CheckDate: dayjs().format("YYYY-MM-DD"),
-        setCheckDate: (date: Dayjs) => set({ CheckDate: date.format("YYYY-MM-DD") }),
         KaoQingPresons: [],
         setKaoQingPresons: (data: any) => set({ KaoQingPresons: data }),
 
         helpOpen: false,
-        
+
         // __BACKEND_API_URL__ 始终初始化为您指定的 URL
         __BACKEND_API_URL__: FIXED_API_URL,
 
         // --- Action 定义 ---
         setRecordDateRange: (data: string[]) => set({ recordDateRange: data }),
-        
+
         setHelpOpen: (open: boolean) => set({ helpOpen: open }),
 
         // 核心：锁定生产环境下的 URL 更改
@@ -61,18 +57,20 @@ export const useSomeStore = create<SomeState>()(
         },
       }),
       {
-        
         name: "some-store",
         version: NEW_MAJOR_VERSION,
 
         // 核心：排除 __BACKEND_API_URL__ 的持久化
         partialize: (state) => {
-          // 使用解构赋值，将 __BACKEND_API_URL__ 从要持久化的状态对象中排除
-          const { __BACKEND_API_URL__, set__BACKEND_API_URL__, ...persistedState } = state;
-          
-          return persistedState;
+          if (import.meta.env.PROD) {
+            // 使用解构赋值，将 __BACKEND_API_URL__ 从要持久化的状态对象中排除
+            const { __BACKEND_API_URL__, set__BACKEND_API_URL__, ...persistedState } = state;
+
+            return persistedState;
+          }
+          return state;
         },
-        
+
         // 迁移逻辑不变
         migrate: (persistedState, version) => {
           if (version < NEW_MAJOR_VERSION) {

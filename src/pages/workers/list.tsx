@@ -79,8 +79,9 @@ const WorkersList = () => {
   );
 
   return (
-    <List headerButtons={<CreateButton>添加人员</CreateButton>}>
+    <List headerButtons={<CreateButton data-testid="create-button">添加人员</CreateButton>}>
       <Alert
+        data-testid="delete-alert"
         className="mb-2!"
         message="删除人员将一并删除与之相关的考勤记录和薪资计算方式"
         type="warning"
@@ -96,6 +97,7 @@ const WorkersList = () => {
       />
 
       <Table
+        data-testid="table"
         {...tableProps}
         rowKey="id"
         columns={columns}

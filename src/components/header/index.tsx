@@ -111,6 +111,7 @@ export const Header: React.FC<RefineThemedLayoutHeaderProps> = ({ sticky = true 
           <Button
             type="primary"
             shape="circle"
+            data-testid="help-button"
             icon={<QuestionCircleOutlined />}
             onClick={() => setHelpOpen(true)}
           />

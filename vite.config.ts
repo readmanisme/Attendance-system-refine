@@ -57,7 +57,7 @@ export default defineConfig({
     __Backend_Password__: JSON.stringify("bPWU8GCMuqwKF9z"),
     __VERSION__: JSON.stringify("v2025.11.15.1549"),
   },
-  base: "./", // 使用相对路径
+  base: "/",
   resolve: {
     alias: {
       // '@': '/src',

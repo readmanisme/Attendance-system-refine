@@ -1,4 +1,4 @@
-import { Button, Select, Space, Tag } from "antd";
+import { Button, Flex, Select, Space, Tag } from "antd";
 import { match } from "pinyin-pro";
 import { useMemo, useState, useCallback, useRef } from "react";
 import type { DefaultOptionType } from "antd/es/select";
@@ -14,7 +14,7 @@ interface PySearchSelectProps {
   onClearFn?: () => void;
   mode?: "multiple" | "tags";
   needButton?: boolean;
-  width?: number;
+  width?: number | string;
   disabeld?: boolean;
   type?: string;
   value?: any;
@@ -128,11 +128,10 @@ export default function PySearchSelect({
   );
 
   return (
-    <Space>
-      {Laberplaceholder && (
-        <span style={{ width: Laberplaceholder ? 100 : 0 }}>{Laberplaceholder}</span>
-      )}
+    <Flex gap="small" align="center">
+      {Laberplaceholder && <div>{Laberplaceholder}</div>}
       <Select
+        data-testid="py-search-select"
         {...selectProps}
         {...otherOptions}
         placeholder={placeholder}
@@ -142,7 +141,12 @@ export default function PySearchSelect({
         disabled={disabeld}
         labelInValue
         optionFilterProp="label"
+        // style={{ width: '100%' }}
         style={{ width: width }}
+        // className="w-full!"
+        // classNames={{
+        //   "root":"w-full!"
+        // }}
         filterOption={handleFilter}
         onChange={handleChange} //选择和删除选项触发，输入内容不触发
         onClear={handleClear}
@@ -158,6 +162,7 @@ export default function PySearchSelect({
       />
       {needButton && (
         <Button
+          data-testid="py-search-button"
           type="primary"
           icon={<SearchOutlined />}
           onClick={() => onChangeFn(SelectValue.current)}
@@ -165,6 +170,6 @@ export default function PySearchSelect({
           搜索
         </Button>
       )}
-    </Space>
+    </Flex>
   );
 }

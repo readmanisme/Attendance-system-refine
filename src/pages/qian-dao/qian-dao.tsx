@@ -36,7 +36,6 @@ import PySearchSelect from "@/components/PySearchSelect";
 const { Title: AntdTitle } = Typography;
 type WorkerOption = { key: string; label: string; value: string };
 type WorkTypeValue = { value: string; label: string } | undefined;
-import { useSomeStore } from "@/stores";
 const statusMap: Record<string, { text: string; color: string }> = {
   pending: { text: "待签退", color: "warning" },
   "checked-out": { text: "已签退", color: "default" },
@@ -45,14 +44,13 @@ const hours = [2, 2.5, 5, 7, 7.5, 8, 8.5, 9, 10, 10.5, 12, 13];
 
 export default function QianDaoPage() {
   // ======================== useState ========================
-  const {CheckDate:CheckDate1, setCheckDate}=useSomeStore();
-  const CheckDate=dayjs(CheckDate1)
+
   const [RangeTime, setRangeTime] = useState<Dayjs[]>([
     dayjs().minute(0).second(0).millisecond(0),
     dayjs().minute(0).second(0).millisecond(0),
   ]);
   const TimeDifference = useMemo(() => RangeTime[1].diff(RangeTime[0], "hour", true), [RangeTime]);
-  // const [CheckDate, setCheckDate] = useState<Dayjs>(dayjs().minute(0).second(0).millisecond(0));
+  const [CheckDate, setCheckDate] = useState<Dayjs>(dayjs().minute(0).second(0).millisecond(0));
   const IsPast = useMemo(() => CheckDate.isBefore(dayjs(), "day"), [CheckDate]);
   const IsFuture = useMemo(() => CheckDate.isAfter(dayjs(), "day"), [CheckDate]);
   const [work_type, set_work_type] = useState<WorkTypeValue>(undefined); //签到的时候要用
@@ -388,6 +386,7 @@ export default function QianDaoPage() {
                 <Space direction="vertical" className="w-full">
                   <Flex gap="small">
                     <Alert
+                      data-testid={IsPast ? "past-alert" : IsFuture ? "future-alert" : "today-alert"}
                       className="flex-1"
                       message={IsPast ? "你正在过去日期中进行操作" : IsFuture ? "你正在未来日期中进行操作" : "你正在录入今日数据"}
                       type={IsPast ? "warning" : IsFuture ? "error" : "success"}
@@ -401,7 +400,7 @@ export default function QianDaoPage() {
                     placeholder="多选工人,支持拼音"
                     Laberplaceholder=""
                     mode="multiple"
-                    width={702}
+                    width="100%"
                     value={PiLiangNames}
                     type="qiandao"
                     // 传不传PiLiangNames，对性能影响似乎不大。如果影响大可以考虑用ref

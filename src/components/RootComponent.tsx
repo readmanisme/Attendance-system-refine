@@ -52,7 +52,7 @@ export const RootComponent: React.FC = () => {
         size="large"
         fullscreen
         tip={
-          <Alert className="mt-4" message="正在初始化" description="请稍候" type="info" showIcon />
+          <Alert data-testid="Initializing-alert" className="mt-4" message="正在初始化" description="请稍候" type="info" showIcon />
         }
       />
     );
@@ -68,6 +68,7 @@ export const RootComponent: React.FC = () => {
             fullscreen
             tip={
               <Alert
+                data-testid="Error-alert"
                 className="mt-4"
                 message="发生了一些错误"
                 description="后端无法连接，请检查网络连接或后端服务状态"
