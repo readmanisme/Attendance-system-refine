@@ -1,1 +1,1 @@
-powershell -File run.ps1
+powershell -File run-serve.ps1

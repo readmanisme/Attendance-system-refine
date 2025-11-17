@@ -1,12 +1,34 @@
 import { QuestionCircleOutlined } from "@ant-design/icons";
 import { Badge } from "@mantine/core";
 import type { RefineThemedLayoutHeaderProps } from "@refinedev/antd";
-import { Layout as AntdLayout, Button, Radio, Space, theme, Tooltip } from "antd";
-import React, { useMemo, useCallback } from "react";
+import { Alert, Layout as AntdLayout, Button, Radio, Space, Tag, theme, Tooltip } from "antd";
+import React, { useMemo, useCallback, useState, useEffect } from "react";
 import { useInvalidate, useResourceParams } from "@refinedev/core";
 import { useSomeStore } from "@/stores";
 import GradientButton from "../GradientButton";
 const { useToken } = theme;
+import { getPbAdmin } from "@/utils/pocketbase_admin";
+
+const useFetchSettings = (backendApiUrl: string) => {
+  const [settings, setSettings] = useState<any>(null);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<any>(null);
+  useEffect(() => {
+    const fetchSettings = async () => {
+      try {
+        const pb = await getPbAdmin(backendApiUrl);
+        const settingsData = await pb.settings.getAll();
+        setSettings(settingsData);
+      } catch (err) {
+        setError(err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchSettings();
+  }, [backendApiUrl]);
+  return { settings, loading, error };
+};
 
 export const Header: React.FC<RefineThemedLayoutHeaderProps> = ({ sticky = true }) => {
   const { token } = useToken();
@@ -15,6 +37,9 @@ export const Header: React.FC<RefineThemedLayoutHeaderProps> = ({ sticky = true 
 
   const { helpOpen, setHelpOpen, __BACKEND_API_URL__, set__BACKEND_API_URL__ } = useSomeStore();
 
+  const { settings, loading, error } = useFetchSettings(__BACKEND_API_URL__);
+  const batch = settings?.batch;
+  const BatchError = batch?.enabled === true && batch?.maxRequests === 999;
   // --- ✅ 样式 useMemo 化，避免每次渲染都重新创建对象 ---
   const headerStyles = useMemo<React.CSSProperties>(
     () => ({
@@ -93,8 +118,11 @@ export const Header: React.FC<RefineThemedLayoutHeaderProps> = ({ sticky = true 
   return (
     <AntdLayout.Header style={headerStyles}>
       <Space>
-        {/* <Button onClick={handleRefresh}>刷新数据</Button> */}
-          <GradientButton title="刷新数据" onClick={handleRefresh} />
+        {!BatchError && (
+          <Tag color="red"
+          >Batch设置有问题</Tag>
+        )}
+        <GradientButton title="刷新数据" onClick={handleRefresh} />
         {ports.length > 0 && (
           <Radio.Group
             options={radioOptions}
