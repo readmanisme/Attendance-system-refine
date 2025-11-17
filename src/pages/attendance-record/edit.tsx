@@ -70,7 +70,6 @@ import { useEffect } from "react";
             format="YYYY-MM-DD HH:mm"
             onChange={(value) => {
               const out = form.getFieldValue("check_out");
-              // @ts-expect-error,111
               if (out && !dayjs(value).isSame(out, "day")) {
                 form.setFieldValue("check_out", value.add(1, "hour"));
               }

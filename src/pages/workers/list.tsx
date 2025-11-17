@@ -44,11 +44,20 @@ const WorkersList = () => {
   // ✅ Table 列定义用 useMemo，避免每次 render 都新建列对象
   const columns = useMemo(
     () => [
-      { dataIndex: "id", title: "ID" },
-      { dataIndex: "name", title: "姓名" },
+      {
+        dataIndex: "id",
+        title: "ID",
+        onCell: (record:any, rowIndex:any) => ({ "data-testid": `row-id-${rowIndex}` }),
+      },
+      {
+        dataIndex: "name",
+        title: "姓名",
+        onCell: (record:any, rowIndex:any) => ({ "data-testid": `row-name-${rowIndex}` }),
+      },
       {
         dataIndex: "num",
         title: "考勤记录数",
+        onCell: (record:any, rowIndex:any) => ({ "data-testid": `row-num-${rowIndex}` }),
         render: (text: any, record: any) => WorkerRecordNum.get(record.id),
       },
       {
@@ -100,9 +109,13 @@ const WorkersList = () => {
         data-testid="table"
         {...tableProps}
         rowKey="id"
+        // @ts-expect-error，111
         columns={columns}
         className="mt-2"
         pagination={{ ...tableProps.pagination, showSizeChanger: true }}
+        // onRow={(record, index) => {
+        //   return { "data-testid": `row-${index}` }; // 确保返回这个对象
+        // }}
       />
     </List>
   );
