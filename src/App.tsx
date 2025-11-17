@@ -237,16 +237,6 @@ function App() {
                   syncWithLocation: false,
                   warnWhenUnsavedChanges: true,
                   projectId: "1LFZhY-g5ZTkQ-8ndYcP",
-                  reactQuery: {
-                    clientConfig: {
-                      defaultOptions: {
-                        queries: {
-                          staleTime: Infinity, //根据源代码，不会覆盖refine自己的设置
-                          gcTime: 30 * 60 * 1000,
-                        },
-                      },
-                    },
-                  },
                 }}
               >
                 {/* <Suspense fallback={<Spin size="large" fullscreen />}> */}

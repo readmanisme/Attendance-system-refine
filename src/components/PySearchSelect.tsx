@@ -38,6 +38,7 @@ export default function PySearchSelect({
   value = undefined,
 }: PySearchSelectProps) {
   const [highlightWords, setHighlightWords] = useState<string[]>([]);
+  // const [highlightWords, setHighlightWords] = useState(new Set<string>());
   const SelectValue = useRef<{ value: string; label: string }>({
     value: "",
     label: "",
@@ -58,17 +59,20 @@ export default function PySearchSelect({
 
   /** 判断输入是否是拼音字母 */
   const isPinyin = (input: string) => /^[a-zA-Z]+$/.test(input);
-
+console.log(highlightWords);
   /** ✅ 统一的搜索逻辑函数 */
   const handleFilter = useCallback((input: string, option?: { label?: string; value?: string }) => {
     if (!option?.label) return false;
     const label = option.label;
 
     if (isPinyin(input)) {
-      const result = match(label, input);
+      const result = match(label, input, { v: true });
       if (result) {
         const matchedChars = result.map((idx) => label[idx]);
-        setHighlightWords((prev) => [...prev, ...matchedChars]);
+        setHighlightWords((prev) => [...prev, ...matchedChars]); //之所以合并是因为这个函数会给每一个名字进行调用，所以合并。
+        // console.log("prev", highlightWords, "matchedChars", matchedChars)
+        // setHighlightWords((prev) => [...matchedChars]);
+        
         return true;
       }
       return false;
@@ -131,6 +135,9 @@ export default function PySearchSelect({
     <Flex gap="small" align="center">
       {Laberplaceholder && <div>{Laberplaceholder}</div>}
       <Select
+        // classNames={{
+        //   root: "my-classname",
+        // }}
         data-testid="py-search-select"
         {...selectProps}
         {...otherOptions}
@@ -154,6 +161,8 @@ export default function PySearchSelect({
         // onSelect={() => setHighlightWords([])}
         optionRender={renderOptionLabel}
         onSearch={(value: string) => {
+          // 输入内容的时候，高亮词重置
+          setHighlightWords([]);
           if (!value) {
             setHighlightWords([]);
             // 内容清空的时候，清空高亮词

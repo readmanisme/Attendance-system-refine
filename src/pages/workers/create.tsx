@@ -1,155 +1,37 @@
 import { Create, SaveButton } from "@refinedev/antd";
 import { useCreateMany, useGo, useList, useResourceParams } from "@refinedev/core";
-import { Alert, Input, Tag } from "antd";
-import React, { useCallback, useMemo, useState } from "react";
+import { Alert, Input } from "antd";
+import React, { useCallback } from "react";
+import { useBatchCreateForm } from "../useBatchCreateForm";
 
 const WorkersCreate: React.FC = () => {
   const { resource } = useResourceParams();
   const go = useGo();
 
-  const { result: namelist } = useList({
-    pagination: { mode: "off" },
-  });
+  const { result: namelist } = useList({ pagination: { mode: "off" } });
 
   const { mutate } = useCreateMany({
     resource: resource?.name,
-    successNotification(_data, _values, resource) {
-      go({
-        to: { resource: resource!, action: "list" },
-        type: "push",
-      });
-      return {
-        message: `Successfully created ${resource}`,
-        description: "Success",
-        type: "success",
-      };
-    },
-    errorNotification(error, _variables, resource) {
-      return {
-        message: `There was an error creating ${resource}(status code: ${error?.statusCode})`,
-        description: "Failed to create record",
-        type: "error",
-      };
+    mutationOptions: {
+      onSuccess: (response) => {
+        go({
+          // @ts-expect-error,111
+          to: { resource: resource?.name, action: "list" },
+          type: "push",
+        });
+      },
     },
   });
 
-  const [inputValue, setInputValue] = useState("");
-
-  /** ✅ 提前缓存已有姓名集合，O(1) 查找 */
-  const existingNames = useMemo(
-    () => new Set(namelist?.data.map((i) => i.name) || []),
-    [namelist?.data]
-  );
-  const specialChars = useMemo(() => /[./\\|"'`<>:?*%$]/, []);
-  /** ✅ 校验逻辑提取为纯函数 */
-  const validateNames = useCallback(
-    (value: string) => {
-      const names = value
-        .split("\n")
-        .map((n) => n.trim())
-        .filter(Boolean);
-
-      if (names.length === 0) return { status: "unknown", error: "" };
-
-      if (names.some((n) => n.includes("_"))) {
-        return {
-          status: "error",
-          error: (
-            <span>
-              以下姓名包含下划线：
-              {names
-                .filter((n) => n.includes("_"))
-                .map((n, i) => (
-                  <Tag color="red" key={i}>
-                    {n}
-                  </Tag>
-                ))}
-            </span>
-          ),
-        };
-      }
-      if (names.some((n) => specialChars.test(n))) {
-        return {
-          status: "error",
-          error: (
-            <span>
-              以下姓名包含特殊字符：
-              {names
-                .filter((n) => specialChars.test(n))
-                .map((n, i) => (
-                  <Tag color="red" key={i}>
-                    {n}
-                  </Tag>
-                ))}
-            </span>
-          ),
-        };
-      }
-
-      const duplicates = names.filter((n, i) => names.indexOf(n) !== i);
-      const existings = names.filter((n) => existingNames.has(n));
-      const conflictNames = [...new Set([...duplicates, ...existings])];
-
-      if (conflictNames.length > 0) {
-        return {
-          status: "error",
-          error: (
-            <span>
-              以下姓名重复或已存在：
-              {conflictNames.map((n, i) => (
-                <Tag color="red" key={i}>
-                  {n}
-                </Tag>
-              ))}
-            </span>
-          ),
-        };
-      }
-
-      return { status: "success", error: "" };
-    },
-    [existingNames, specialChars]
+  // 使用抽离的 Hook，label="姓名"
+  const { inputValue, setInputValue, status, parseValues, alertProps } = useBatchCreateForm(
+    namelist?.data || [],
+    "姓名"
   );
 
-  /** ✅ 实时校验 */
-  const { status, error } = useMemo(() => validateNames(inputValue), [inputValue, validateNames]);
-
-  /** ✅ 提交处理 */
   const handleSave = useCallback(() => {
-    const names = inputValue
-      .split("\n")
-      .map((n) => n.trim())
-      .filter(Boolean)
-      .map((name) => ({ name }));
-
-    mutate({ values: names });
-  }, [inputValue, mutate]);
-
-  const alertProps = useMemo(() => {
-    switch (status) {
-      case "success":
-        return {
-          "data-testid": "success-alert",
-          message: "校验通过",
-          description: "数据校验通过，可以提交",
-          type: "success",
-        };
-      case "error":
-        return {
-          "data-testid": "error-alert",
-          message: "校验不通过",
-          description: error,
-          type: "error",
-        };
-      default:
-        return {
-          "data-testid": "unknown-alert",
-          message: "未知",
-          description: "请输入数据进行检查；",
-          type: "info",
-        };
-    }
-  }, [status, error]);
+    mutate({ values: parseValues() });
+  }, [parseValues, mutate]);
 
   return (
     <Create
@@ -170,14 +52,16 @@ const WorkersCreate: React.FC = () => {
 
       <Alert
         data-testid="format-requirement-alert"
-        className="mt-2!"
-        message="要求：姓名不能为空、不能包含下划线、且不能与已有姓名重复, 重复姓名可以通过添加说明进行区分。空行、前后空格将被忽略"
+        message="要求：姓名不能为空、不能包含下划线、且不能与已有姓名重复，空行、前后空格将被忽略"
         type="info"
+        className="mt-2!"
         showIcon
       />
-      {/* @ts-expect-error, 111 */}
+
+      {/* @ts-expect-error,1111 */}
       <Alert className="mt-2!" showIcon {...alertProps} />
     </Create>
   );
 };
+
 export default WorkersCreate;
