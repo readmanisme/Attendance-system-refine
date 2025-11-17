@@ -1,46 +1,32 @@
 import { Edit, SaveButton, useForm } from "@refinedev/antd";
-import { useList } from "@refinedev/core";
 import { Alert, Form, Input, Space } from "antd";
-import React, { useCallback, useMemo } from "react";
+import React, { useCallback } from "react";
+import { useNameValidation } from "../useNameValidation";
 
 const WorkersEdit = () => {
   const { formProps, saveButtonProps, form } = useForm();
-  const { result: namelist } = useList({
-    pagination: {
-      mode: "off",
-    },
-  });
-  const [errorMsg, setErrorMsg] = React.useState<string | null>(null);
 
-  // 实时监听 name 字段变化
-  const nameValue = Form.useWatch("name", form);
-  const specialChars = useMemo(() => /[./\\|"'`<>:?*%$]/, []);
-  React.useEffect(() => {
-    if (!nameValue || nameValue.trim() === "") {
-      setErrorMsg("姓名不能为空");
-    } else if (nameValue.includes("_")) {
-      setErrorMsg("姓名不能包含下划线");
-    } else if (specialChars.test(nameValue)) {
-      setErrorMsg("姓名不能包含特殊字符");
-    } else if (namelist?.data?.some((item) => item.name === nameValue.trim())) {
-      setErrorMsg("姓名已存在，若不想继续编辑可返回");
-    } else {
-      setErrorMsg(null);
-    }
-  }, [nameValue, namelist?.data, specialChars]);
+  const { errorMsg } = useNameValidation({
+    form,
+    label: "姓名",
+  });
+
   const handleOnFinish = useCallback(
     (values: any) => {
-      if (formProps.onFinish) {
-        formProps.onFinish(values.trim());
-      }
+      formProps.onFinish?.({id: values.id, name: values.name.trim()});
     },
     [formProps]
   );
+
   return (
     <Edit
       saveButtonProps={saveButtonProps}
       footerButtons={({ saveButtonProps }) => (
-        <SaveButton {...saveButtonProps} disabled={!!errorMsg} data-testid="save-button" />
+        <SaveButton
+          {...saveButtonProps}
+          disabled={!!errorMsg}
+          data-testid="save-button"
+        />
       )}
     >
       <Form {...formProps} layout="vertical" onFinish={handleOnFinish}>
@@ -59,10 +45,19 @@ const WorkersEdit = () => {
             type="info"
             showIcon
           />
-          {errorMsg && <Alert data-testid="error-alert" message={errorMsg} type="error" showIcon />}
+
+          {errorMsg && (
+            <Alert
+              data-testid="error-alert"
+              message={errorMsg}
+              type="error"
+              showIcon
+            />
+          )}
         </Space>
       </Form>
     </Edit>
   );
 };
+
 export default WorkersEdit;

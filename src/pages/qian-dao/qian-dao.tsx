@@ -188,9 +188,6 @@ export default function QianDaoPage() {
 
   // ======================== 计算衍生数据 ========================
 
-
-
-
   // ======================== 表格定义 ========================
 
   // ======================== 设置按钮和提示 ========================
@@ -386,9 +383,17 @@ export default function QianDaoPage() {
                 <Space direction="vertical" className="w-full">
                   <Flex gap="small">
                     <Alert
-                      data-testid={IsPast ? "past-alert" : IsFuture ? "future-alert" : "today-alert"}
+                      data-testid={
+                        IsPast ? "past-alert" : IsFuture ? "future-alert" : "today-alert"
+                      }
                       className="flex-1"
-                      message={IsPast ? "你正在过去日期中进行操作" : IsFuture ? "你正在未来日期中进行操作" : "你正在录入今日数据"}
+                      message={
+                        IsPast
+                          ? "你正在过去日期中进行操作"
+                          : IsFuture
+                          ? "你正在未来日期中进行操作"
+                          : "你正在录入今日数据"
+                      }
                       type={IsPast ? "warning" : IsFuture ? "error" : "success"}
                       showIcon
                     />
@@ -426,6 +431,8 @@ export default function QianDaoPage() {
                           {hour}
                         </Button>
                       ))}
+                    </Space>
+                    <Space>
                       <Button color="blue" variant="dashed" size="small" onClick={addThirty}>
                         +30min
                       </Button>
@@ -447,9 +454,14 @@ export default function QianDaoPage() {
                       }}
                       format="HH:mm"
                     />
-                    <Tag color="blue" style={{ width: 60 }}>
-                      {TimeDifference}小时
-                    </Tag>
+                    <Space direction="vertical" size={1}>
+                      {/* <Tag color="blue" style={{ width: 60 }}>
+                        {TimeDifference}小时
+                      </Tag> */}
+                      <Tag color="blue" style={{ width: 60 }}>
+                        {TimeDifference}小时
+                      </Tag>
+                    </Space>
                   </Space>
 
                   <Space>

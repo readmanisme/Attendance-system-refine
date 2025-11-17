@@ -5,17 +5,19 @@ import {
   workers_url,
   WorkerRecordNum_TableName,
 } from "./constants";
-import { readFileSync } from "fs";
-import { randomInt } from "crypto";
+import PocketBase from "pocketbase";
+const pb = new PocketBase(Backend_URL);
 
 test.describe("人员 列表", () => {
   test("表格显示测试", async ({ page }) => {
     await page.goto(workers_url);
     await test.step("翻页", async () => {
       await expect(page.getByTestId("row-name-0")).toContainText("李红红");
+      await expect(page.getByTestId("row-num-0")).toContainText("4");
       await expect(page.getByTestId("row-name-9")).toContainText("张列列");
       await page.getByRole("link", { name: "2" }).click();
       await expect(page.getByTestId("row-name-0")).toContainText("杨秀英");
+      await expect(page.getByTestId("row-num-0")).toContainText("90");
       await expect(page.getByTestId("row-name-9")).toContainText("何樱桃");
       await page.getByRole("link", { name: "1" }).click();
       await expect(page.getByTestId("row-name-0")).toContainText("李红红");
@@ -25,8 +27,10 @@ test.describe("人员 列表", () => {
       await page.getByText("条/页").first().click();
       await page.getByRole("option", { name: "20 条/页" }).click();
       await expect(page.getByTestId("row-name-0")).toContainText("李红红");
+      await expect(page.getByTestId("row-num-0")).toContainText("4");
       await expect(page.getByTestId("row-name-19")).toContainText("何樱桃");
-      await page.getByText('条/页').nth(1).first().click();
+      await expect(page.getByTestId("row-num-19")).toContainText("6");
+      await page.getByText("条/页").nth(1).first().click();
       await page.getByRole("option", { name: "10 条/页" }).click();
       await expect(page.getByTestId("row-name-0")).toContainText("李红红");
       await expect(page.getByTestId("row-name-9")).toContainText("张列列");
@@ -215,4 +219,51 @@ test.describe("人员 编辑", () => {
     });
   });
 });
-test.describe("人员 删除", () => {});
+test.describe("人员 创建删除编辑", () => {
+  test.afterEach(async ({ page }) => {
+    const records = await pb.collection(Workers_TableName).getFullList({
+      filter: 'created > "2025-11-06"',
+    });
+    const ids = records.map((record) => record.id);
+    if (ids.length === 0) return; //空数据发batch也会报错
+    const batch = pb.createBatch();
+    for (const id of ids) {
+      batch.collection(Workers_TableName).delete(id);
+    }
+    const result = await batch.send();
+    expect(result.every((r) => r.status === 204)).toBe(true); //body是null
+  });
+  test("创建删除编辑", async ({ page }) => {
+    await page.goto(workers_url);
+    let names;
+    await test.step("创建", async () => {
+      await page.getByTestId("create-button").click();
+      await page.getByTestId("name-input").click();
+      await page.getByTestId("name-input").fill("张三三撒\n李四思思");
+      await page.getByTestId("save-button").click();
+      await expect(page.getByTestId("row-num-0")).toContainText("0");
+      await expect(page.getByTestId("row-num-1")).toContainText("0");
+      // await expect(page.getByTestId("row-name-0")).toContainText("李四思思");
+      // await expect(page.getByTestId("row-name-1")).toContainText("张三三撒");
+      const first_name=await page.getByTestId("row-name-0").textContent();
+      const second_name=await page.getByTestId("row-name-1").textContent();
+      names=[first_name,second_name];
+      expect(names).toContain("张三三撒");
+      expect(names).toContain("李四思思");
+    });
+    await test.step("删除", async () => {
+      await page.getByRole("button", { name: "delete 删除" }).first().click();
+      await expect(page.getByText("确定删除吗？")).toBeVisible();
+      await page.getByRole("button", { name: "删 除" }).click();
+      await expect(page.getByTestId("row-name-0")).toContainText(names[1]);
+    });
+    await test.step("编辑", async () => {
+      await page.getByTestId("edit-button-0").click();
+      await page.getByTestId("name-input").click();
+      await page.getByTestId("name-input").fill("李四思思111");
+      await page.getByTestId("save-button").click();
+      // await page.getByText('成功', { exact: true }).click();
+      await expect(page.getByTestId("row-name-0")).toContainText("李四思思111");
+    });
+  });
+});

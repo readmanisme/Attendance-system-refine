@@ -10,11 +10,15 @@ import {
 import { Table, Space, Alert } from "antd";
 
 const ListWorkType = () => {
-  const { tableProps } = useTable({});
+  const { tableProps } = useTable({
+    sorters: {
+      permanent: [{ field: "created", order: "desc" }],
+    },
+  });
   const { result } = useList({ resource: __WorkRecordNum_TableName, pagination: { mode: "off" } });
   const WorkRecordNum = new Map(result.data.map((item: any) => [item.work_id, item.record_count]));
   return (
-    <List headerButtons={<CreateButton>添加工作</CreateButton>}>
+    <List headerButtons={<CreateButton data-testid="create-button">添加工作</CreateButton>}>
       <Alert
         className="mb-2!"
         message="基础工作类型一经创建便不可编辑和删除"
@@ -38,12 +42,21 @@ const ListWorkType = () => {
                     title="Created"
                     render={(value: any) => <DateField value={value} />}
                 /> */}
-        <Table.Column dataIndex="id" title="Id" />
-        <Table.Column dataIndex="name" title="名字" />
+        <Table.Column
+          dataIndex="id"
+          title="Id"
+          onCell={(record: any, rowIndex: any) => ({ "data-testid": `row-id-${rowIndex}` })}
+        />
+        <Table.Column
+          dataIndex="name"
+          title="名字"
+          onCell={(record: any, rowIndex: any) => ({ "data-testid": `row-name-${rowIndex}` })}
+        />
         <Table.Column
           dataIndex="num"
           title="考勤记录数"
           render={(text: any, record: any) => WorkRecordNum.get(record.id)}
+          onCell={(record: any, rowIndex: any) => ({ "data-testid": `row-num-${rowIndex}` })}
         />
         {/* <Table.Column
                     dataIndex={["updated"]}
@@ -53,9 +66,10 @@ const ListWorkType = () => {
         <Table.Column
           title="Actions"
           dataIndex="actions"
-          render={(_, record: BaseRecord) => (
+          render={(value, record: BaseRecord, index: number) => (
             <Space>
               <EditButton
+                data-testid={`edit-button-${index}`}
                 hideText
                 size="small"
                 recordItemId={record.id}
@@ -64,6 +78,7 @@ const ListWorkType = () => {
               {/* <ShowButton hideText size="small" recordItemId={record.id} /> */}
 
               <DeleteButton
+                data-testid={`delete-button-${index}`}
                 disabled={record.name === "基础"}
                 type={WorkRecordNum.get(record.id) > 0 ? "link" : "dashed"}
                 confirmTitle={

@@ -47,28 +47,29 @@ const WorkersList = () => {
       {
         dataIndex: "id",
         title: "ID",
-        onCell: (record:any, rowIndex:any) => ({ "data-testid": `row-id-${rowIndex}` }),
+        onCell: (record: any, rowIndex: any) => ({ "data-testid": `row-id-${rowIndex}` }),
       },
       {
         dataIndex: "name",
         title: "姓名",
-        onCell: (record:any, rowIndex:any) => ({ "data-testid": `row-name-${rowIndex}` }),
+        onCell: (record: any, rowIndex: any) => ({ "data-testid": `row-name-${rowIndex}` }),
       },
       {
         dataIndex: "num",
         title: "考勤记录数",
-        onCell: (record:any, rowIndex:any) => ({ "data-testid": `row-num-${rowIndex}` }),
+        onCell: (record: any, rowIndex: any) => ({ "data-testid": `row-num-${rowIndex}` }),
         render: (text: any, record: any) => WorkerRecordNum.get(record.id),
       },
       {
         title: "操作",
         dataIndex: "actions",
-        render: (_: any, record: BaseRecord) => (
+        render: (value: any, record: BaseRecord,index: number) => (
           <Space>
-            <EditButton size="small" recordItemId={record.id}>
+            <EditButton size="small" recordItemId={record.id} data-testid={`edit-button-${index}`}>
               编辑
             </EditButton>
             <DeleteButton
+              data-testid={`delete-button-${index}`}
               type={WorkerRecordNum.get(record.id) > 0 ? "link" : "dashed"}
               confirmTitle={
                 WorkerRecordNum.get(record.id) > 0
