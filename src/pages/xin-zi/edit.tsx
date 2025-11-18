@@ -1,15 +1,13 @@
 import { Edit, SaveButton, useForm, useSelect } from "@refinedev/antd";
-import { useList } from "@refinedev/core";
 import { Form, Input, Select, InputNumber, Alert } from "antd";
-import { useState, useMemo } from "react";
 
 const SalaryTypeEdit = () => {
-  const { formProps, saveButtonProps,form } = useForm({
+  const { formProps, saveButtonProps, form } = useForm({
     meta: {
       expand: ["worker_name", "work_type"],
     },
   });
-  const workName = formProps.initialValues?.expand?.work_type?.name;
+  const salaryNum_init = formProps.initialValues?.SalaryNum;
   const { selectProps: nameSelectProps } = useSelect({
     resource: __Workers_TableName,
     optionLabel: "name",
@@ -22,116 +20,14 @@ const SalaryTypeEdit = () => {
     pagination: { mode: "off" },
   });
 
-  const { result: recordsData } = useList({
-    pagination: { mode: "off" },
-    meta: {
-      expand: ["worker_name", "work_type"],
-    },
-  });
-
-  // const [workerName, setWorkerName] = useState<any>(null);
-  // const [workType, setWorkType] = useState<any>(null);
-  const workerName=Form.useWatch("worker_name", form);
-  const workType=Form.useWatch("work_type", form);
-  const salaryNum=Form.useWatch("SalaryNum", form);
-
-  // ---- 只返回 boolean（不返回对象） ----
-  const isError = useMemo(() => {
-    if (!workerName && !workType) {
-      return true;
-    }
-
-    const records = recordsData?.data ?? [];
-
-    for (const record of records) {
-      const rWorker = record.worker_name;
-      const rType = record.work_type;
-      const rSalary = record.SalaryNum;
-
-      if (workerName && workType) {
-        if (rWorker === workerName && rType === workType && rSalary === salaryNum) {
-          return true;
-        }
-      }
-
-      if (workerName && !workType) {
-        if (rWorker === workerName && !rType && rSalary === salaryNum) {
-          return true;
-        }
-      }
-
-      if (!workerName && workType) {
-        if (!rWorker && rType === workType && rSalary === salaryNum) {
-          return true;
-        }
-      }
-    }
-
-    return false;
-  }, [workerName, workType, recordsData?.data, salaryNum]);
-
-  // ---- 只返回 JSX | null（不返回对象） ----
-  const alertContent = useMemo(() => {
-    if (!workerName && !workType) {
-      return <Alert data-testid="cannot-empty-alert" message="工人和工种不能全为空" type="error" showIcon />;
-    }
-
-    const records = recordsData?.data ?? [];
-
-    for (const record of records) {
-      const rWorker = record.worker_name;
-      const rType = record.work_type;
-      const rSalary = record.SalaryNum;
-
-      if (workerName && workType) {
-        if (rWorker === workerName && rType === workType && rSalary === salaryNum) {
-          return (
-            <Alert
-              data-testid="duplicate-alert"
-              message={`当前记录与 ${record.expand?.worker_name?.name || "未知"} 工人 和 ${
-                record.expand?.work_type?.name || "未知"
-              } 工种 重复`}
-              type="error"
-              showIcon
-            />
-          );
-        }
-      }
-
-      if (workerName && !workType) {
-        if (rWorker === workerName && !rType && rSalary === salaryNum) {
-          return (
-            <Alert
-              data-testid="duplicate-worker-alert"
-              message={`当前记录与 ${record.expand?.worker_name?.name || "未知"} 工人（无工种）重复`}
-              type="error"
-              showIcon
-            />
-          );
-        }
-      }
-
-      if (!workerName && workType) {
-        if (!rWorker && rType === workType && rSalary === salaryNum) {
-          return (
-            <Alert
-              data-testid="duplicate-work-alert"
-              message={`当前记录与 无工人 ${record.expand?.work_type?.name || "未知"} 工种 重复`}
-              type="error"
-              showIcon
-            />
-          );
-        }
-      }
-    }
-
-    return null;
-  }, [workerName, workType, recordsData?.data, salaryNum]);
-
+  const salaryNum = Form.useWatch("SalaryNum", form);
+  const isError = salaryNum === salaryNum_init;
   return (
     <Edit
       saveButtonProps={saveButtonProps}
-      footerButtons={({ saveButtonProps }) => <SaveButton data-testid="save-button" {...saveButtonProps} disabled={isError} />}
+      footerButtons={({ saveButtonProps }) => (
+        <SaveButton data-testid="save-button" {...saveButtonProps} disabled={isError} />
+      )}
     >
       <Form {...formProps} layout="vertical">
         <Form.Item label="Id" name={["id"]} rules={[{ required: true }]}>
@@ -144,7 +40,7 @@ const SalaryTypeEdit = () => {
             {...nameSelectProps}
             allowClear
             // onChange={setWorkerName}
-            disabled={workName === "基础"}
+            disabled
           />
         </Form.Item>
 
@@ -154,16 +50,28 @@ const SalaryTypeEdit = () => {
             {...typeSelectProps}
             allowClear
             // onChange={setWorkType}
-            disabled={workName === "基础"}
+            disabled
           />
         </Form.Item>
 
         <Form.Item label="时薪" name={["SalaryNum"]} rules={[{ required: true }]}>
           <InputNumber min={0} changeOnWheel data-testid="salary-input" />
         </Form.Item>
-
-        {alertContent}
-        <Alert data-testid="warning-alert" className="mt-2!" message="基础工种只可修改时薪" type="warning" showIcon />
+        {isError && (
+          <Alert
+            data-testid="no-change-alert"
+            message="时薪未修改，不想修改可以返回"
+            type="warning"
+            showIcon
+          />
+        )}
+        <Alert
+          data-testid="warning-alert"
+          className="mt-2!"
+          message="只可修改时薪,要修改工人或工种请删除后重新创建；注意修改时薪会导致以前的所有考勤记录的工资重新计算"
+          type="warning"
+          showIcon
+        />
       </Form>
     </Edit>
   );

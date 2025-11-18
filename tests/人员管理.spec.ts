@@ -41,6 +41,7 @@ test.describe("人员 列表", () => {
   });
   test("搜索测试", async ({ page }) => {
     await page.goto(workers_url);
+    await page.getByRole("link", { name: "2" }).click();
     await test.step("单个", async () => {
       await page.getByTestId("py-search-select").click();
       await page.keyboard.type("何琴芳");
@@ -48,6 +49,7 @@ test.describe("人员 列表", () => {
       await page.getByTestId("py-search-button").click();
       await expect(page.getByTestId("row-name-0")).toContainText("何琴芳");
       await expect(page.getByTestId("row-num-0")).toContainText("33");
+      await expect(page.getByRole("link", { name: "2" })).not.toBeVisible();
     });
     await test.step("多个", async () => {
       await page.getByTestId("py-search-select").click();
@@ -270,7 +272,7 @@ test.describe("人员 创建删除编辑", () => {
     await test.step("创建", async () => {
       await page.getByTestId("create-button").click();
       await page.getByTestId("name-input").click();
-      await page.getByTestId("name-input").fill("张三三撒\n李四思思");
+      await page.getByTestId("name-input").fill("张三三撒\n李四思思   ");//空格用来确定数据处理的时候有没有删掉空格,下面判定也改成相等了
       await page.getByTestId("save-button").click();
       await expect(page.getByTestId("row-num-0")).toContainText("0");
       await expect(page.getByTestId("row-num-1")).toContainText("0");
@@ -280,14 +282,17 @@ test.describe("人员 创建删除编辑", () => {
       const first_name = await page.getByTestId("row-name-0").textContent();
       const second_name = await page.getByTestId("row-name-1").textContent();
       names = [first_name, second_name];
-      expect(names).toContain("张三三撒");
-      expect(names).toContain("李四思思");
+      expect(names).toEqual("张三三撒");
+      expect(names).toEqual("李四思思");
     });
     await test.step("删除", async () => {
-      await page.getByRole("button", { name: "delete 删除" }).first().click();
+      await page.getByTestId("delete-button-0").click();
       await expect(page.getByText("确定删除吗？")).toBeVisible();
       await page.getByRole("button", { name: "删 除" }).click();
       await expect(page.getByTestId("row-name-0")).toContainText(names[1]);
+      await page.getByTestId("delete-button-2").click();
+      await expect(page.getByText("删除此人将一并删除相关考勤记录！")).toBeVisible();
+      await page.getByRole("button", { name: "取 消" }).click();
     });
     await test.step("编辑", async () => {
       await page.getByTestId("edit-button-0").click();

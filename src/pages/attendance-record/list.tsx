@@ -23,7 +23,6 @@ const AttendanceRecordList = () => {
   const canNotDelete = useMemo(() => {
     return selectedRowKeys.length > 0;
   }, [selectedRowKeys]);
-  const { KaoQingPresons, setKaoQingPresons } = useSomeStore();
   // useMemo 避免每次渲染都重新创建过滤函数
   const getFilter = useCallback((values: any) => {
     if (!values?.length) return [];
@@ -155,7 +154,6 @@ const AttendanceRecordList = () => {
         onChangeFn={(value: any) => {
           // @ts-expect-error,111
           setFilters(getFilter(value));
-          setKaoQingPresons(value);
           setCurrentPage(1);
           setSelectedRowKeys([]);
         }}

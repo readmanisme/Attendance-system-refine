@@ -1,4 +1,4 @@
-import { BaseRecord, useList } from "@refinedev/core";
+import { BaseRecord, useCreate, useList } from "@refinedev/core";
 import {
   useTable,
   List,
@@ -7,20 +7,61 @@ import {
   DeleteButton,
   CreateButton,
 } from "@refinedev/antd";
-import { Table, Space, Alert } from "antd";
+import { Table, Space, Alert, Button, Result } from "antd";
 
 const ListWorkType = () => {
   const { tableProps } = useTable({
     sorters: {
       permanent: [{ field: "created", order: "desc" }],
     },
+    pagination: { mode: "off" },
   });
+  const { mutate } = useCreate({
+    resource: __WorkTypes_TableName,
+  });
+  const { mutate: mutate2 } = useCreate({
+    resource: __SalaryType_TableName,
+  });
+  const HaveBaseWork = tableProps.dataSource?.some((item: any) => item.name == "基础");
   const { result } = useList({ resource: __WorkRecordNum_TableName, pagination: { mode: "off" } });
   const WorkRecordNum = new Map(result.data.map((item: any) => [item.work_id, item.record_count]));
+  if (!HaveBaseWork) {
+    return (
+      <List headerButtons={<CreateButton data-testid="create-button">添加工作</CreateButton>}>
+        <Result
+          data-testid="no-Base-result"
+          status="warning"
+          title="缺少基础工作，点击下方按钮添加基础工作及其时薪（时薪后续可修改）"
+          extra={
+            <Button
+              type="primary"
+              onClick={() => {
+                mutate({
+                  values: {
+                    id: "basebasebase",
+                    name: "基础",
+                  },
+                });
+                mutate({
+                  values: {
+                    // id: "basebasebase",
+                    work_type: "basebasebase",
+                    SalaryNum: 10,
+                  },
+                });
+              }}
+            >
+              添加 “基础” 工作及其时薪
+            </Button>
+          }
+        />
+      </List>
+    );
+  }
   return (
     <List headerButtons={<CreateButton data-testid="create-button">添加工作</CreateButton>}>
       <Alert
-      data-testid="Base-alert"
+        data-testid="Base-alert"
         className="mb-2!"
         message="基础工作类型一经创建便不可编辑和删除"
         type="info"

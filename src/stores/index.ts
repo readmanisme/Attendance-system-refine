@@ -11,8 +11,6 @@ interface SomeState {
   setHelpOpen: (open: boolean) => void;
   __BACKEND_API_URL__: string;
   set__BACKEND_API_URL__: (url: string) => void;
-  KaoQingPresons: any;
-  setKaoQingPresons: (data: any) => void;
 }
 
 const NEW_MAJOR_VERSION = 1;
@@ -31,8 +29,6 @@ export const useSomeStore = create<SomeState>()(
           dayjs().add(1, "month").format("YYYY-MM"),
           // 要包含后一个月
         ],
-        KaoQingPresons: [],
-        setKaoQingPresons: (data: any) => set({ KaoQingPresons: data }),
 
         helpOpen: false,
 
