@@ -16,12 +16,14 @@ test("搜索测试", async ({ page }) => {
     await page.getByRole("button", { name: "应 用" }).click();
   });
   await test.step("单个", async () => {
+    await page.getByRole("link", { name: "2" }).click();
     await page.getByTestId("py-search-select").click();
     await page.keyboard.type("张孝刚");
     await page.getByTitle("张孝刚").click();
     await page.getByTestId("py-search-button").click();
     await expect(page.getByTestId("row-name-5")).toContainText("张孝刚");
     await expect(page.getByTestId("row-id-5")).toContainText("1yv9h9tk9j24f93");
+    await expect(page.getByRole("link", { name: "2" })).not.toBeVisible();
   });
   await test.step("多个", async () => {
     await page.getByTestId("py-search-select").click();

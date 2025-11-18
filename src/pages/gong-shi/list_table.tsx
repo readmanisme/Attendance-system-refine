@@ -207,6 +207,9 @@ export default function GongShiList() {
       mode: "off",
     },
   });
+  const hasBaseWorkType = useMemo(() => {
+    return workType_test_data?.data?.some((t) => t.name === "基础");
+  }, [workType_test_data?.data]);
 
   const { listProps } = useSimpleList({
     resource: __SalaryType_TableName,
@@ -245,9 +248,11 @@ export default function GongShiList() {
   }, [workType_test_data?.data]);
 
   // listProps_work_type (用于检测有没有 "基础")
-  const listProps_work_type = useMemo(() => {
-    return listProps?.dataSource?.map((item) => item.expand?.work_type?.name);
-  }, [listProps?.dataSource]);
+  // const listProps_work_type = useMemo(() => {
+  //   return listProps?.dataSource?.map((item) => item.expand?.work_type?.name);
+  // }, [listProps?.dataSource]);
+
+  const hasBaseSalaryType = listProps?.dataSource?.some((t) => t.expand?.work_type?.name === "基础" && t.worker_name=== "");
 
   const SalaryDict = useMemo(() => {
     const data = listProps?.dataSource || [];
@@ -260,6 +265,14 @@ export default function GongShiList() {
       else if (workName) dict[workName] = num;
       else if (workType) dict[workType] = num;
     });
+    // 检查有没有基础
+    // if (!listProps_work_type?.includes("基础")) {
+    //   dict["基础"] = 0;
+    // } //工作有
+    // 检查dict里面有没有基础
+    if (!("基础" in dict)){
+      dict["基础"] = 0;
+    }
     return dict;
   }, [listProps?.dataSource]);
 
@@ -347,7 +360,7 @@ export default function GongShiList() {
     setIsExportLoading(true);
     try {
       const { default: exportExcel } = await import("@/pages/gong-shi/export_xlsx");
-      await exportExcel(exportRange,exportPerson, SalaryDict, __BACKEND_API_URL__);
+      await exportExcel(exportRange, exportPerson, SalaryDict, __BACKEND_API_URL__);
     } finally {
       setIsExportLoading(false);
     }
@@ -377,7 +390,14 @@ export default function GongShiList() {
       });
 
       const expandColumns = [
-        { title: "月份", dataIndex: "month", key: "month" },
+        {
+          title: "月份",
+          dataIndex: "month",
+          key: "month",
+          onCell: (record: any, rowIndex: any) => ({
+            "data-testid": `row-month-${record.worker}-${rowIndex}`,
+          }),
+        },
         { title: "工人", dataIndex: "worker", key: "worker" },
         {
           title: "总工时",
@@ -406,7 +426,14 @@ export default function GongShiList() {
         });
 
         const columns_d2 = [
-          { title: "日期", dataIndex: "date", key: "date" },
+          {
+            title: "日期",
+            dataIndex: "date",
+            key: "date",
+            onCell: (record: any, rowIndex: any) => ({
+              "data-testid": `row-day-${record.worker}-${rowIndex}`,
+            }),
+          },
           { title: "工人", dataIndex: "worker", key: "worker" },
           {
             title: "总工时",
@@ -473,6 +500,7 @@ export default function GongShiList() {
 
           return (
             <Table
+              // 每日具体记录
               columns={columns_d3}
               dataSource={dataSource_d3}
               size="small"
@@ -483,9 +511,14 @@ export default function GongShiList() {
 
         return (
           <Table
+            // 每日记录
+            // @ts-expect-error,111
             columns={columns_d2}
             dataSource={dataSource_d2}
             size="small"
+            pagination={{
+              showSizeChanger: true,
+            }}
             expandable={{
               expandedRowRender: expandedRowRender_d3,
               expandRowByClick: true,
@@ -496,6 +529,8 @@ export default function GongShiList() {
 
       return (
         <Table
+          // 每月记录
+          // @ts-expect-error,111
           columns={expandColumns}
           dataSource={expandDataSource}
           size="small"
@@ -520,9 +555,7 @@ export default function GongShiList() {
     ]
   );
 
-  const hasBaseWorkType = useMemo(() => {
-    return listProps_work_type?.includes("基础");
-  }, [listProps_work_type]);
+
 
   const get_un_salary_work = useMemo(() => {
     const work_types = [...workTypeMap.values()];
@@ -553,13 +586,13 @@ export default function GongShiList() {
       />
     );
   }
-  if (!listProps.loading && !listProps_work_type?.includes("基础")) {
+  if (!listProps.loading && !hasBaseSalaryType) {
     return (
       <Alert
-        message="基础工资类型不存在，请添加"
+        message="基础工作的时薪 不存在，请添加"
         type="error"
         showIcon
-        description="如果基础工作类型不存在，请添加基础工作类型，并设置其对应的工资。"
+        description="如果基础工作类型不存在，请添加基础工作类型，并设置其对应的时薪。"
       />
     );
   }
@@ -593,17 +626,19 @@ export default function GongShiList() {
                   />
                   <Space>
                     {/* @ts-expect-error,111 */}
-                    <Select {...selectProps} style={{ width: 120 }} onChange={(value:string)=> {
-                      setExportPerson(value);
-                    }}/>
+                    <Select
+                      {...selectProps}
+                      style={{ width: 120 }}
+                      onChange={(value: string) => {
+                        setExportPerson(value);
+                      }}
+                    />
                     <Tooltip title="选择人名可导出单人记录，不选择导出全部人的记录">
                       <div className="flex flex-row items-center gap-2">
                         <IconHelp size={16} />
                       </div>
                     </Tooltip>
-                     
                   </Space>
-                 
                 </div>
               }
               onConfirm={exportToExcel}
@@ -618,7 +653,7 @@ export default function GongShiList() {
     >
       {get_un_salary_work !== "" && (
         <Alert
-        data-testid="un-salary-work-alert"
+          data-testid="un-salary-work-alert"
           message={get_un_salary_work}
           type="warning"
           showIcon
@@ -653,7 +688,7 @@ export default function GongShiList() {
         {...workerData}
         pagination={{
           ...workerData.pagination,
-          showSizeChanger:true,
+          showSizeChanger: true,
           onChange: (page, pageSize) => {
             setSalaryLoading(true);
             // console.log("page", page, "pageSize", pageSize);
@@ -671,8 +706,18 @@ export default function GongShiList() {
           expandRowByClick: true,
         }}
       >
-        <Table.Column dataIndex="id" title="ID" onCell={(record: any, rowIndex: any) => ({ "data-testid": `row-id-${rowIndex}` })}/>
-        <Table.Column dataIndex="name" title="姓名" onCell={(record: any, rowIndex: any) => ({ "data-testid": `row-name-${rowIndex}` })}/>
+        <Table.Column
+          dataIndex="id"
+          title="ID"
+          // @ts-expect-error,111
+          onCell={(record: any, rowIndex: any) => ({ "data-testid": `row-id-${rowIndex}` })}
+        />
+        <Table.Column
+          dataIndex="name"
+          title="姓名"
+          // @ts-expect-error,111
+          onCell={(record: any, rowIndex: any) => ({ "data-testid": `row-name-${rowIndex}` })}
+        />
       </Table>
     </LList>
   );

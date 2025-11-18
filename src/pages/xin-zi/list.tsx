@@ -43,21 +43,25 @@ const SalaryTypeList = () => {
         <Table.Column
           dataIndex="id"
           title="ID"
+          // @ts-expect-error,111
           onCell={(record: any, rowIndex: any) => ({ "data-testid": `row-id-${rowIndex}` })}
         />
         <Table.Column
           dataIndex={["expand", "worker_name", "name"]}
           title="工人"
+          // @ts-expect-error,111
           onCell={(record: any, rowIndex: any) => ({ "data-testid": `row-worker-${rowIndex}` })}
         />
         <Table.Column
           dataIndex={["expand", "work_type", "name"]}
           title="工作"
+          // @ts-expect-error,111
           onCell={(record: any, rowIndex: any) => ({ "data-testid": `row-work-${rowIndex}` })}
         />
         <Table.Column
           dataIndex="SalaryNum"
           title="时薪"
+          // @ts-expect-error,111
           onCell={(record: any, rowIndex: any) => ({ "data-testid": `row-salary-${rowIndex}` })}
         />
         <Table.Column

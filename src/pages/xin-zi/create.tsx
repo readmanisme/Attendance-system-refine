@@ -63,6 +63,7 @@ const SalaryTypeCreate = () => {
         <SaveButton {...saveButtonProps} disabled={!!errorMsg} data-testid="save-button" />
       )}
     >
+      <Alert className="mb-2!" message="创建之后只能修改薪资，要修改只能删除" type="warning" showIcon data-testid="warn-alert" />
       <Form {...formProps} layout="vertical">
         <Form.Item label="工人" name={["worker_name"]}>
           <Select {...nameSelectProps} allowClear onChange={setWorkerName} data-testid="worker-select" />

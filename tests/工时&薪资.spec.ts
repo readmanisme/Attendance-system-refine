@@ -29,6 +29,7 @@ test.describe("表格显示与筛选", () => {
   });
   test("搜索测试", async ({ page }) => {
     await page.goto(gongshi_url);
+    await page.getByRole("link", { name: "2" }).click();
     await test.step("单个", async () => {
       await page.getByTestId("py-search-select").click();
       await page.keyboard.type("王小余");
@@ -42,8 +43,8 @@ test.describe("表格显示与筛选", () => {
       await page.keyboard.type("马福娃");
       await page.getByTitle("马福娃").click();
       await page.getByTestId("py-search-button").click();
-      await expect(page.getByTestId("row-name-0")).toContainText("王小余");
-      await expect(page.getByTestId("row-name-1")).toContainText("马福娃");
+      await expect(page.getByTestId("row-name-0")).toContainText("马福娃");
+      await expect(page.getByTestId("row-name-1")).toContainText("王小余");
     });
     await test.step("复原", async () => {
       await page.getByTestId("py-search-select").click();
@@ -53,5 +54,32 @@ test.describe("表格显示与筛选", () => {
       await expect(page.getByTestId("row-id-0")).toContainText("qcuh2efmj1l7uk2");
       await expect(page.getByRole("link", { name: "2" })).toBeVisible();
     });
+  });
+});
+test("筛选测试", async ({ page }) => {
+  await page.goto(gongshi_url);
+  await test.step("2025-11-12", async () => {
+    await page.getByRole("textbox", { name: "开始月份" }).fill("2025-11");
+    await page.getByRole("textbox", { name: "结束月份" }).fill("2025-12");
+    await page.getByRole("button", { name: "应 用" }).click();
+    await page.getByTestId("row-id-0").click();
+    await expect(page.getByTestId("row-month-张孝刚-0")).toContainText("2025-11");
+  });
+  await test.step("2025-09-10", async () => {
+    await page.getByRole("textbox", { name: "开始月份" }).fill("2025-09");
+    await page.getByRole("textbox", { name: "结束月份" }).fill("2025-10");
+    await page.getByRole("button", { name: "应 用" }).click();
+    await page.getByTestId("row-id-0").click();
+    await expect(page.getByTestId("row-month-张孝刚-0")).toContainText("2025-10"); //9月份没干活
+    await page.getByTestId("row-month-张孝刚-0").click();
+    await expect(page.getByTestId("row-day-张孝刚-1")).toContainText("2025-10-31"); //显示31号
+  });
+  await test.step("筛选持久化", async () => {
+    await page.getByRole("link", { name: "人员签到" }).click();
+    await expect(page.getByRole("heading", { name: "签到录入系统" })).toBeVisible();
+    await page.getByRole("link", { name: "考勤记录" }).click();
+    await expect(page.getByTestId("row-id-0")).toContainText("6cs1o88n514ic1b");
+    await expect(page.getByRole("textbox", { name: "开始月份" })).toHaveValue("2025-09");
+    await expect(page.getByRole("textbox", { name: "结束月份" })).toHaveValue("2025-10");
   });
 });
