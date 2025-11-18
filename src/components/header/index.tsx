@@ -86,7 +86,7 @@ export const Header: React.FC<RefineThemedLayoutHeaderProps> = ({ sticky = true 
   return (
     <AntdLayout.Header style={headerStyles}>
       <Space>
-        {!BatchError && <Tag color="red">Batch设置有问题</Tag>}
+        {!BatchError && <Tag color="red" data-testid="batch-error-tag">Batch设置有问题</Tag>}
         <GradientButton title="刷新数据" onClick={handleRefresh} />
         {ports.length > 0 && (
           <Radio.Group

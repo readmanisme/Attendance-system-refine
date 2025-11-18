@@ -10,7 +10,7 @@ import {
 import { Table, Space, Alert } from "antd";
 import { useMemo } from "react";
 
- const SalaryTypeList = () => {
+const SalaryTypeList = () => {
   const { tableProps } = useTable({
     resource: __SalaryType_TableName,
     meta: {
@@ -31,19 +31,42 @@ import { useMemo } from "react";
   }, [tableProps?.dataSource]); // 依赖项：仅当 dataSource 变化时重新计算
 
   return (
-    <List headerButtons={<CreateButton>添加记录</CreateButton>}>
-      <Alert className="mb-2!" message="没有设置薪资的工作会按照基础工作的时薪计算" type="info" showIcon/>
+    <List headerButtons={<CreateButton data-testid="create-button">添加记录</CreateButton>}>
+      <Alert
+        data-testid="alert"
+        className="mb-2!"
+        message="没有设置薪资的工作会按照基础工作的时薪计算"
+        type="info"
+        showIcon
+      />
       <Table {...tableProps} dataSource={sortedDataSource} rowKey="id">
-        <Table.Column dataIndex="id" title="ID" />
-        <Table.Column dataIndex={["expand", "worker_name", "name"]} title="工人" />
-        <Table.Column dataIndex={["expand", "work_type", "name"]} title="工作" />
-        <Table.Column dataIndex="SalaryNum" title="时薪" />
+        <Table.Column
+          dataIndex="id"
+          title="ID"
+          onCell={(record: any, rowIndex: any) => ({ "data-testid": `row-id-${rowIndex}` })}
+        />
+        <Table.Column
+          dataIndex={["expand", "worker_name", "name"]}
+          title="工人"
+          onCell={(record: any, rowIndex: any) => ({ "data-testid": `row-worker-${rowIndex}` })}
+        />
+        <Table.Column
+          dataIndex={["expand", "work_type", "name"]}
+          title="工作"
+          onCell={(record: any, rowIndex: any) => ({ "data-testid": `row-work-${rowIndex}` })}
+        />
+        <Table.Column
+          dataIndex="SalaryNum"
+          title="时薪"
+          onCell={(record: any, rowIndex: any) => ({ "data-testid": `row-salary-${rowIndex}` })}
+        />
         <Table.Column
           title={"Actions"}
           dataIndex="actions"
-          render={(_, record: BaseRecord) => (
+          render={(_, record: BaseRecord, index) => (
             <Space>
               <EditButton
+                data-testid={`edit-button-${index}`}
                 hideText
                 size="small"
                 recordItemId={record.id}
@@ -51,7 +74,11 @@ import { useMemo } from "react";
               />
               {/* <ShowButton hideText size="small" recordItemId={record.id} /> */}
               <DeleteButton
-                disabled={record.expand?.work_type?.name === "基础"}
+                data-testid={`delete-button-${index}`}
+                disabled={
+                  record.expand?.work_type?.name === "基础" &&
+                  record.worker_name === ""
+                }
                 hideText
                 size="small"
                 recordItemId={record.id}

@@ -60,23 +60,23 @@ const SalaryTypeCreate = () => {
     <Create
       saveButtonProps={saveButtonProps}
       footerButtons={({ saveButtonProps }) => (
-        <SaveButton {...saveButtonProps} disabled={!!errorMsg} />
+        <SaveButton {...saveButtonProps} disabled={!!errorMsg} data-testid="save-button" />
       )}
     >
       <Form {...formProps} layout="vertical">
         <Form.Item label="工人" name={["worker_name"]}>
-          <Select {...nameSelectProps} allowClear onChange={setWorkerName} />
+          <Select {...nameSelectProps} allowClear onChange={setWorkerName} data-testid="worker-select" />
         </Form.Item>
 
         <Form.Item label="工种" name={["work_type"]}>
-          <Select {...typeSelectProps} allowClear onChange={setWorkType} />
+          <Select {...typeSelectProps} allowClear onChange={setWorkType} data-testid="work-type-select" />
         </Form.Item>
 
-        <Form.Item label="时薪" name={["SalaryNum"]} rules={[{ required: true }]}>
-          <InputNumber min={0} defaultValue={10} changeOnWheel />
+        <Form.Item label="时薪" name={["SalaryNum"]} rules={[{ required: true }]} initialValue={10}>
+          <InputNumber min={0} changeOnWheel data-testid="salary-input" />
         </Form.Item>
 
-        {errorMsg && <Alert message={errorMsg} type="error" showIcon />}
+        {errorMsg && <Alert message={errorMsg} type="error" showIcon data-testid="error-alert" />}
       </Form>
     </Create>
   );

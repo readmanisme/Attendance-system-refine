@@ -103,7 +103,6 @@ const _ = { sample, sampleSize };
             });
             attendance_records.push({
               worker_id: worker_id,
-              // @ts-expect-error,111
               work: _.sample(workType_2)?.id,
               check_in: check_in,
               check_out: check_out,
@@ -139,14 +138,12 @@ const _ = { sample, sampleSize };
             });
             attendance_records.push({
               worker_id: worker_id,
-              // @ts-expect-error,111
               work: _.sample(workType_2)?.id,
               check_in: check_in_1,
               check_out: check_out_1,
             });
             attendance_records.push({
               worker_id: worker_id,
-              // @ts-expect-error,111
               work: _.sample(workType_2)?.id,
               check_in: check_in_2,
               check_out: check_out_2,
@@ -196,21 +193,18 @@ const _ = { sample, sampleSize };
             });
             attendance_records.push({
               worker_id: worker_id,
-              // @ts-expect-error,111
               work: _.sample(workType_2)?.id,
               check_in: check_in_1,
               check_out: check_out_1,
             });
             attendance_records.push({
               worker_id: worker_id,
-              // @ts-expect-error,111
               work: _.sample(workType_2)?.id,
               check_in: check_in_2,
               check_out: check_out_2,
             });
             attendance_records.push({
               worker_id: worker_id,
-              // @ts-expect-error,111
               work: _.sample(workType_2)?.id,
               check_in: check_in_3,
               check_out: check_out_3,

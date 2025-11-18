@@ -11,10 +11,13 @@ const pb = new PocketBase(Backend_URL);
 test.describe("人员 列表", () => {
   test("表格显示测试", async ({ page }) => {
     await page.goto(workers_url);
-    await test.step("翻页", async () => {
+    await test.step("默认显示", async () => {
+      await expect(page.getByTestId("delete-alert")).toBeVisible();
       await expect(page.getByTestId("row-name-0")).toContainText("李红红");
       await expect(page.getByTestId("row-num-0")).toContainText("4");
       await expect(page.getByTestId("row-name-9")).toContainText("张列列");
+    });
+    await test.step("翻页", async () => {
       await page.getByRole("link", { name: "2" }).click();
       await expect(page.getByTestId("row-name-0")).toContainText("杨秀英");
       await expect(page.getByTestId("row-num-0")).toContainText("90");
@@ -36,7 +39,35 @@ test.describe("人员 列表", () => {
       await expect(page.getByTestId("row-name-9")).toContainText("张列列");
     });
   });
-  test("搜索测试", async ({ page }) => {});
+  test("搜索测试", async ({ page }) => {
+    await page.goto(workers_url);
+    await test.step("单个", async () => {
+      await page.getByTestId("py-search-select").click();
+      await page.keyboard.type("何琴芳");
+      await page.getByTitle("何琴芳").click();
+      await page.getByTestId("py-search-button").click();
+      await expect(page.getByTestId("row-name-0")).toContainText("何琴芳");
+      await expect(page.getByTestId("row-num-0")).toContainText("33");
+    });
+    await test.step("多个", async () => {
+      await page.getByTestId("py-search-select").click();
+      await page.keyboard.type("马福娃");
+      await page.getByTitle("马福娃").click();
+      await page.getByTestId("py-search-button").click();
+      await expect(page.getByTestId("row-name-1")).toContainText("何琴芳");
+      await expect(page.getByTestId("row-num-1")).toContainText("33");
+      await expect(page.getByTestId("row-name-0")).toContainText("马福娃");
+      await expect(page.getByTestId("row-num-0")).toContainText("15");
+    });
+    await test.step("复原", async () => {
+      await page.getByTestId("py-search-select").click();
+      await page.keyboard.press("Backspace");
+      await page.keyboard.press("Backspace");
+      await page.getByTestId("py-search-button").click();
+      await expect(page.getByTestId("row-name-0")).toContainText("李红红");
+      await expect(page.getByTestId("row-num-0")).toContainText("4");
+    });
+  });
 });
 
 test.describe("人员 创建", () => {
@@ -222,7 +253,7 @@ test.describe("人员 编辑", () => {
 test.describe("人员 创建删除编辑", () => {
   test.afterEach(async ({ page }) => {
     const records = await pb.collection(Workers_TableName).getFullList({
-      filter: 'created > "2025-11-06"',
+      filter: 'created > "2025-11-10"',
     });
     const ids = records.map((record) => record.id);
     if (ids.length === 0) return; //空数据发batch也会报错
@@ -245,9 +276,10 @@ test.describe("人员 创建删除编辑", () => {
       await expect(page.getByTestId("row-num-1")).toContainText("0");
       // await expect(page.getByTestId("row-name-0")).toContainText("李四思思");
       // await expect(page.getByTestId("row-name-1")).toContainText("张三三撒");
-      const first_name=await page.getByTestId("row-name-0").textContent();
-      const second_name=await page.getByTestId("row-name-1").textContent();
-      names=[first_name,second_name];
+      // 这里顺序不固定，而且抽象的是刚刚好和上面两行代码顺序反着，我代码变了他表格顺序就变了，抽象完了。
+      const first_name = await page.getByTestId("row-name-0").textContent();
+      const second_name = await page.getByTestId("row-name-1").textContent();
+      names = [first_name, second_name];
       expect(names).toContain("张三三撒");
       expect(names).toContain("李四思思");
     });

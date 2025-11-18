@@ -1,11 +1,21 @@
 import { test, expect } from "@playwright/test";
-import { WorkTypes_TableName, Backend_URL,workType_url } from "./constants";
+import { WorkTypes_TableName, Backend_URL, workType_url } from "./constants";
 import PocketBase from "pocketbase";
 const pb = new PocketBase(Backend_URL);
 
 test.describe("工作 列表", () => {
-  test("表格显示测试", async ({ page }) => {});
-  test("搜索测试", async ({ page }) => {});
+  test("表格显示测试", async ({ page }) => {
+    await page.goto(workType_url);
+    await expect(page.getByTestId("delete-alert")).toBeVisible();
+    await expect(page.getByTestId("Base-alert")).toBeVisible();
+    await expect(page.getByTestId("row-name-0")).toContainText("重工");
+    await expect(page.getByTestId("row-num-0")).toContainText("243");
+    await expect(page.getByTestId("row-name-3")).toContainText("基础");
+    await expect(page.getByTestId("row-num-3")).toContainText("1671");
+    await expect(page.getByTestId("edit-button-3")).toBeDisabled();
+    await expect(page.getByTestId("delete-button-3")).toBeDisabled();
+  });
+  // test("搜索测试", async ({ page }) => {});
 });
 
 test.describe("工作 创建", () => {
@@ -83,13 +93,15 @@ test.describe("工作 创建", () => {
       await expect(page.getByTestId("save-button")).not.toBeDisabled();
     });
     await test.step("已存在", async () => {
-      const texts = ["重工","三轮车司机"];
+      const texts = ["重工", "三轮车司机"];
       const text = "郝致远";
       await page.goto(workType_url + "/create"); //因为即便路由更换了，但是数据并没有获取新的，所以需要重开
       texts.push(text);
       await page.getByTestId("name-input").fill(texts.join("\n"));
       await expect(page.getByTestId("name-input")).toHaveValue(texts.join("\n"));
-      await expect(page.getByTestId("error-alert")).toContainText("以下工作重复或已存在：重工三轮车司机");
+      await expect(page.getByTestId("error-alert")).toContainText(
+        "以下工作重复或已存在：重工三轮车司机"
+      );
       await expect(page.getByTestId("save-button")).toBeDisabled();
 
       await page.getByTestId("name-input").fill(text);
@@ -109,7 +121,7 @@ test.describe("工作 创建", () => {
 });
 test.describe("工作 编辑", () => {
   test("校验测试", async ({ page }) => {
-    await page.goto(workType_url + "/edit/43ymx595z40s89g");//司机
+    await page.goto(workType_url + "/edit/43ymx595z40s89g"); //司机
     await test.step("默认内容", async () => {
       await expect(page.getByTestId("format-requirement-alert")).toBeVisible();
       await expect(page.getByTestId("error-alert")).toContainText(
@@ -189,7 +201,7 @@ test.describe("工作 编辑", () => {
 test.describe("工作 创建删除编辑", () => {
   test.afterEach(async ({ page }) => {
     const records = await pb.collection(WorkTypes_TableName).getFullList({
-      filter: 'created > "2025-11-06"',
+      filter: 'created > "2025-11-10"',
     });
     const ids = records.map((record) => record.id);
     if (ids.length === 0) return; //空数据发batch也会报错
@@ -212,9 +224,9 @@ test.describe("工作 创建删除编辑", () => {
       await expect(page.getByTestId("row-num-1")).toContainText("0");
       // await expect(page.getByTestId("row-name-0")).toContainText("李四思思");
       // await expect(page.getByTestId("row-name-1")).toContainText("张三三撒");
-      const first_name=await page.getByTestId("row-name-0").textContent();
-      const second_name=await page.getByTestId("row-name-1").textContent();
-      names=[first_name,second_name];
+      const first_name = await page.getByTestId("row-name-0").textContent();
+      const second_name = await page.getByTestId("row-name-1").textContent();
+      names = [first_name, second_name];
       expect(names).toContain("张三三撒");
       expect(names).toContain("李四思思");
     });
