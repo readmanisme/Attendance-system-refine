@@ -21,7 +21,7 @@ import { useState, useCallback, useMemo } from "react";
 import dayjs, { Dayjs } from "dayjs";
 import { Card } from "@mantine/core";
 import { BaseRecord, useCreateMany, useDeleteMany } from "@refinedev/core";
-import { ClockCircleOutlined, DeleteOutlined } from "@ant-design/icons";
+import { ClockCircleOutlined, CloseCircleOutlined, DeleteOutlined } from "@ant-design/icons";
 import {
   DeleteButton,
   EditButton,
@@ -238,6 +238,7 @@ export default function QianDaoPage() {
     luruDisabled,
     alertDescription: AlertDescription,
     alertType: AlertType,
+    dataTestid,
   } = useMemo(() => {
     // 默认
     if (!PiLiangNames || PiLiangNames.length === 0) {
@@ -245,6 +246,7 @@ export default function QianDaoPage() {
         luruDisabled: true,
         alertDescription: "请选择考勤人员",
         alertType: "warning" as const,
+        dataTestid: "no-worker-alert",
       };
     }
     if (!work_type) {
@@ -252,6 +254,7 @@ export default function QianDaoPage() {
         luruDisabled: true,
         alertDescription: "请选择工作",
         alertType: "warning" as const,
+        dataTestid: "no-work-alert",
       };
     }
     const descs: React.ReactNode[] = [];
@@ -283,12 +286,14 @@ export default function QianDaoPage() {
         luruDisabled: true,
         alertDescription: descs,
         alertType: "error" as const,
+        dataTestid: "overlap-alert",
       };
     }
     return {
       luruDisabled: false,
       alertDescription: "可以录入",
       alertType: "success" as const,
+      dataTestid: "can-input-alert",
     };
   }, [PiLiangNames, checkOverlap, recordsByWorkerId, work_type]);
 
@@ -334,12 +339,15 @@ export default function QianDaoPage() {
     });
     setSelectedRowKeys([]);
   }, [deleteMany, selectedRowKeys]);
-
+  const canNotDelete = useMemo(() => {
+    return selectedRowKeys.length > 0;
+  }, [selectedRowKeys]);
   // ✅ 用 useMemo 固定 rowSelection 对象引用，避免 tableProps 导致 re-render
   const rowSelection = useMemo(
     () => ({
       selectedRowKeys,
       onChange: setSelectedRowKeys,
+      onCell: (record: any, rowIndex: any) => ({ "data-testid": `row-checkbox-${rowIndex}` }),
     }),
     [selectedRowKeys]
   );
@@ -399,6 +407,7 @@ export default function QianDaoPage() {
                     />
                   </Flex>
                   <PySearchSelect
+                    // data-testid="worker-select" //无效的
                     onChangeFn={(value: any) => {
                       setPiLiangNames(value);
                     }}
@@ -414,7 +423,7 @@ export default function QianDaoPage() {
                 <Space direction="vertical">
                   <Space direction="vertical">
                     <Tooltip title="从7:00开始">
-                      <div className="flex flex-row items-center gap-2">
+                      <div data-testid="hour-tooltip" className="flex flex-row items-center gap-2">
                         快速选择工时：
                         <IconHelp size={16} />
                       </div>
@@ -422,6 +431,7 @@ export default function QianDaoPage() {
                     <Space wrap>
                       {hours.map((hour) => (
                         <Button
+                          data-testid={`hour-button-${hour}`}
                           color="blue"
                           variant="filled"
                           key={hour}
@@ -458,7 +468,7 @@ export default function QianDaoPage() {
                       {/* <Tag color="blue" style={{ width: 60 }}>
                         {TimeDifference}小时
                       </Tag> */}
-                      <Tag color="blue" style={{ width: 60 }}>
+                      <Tag data-testid="time-difference" color="blue" style={{ width: 60 }}>
                         {TimeDifference}小时
                       </Tag>
                     </Space>
@@ -476,9 +486,11 @@ export default function QianDaoPage() {
 
                     <Select
                       placeholder="工作"
+                      data-testid="work-type-select"
                       {...workTypeSelectProps}
-                      style={{ width: 100 }}
-                      allowClear
+                      style={{ width: 120 }}
+                      allowClear={{ clearIcon: <CloseCircleOutlined data-testid="clear-icon" /> }}
+                      // 自定义图标使得可以被良好的选择，否则会是很长的选择器
                       labelInValue
                       value={work_type}
                       onChange={set_work_type}
@@ -497,6 +509,7 @@ export default function QianDaoPage() {
                       }}
                     >
                       <AntdButton
+                        data-testid="submit-button"
                         type="primary"
                         // icon={<LogoutOutlined />}
                         disabled={luruDisabled}
@@ -510,6 +523,7 @@ export default function QianDaoPage() {
 
               <Alert
                 // message="校验情况"
+                data-testid={dataTestid}
                 description={AlertDescription}
                 type={AlertType}
                 showIcon
@@ -530,6 +544,7 @@ export default function QianDaoPage() {
               >
                 <Button
                   type="primary"
+                  data-testid="batch-delete-button"
                   danger
                   icon={<DeleteOutlined />}
                   disabled={!selectedRowKeys.length}
@@ -546,15 +561,22 @@ export default function QianDaoPage() {
           </Space>
           <Form {...formProps} onFinish={handleOnFinish}>
             <Table
+              data-testid="table"
               {...tableProps}
               className="mt-2"
               dataSource={dataSourceWithWorkTime}
               rowKey="id"
               rowClassName={(record) => (record.check_out === "" ? "bg-blue-50" : "")}
+              // @ts-expect-error,111
               rowSelection={rowSelection}
             >
               {/* <Table.Column dataIndex="id" title="ID" /> */}
-              <Table.Column dataIndex={["expand", "worker_id", "name"]} title="人员姓名" />
+              <Table.Column
+                dataIndex={["expand", "worker_id", "name"]}
+                title="人员姓名"
+                // @ts-expect-error,111
+                onCell={(record: any, rowIndex: any) => ({ "data-testid": `row-name-${rowIndex}` })}
+              />
               <Table.Column
                 dataIndex="statuss"
                 title="状态"
@@ -562,20 +584,30 @@ export default function QianDaoPage() {
                   const current = statusMap[value];
                   return <Badge status={current.color as any} text={current.text} />;
                 }}
+                // @ts-expect-error,111
+                onCell={(record: any, rowIndex: any) => ({
+                  "data-testid": `row-status-${rowIndex}`,
+                })}
               />
               <Table.Column
                 dataIndex="check_in"
                 title="上班时间"
                 render={(value: string) => formatDateTime(value)}
+                // @ts-expect-error,111
+                onCell={(record: any, rowIndex: any) => ({ "data-testid": `row-in-${rowIndex}` })}
               />
               <Table.Column
                 dataIndex="check_out"
                 title="下班时间"
                 render={(value: string) => formatDateTime(value)}
+                // @ts-expect-error,111
+                onCell={(record: any, rowIndex: any) => ({ "data-testid": `row-out-${rowIndex}` })}
               />
               <Table.Column
                 dataIndex="workTime"
                 title="工时"
+                // @ts-expect-error,111
+                onCell={(record: any, rowIndex: any) => ({ "data-testid": `row-time-${rowIndex}` })}
                 render={(value, record) => {
                   if (isEditing(record.id)) {
                     return (
@@ -590,6 +622,8 @@ export default function QianDaoPage() {
               <Table.Column
                 dataIndex={["expand", "work", "name"]}
                 title="工作类型"
+                // @ts-expect-error,111
+                onCell={(record: any, rowIndex: any) => ({ "data-testid": `row-work-${rowIndex}` })}
                 render={(value, record) => {
                   if (isEditing(record.id)) {
                     return (
@@ -609,13 +643,22 @@ export default function QianDaoPage() {
               <Table.Column
                 title="操作"
                 dataIndex="actions"
-                render={(_, record: BaseRecord) => {
+                render={(_, record: BaseRecord, index) => {
                   // @ts-expect-error,111
                   if (isEditing(record.id)) {
                     return (
                       <Space>
-                        <SaveButton {...saveButtonProps} hideText size="small" />
-                        <Button {...cancelButtonProps} size="small">
+                        <SaveButton
+                          data-testid={`save-button-${index}`}
+                          {...saveButtonProps}
+                          hideText
+                          size="small"
+                        />
+                        <Button
+                          data-testid={`cancel-button-${index}`}
+                          {...cancelButtonProps}
+                          size="small"
+                        >
                           Cancel
                         </Button>
                       </Space>
@@ -626,6 +669,7 @@ export default function QianDaoPage() {
                       <EditButton
                         // @ts-expect-error,111
                         {...editButtonProps(record.id)}
+                        data-testid={`edit-button-${index}`}
                         hideText
                         size="small"
                         resource={__AttendanceRecord_TableName}
@@ -633,7 +677,9 @@ export default function QianDaoPage() {
                       />
                       {/* <ShowButton hideText size="small" recordItemId={record.id} /> */}
                       <DeleteButton
+                        data-testid={`delete-button-${index}`}
                         hideText
+                        disabled={canNotDelete}
                         size="small"
                         resource={__AttendanceRecord_TableName}
                         recordItemId={record.id}

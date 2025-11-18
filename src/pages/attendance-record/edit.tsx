@@ -55,7 +55,7 @@ import { useEffect } from "react";
       <Form {...formProps} layout="vertical" form={form}>
         <Form.Item label="人员姓名" name={["expand", "worker_id", "name"]}>
           {/* @ts-expect-error,111 */}
-          <TextField />
+          <TextField data-testid="worker-name" />
         </Form.Item>
 
         <Form.Item
@@ -65,6 +65,7 @@ import { useEffect } from "react";
           rules={[{ required: true, message: "请选择签到时间" }]}
         >
           <DatePicker
+            data-testid="check-in-time"
             showTime
             allowClear={false}
             format="YYYY-MM-DD HH:mm"
@@ -82,7 +83,7 @@ import { useEffect } from "react";
           name="work"
           rules={[{ required: true, message: "请选择工作类型" }]}
         >
-          <Select {...workSelectProps} allowClear />
+          <Select data-testid="work-type" {...workSelectProps} allowClear />
         </Form.Item>
 
         <Form.Item
@@ -92,6 +93,7 @@ import { useEffect } from "react";
           rules={[{ required: true, message: "请选择签出时间" }]}
         >
           <DatePicker
+            data-testid="check-out-time"
             showTime
             allowClear={false}
             format="YYYY-MM-DD HH:mm"
@@ -99,8 +101,8 @@ import { useEffect } from "react";
           />
         </Form.Item>
 
-        <Form.Item label="工时" name="workTime">
-          <InputNumber disabled step={0.5} changeOnWheel />
+        <Form.Item label="工时" name="workTime" >
+          <InputNumber disabled step={0.5} changeOnWheel data-testid="work-time"/>
         </Form.Item>
       </Form>
     </Edit>

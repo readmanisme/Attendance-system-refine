@@ -135,7 +135,7 @@ const exportExcel = async (
       existing.薪资 = existing.薪资.add(rec.薪资);
     } else {
       monthSalaryMap.set(key, {
-        工人: rec.工人,
+        工人: rec.工人!,
         月份: month,
         总工时: rec.总工时,
         薪资: new Decimal(rec.薪资),

@@ -37,8 +37,8 @@ export default function PySearchSelect({
   type = undefined,
   value = undefined,
 }: PySearchSelectProps) {
-  const [highlightWords, setHighlightWords] = useState<string[]>([]);
-  // const [highlightWords, setHighlightWords] = useState(new Set<string>());
+  // 保持 Set<string> 的定义
+  const [highlightWords, setHighlightWords] = useState(new Set<string>());
   const SelectValue = useRef<{ value: string; label: string }>({
     value: "",
     label: "",
@@ -59,7 +59,7 @@ export default function PySearchSelect({
 
   /** 判断输入是否是拼音字母 */
   const isPinyin = (input: string) => /^[a-zA-Z]+$/.test(input);
-console.log(highlightWords);
+  // console.log(highlightWords);
   /** ✅ 统一的搜索逻辑函数 */
   const handleFilter = useCallback((input: string, option?: { label?: string; value?: string }) => {
     if (!option?.label) return false;
@@ -69,9 +69,13 @@ console.log(highlightWords);
       const result = match(label, input, { v: true });
       if (result) {
         const matchedChars = result.map((idx) => label[idx]);
-        setHighlightWords((prev) => [...prev, ...matchedChars]); //之所以合并是因为这个函数会给每一个名字进行调用，所以合并。
-        // console.log("prev", highlightWords, "matchedChars", matchedChars)
-        // setHighlightWords((prev) => [...matchedChars]);
+        
+        // 🚨 修改点 1: 将匹配到的字符添加到 Set 中，而不是合并数组
+        setHighlightWords((prev) => {
+          const newSet = new Set(prev);
+          matchedChars.forEach(char => newSet.add(char));
+          return newSet;
+        });
         
         return true;
       }
@@ -80,7 +84,8 @@ console.log(highlightWords);
 
     const lower = input.toLowerCase();
     if (label.toLowerCase().includes(lower)) {
-      setHighlightWords([input]);
+      // 🚨 修改点 2: 将输入内容设置为新的 Set
+      setHighlightWords(new Set([input]));
       return true;
     }
     return false;
@@ -96,9 +101,13 @@ console.log(highlightWords);
     (option: DefaultOptionType) => {
       const label = option.label as string;
 
-      if (!highlightWords.length) return <span>{label}</span>;
+      // 🚨 修改点 3: 检查 Set 是否为空，使用 highlightWords.size
+      if (!highlightWords.size) return <span>{label}</span>;
 
-      const regex = new RegExp(`(${highlightWords.join("|")})`, "gi");
+      // 将 Set 转换回数组以进行 join 操作用于创建正则表达式
+      const highlightArray = Array.from(highlightWords);
+      
+      const regex = new RegExp(`(${highlightArray.join("|")})`, "gi");
       const parts = label.split(regex);
       return (
         <span>
@@ -118,13 +127,15 @@ console.log(highlightWords);
   );
 
   const handleClear = useCallback(() => {
-    setHighlightWords([]);
+    // 🚨 修改点 4: 清空 Set
+    setHighlightWords(new Set());
     onClearFn();
   }, [onClearFn]);
 
   const handleChange = useCallback(
     (value: { value: string; label: string }) => {
-      setHighlightWords([]);
+      // 🚨 修改点 5: 清空 Set
+      setHighlightWords(new Set());
       if (!needButton) onChangeFn(value); //needButton的作用是避免即时筛选
       SelectValue.current = value;
     },
@@ -136,7 +147,7 @@ console.log(highlightWords);
       {Laberplaceholder && <div>{Laberplaceholder}</div>}
       <Select
         // classNames={{
-        //   root: "my-classname",
+        // 	 root: "my-classname",
         // }}
         data-testid="py-search-select"
         {...selectProps}
@@ -152,19 +163,19 @@ console.log(highlightWords);
         style={{ width: width }}
         // className="w-full!"
         // classNames={{
-        //   "root":"w-full!"
+        // 	 "root":"w-full!"
         // }}
         filterOption={handleFilter}
         onChange={handleChange} //选择和删除选项触发，输入内容不触发
         onClear={handleClear}
-        onBlur={() => setHighlightWords([])}
+        onBlur={() => setHighlightWords(new Set())} // 🚨 修改点 6: 清空 Set
         // onSelect={() => setHighlightWords([])}
         optionRender={renderOptionLabel}
         onSearch={(value: string) => {
           // 输入内容的时候，高亮词重置
-          setHighlightWords([]);
+          setHighlightWords(new Set()); // 🚨 修改点 7: 清空 Set
           if (!value) {
-            setHighlightWords([]);
+            setHighlightWords(new Set()); // 🚨 修改点 8: 清空 Set
             // 内容清空的时候，清空高亮词
           }
         }}

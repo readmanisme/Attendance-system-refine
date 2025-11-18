@@ -20,6 +20,9 @@ const AttendanceRecordList = () => {
   const datePickerFilter = useGetDatePickerFilter();
   const { resource } = useResourceParams();
   const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
+  const canNotDelete = useMemo(() => {
+    return selectedRowKeys.length > 0;
+  }, [selectedRowKeys]);
   const { KaoQingPresons, setKaoQingPresons } = useSomeStore();
   // useMemo 避免每次渲染都重新创建过滤函数
   const getFilter = useCallback((values: any) => {
@@ -80,6 +83,7 @@ const AttendanceRecordList = () => {
     () => ({
       selectedRowKeys,
       onChange: setSelectedRowKeys,
+      onCell: (record: any, rowIndex: any) => ({ "data-testid": `row-checkbox-${rowIndex}` }),
     }),
     [selectedRowKeys]
   );
@@ -128,6 +132,7 @@ const AttendanceRecordList = () => {
           >
             <Button
               type="primary"
+              data-testid="batch-delete-button"
               danger
               icon={<DeleteOutlined />}
               disabled={!selectedRowKeys.length}
@@ -162,8 +167,6 @@ const AttendanceRecordList = () => {
           setSelectedRowKeys([]);
         }}
         needButton
-        type="qiandao"
-        value={KaoQingPresons}
       />
 
       {/* 表格部分 */}
@@ -175,35 +178,68 @@ const AttendanceRecordList = () => {
           showSizeChanger: true,
         }}
         rowKey="id"
+        // @ts-expect-error,111
         rowSelection={rowSelection}
         className="mt-2"
       >
-        <Table.Column dataIndex="id" title="ID" />
-        <Table.Column dataIndex={["expand", "worker_id", "name"]} title="人员姓名" />
+        <Table.Column
+          dataIndex="id"
+          title="ID"
+          // @ts-expect-error,111
+          onCell={(record: any, rowIndex: any) => ({ "data-testid": `row-id-${rowIndex}` })}
+        />
+        <Table.Column
+          dataIndex={["expand", "worker_id", "name"]}
+          title="人员姓名"
+          // @ts-expect-error,111
+          onCell={(record: any, rowIndex: any) => ({ "data-testid": `row-name-${rowIndex}` })}
+        />
         <Table.Column
           dataIndex="check_in"
           title="上班时间"
           render={(value: string) => formatDateTime(value)}
+          // @ts-expect-error,111
+          onCell={(record: any, rowIndex: any) => ({ "data-testid": `row-in-${rowIndex}` })}
         />
         <Table.Column
           dataIndex="check_out"
           title="下班时间"
           render={(value: string) => formatDateTime(value)}
+          // @ts-expect-error,111
+          onCell={(record: any, rowIndex: any) => ({ "data-testid": `row-out-${rowIndex}` })}
         />
         <Table.Column
           dataIndex="workTime"
           title="工时"
+          // @ts-expect-error,111
+          onCell={(record: any, rowIndex: any) => ({ "data-testid": `row-num-${rowIndex}` })}
           // render={(value: string) => formatDateTime(value)}
         />
-        <Table.Column dataIndex={["expand", "work", "name"]} title="工作类型" />
+        <Table.Column
+          dataIndex={["expand", "work", "name"]}
+          title="工作类型"
+          // @ts-expect-error,111
+          onCell={(record: any, rowIndex: any) => ({ "data-testid": `row-work-${rowIndex}` })}
+        />
         <Table.Column
           title="操作"
           dataIndex="actions"
-          render={(_, record: BaseRecord) => (
+          render={(_, record: BaseRecord, index) => (
             <Space>
-              <EditButton hideText size="small" recordItemId={record.id} />
+              <EditButton
+                data-testid={`edit-button-${index}`}
+                hideText
+                size="small"
+                recordItemId={record.id}
+              />
               {/* <ShowButton hideText size="small" recordItemId={record.id} /> */}
-              <DeleteButton hideText size="small" recordItemId={record.id} />
+              <DeleteButton
+                data-testid={`delete-button-${index}`}
+                hideText
+                size="small"
+                recordItemId={record.id}
+                disabled={canNotDelete}
+              />
             </Space>
           )}
         />

@@ -55,7 +55,7 @@ export default defineConfig({
     __SystemName__: JSON.stringify("工人考勤系统"),
     __Backend_UserName__: JSON.stringify("shed2705@outlook.com"),
     __Backend_Password__: JSON.stringify("bPWU8GCMuqwKF9z"),
-    __VERSION__: JSON.stringify("v2025.11.15.1549"),
+    __VERSION__: JSON.stringify("v2025.11.17.1922"),
   },
   base: "/",
   resolve: {
@@ -67,6 +67,20 @@ export default defineConfig({
   },
   server: {
     port: 5173,
+    watch: {
+      ignored: [
+        "node_modules/**",
+        ".git/**",
+        "dist/**",
+        "playwright-report/**",
+        "logs/**",
+        ".vscode/**",
+        ".idea/**",
+        ".VSCodeCounter/**",
+        "test-results/**",
+        "tests/**",
+      ],
+    },
     // open: true,
   },
   // css: {

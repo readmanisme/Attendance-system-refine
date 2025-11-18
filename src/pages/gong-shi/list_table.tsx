@@ -618,6 +618,7 @@ export default function GongShiList() {
     >
       {get_un_salary_work !== "" && (
         <Alert
+        data-testid="un-salary-work-alert"
           message={get_un_salary_work}
           type="warning"
           showIcon
@@ -652,6 +653,7 @@ export default function GongShiList() {
         {...workerData}
         pagination={{
           ...workerData.pagination,
+          showSizeChanger:true,
           onChange: (page, pageSize) => {
             setSalaryLoading(true);
             // console.log("page", page, "pageSize", pageSize);
@@ -669,8 +671,8 @@ export default function GongShiList() {
           expandRowByClick: true,
         }}
       >
-        <Table.Column dataIndex="id" title="ID" />
-        <Table.Column dataIndex="name" title="姓名" />
+        <Table.Column dataIndex="id" title="ID" onCell={(record: any, rowIndex: any) => ({ "data-testid": `row-id-${rowIndex}` })}/>
+        <Table.Column dataIndex="name" title="姓名" onCell={(record: any, rowIndex: any) => ({ "data-testid": `row-name-${rowIndex}` })}/>
       </Table>
     </LList>
   );

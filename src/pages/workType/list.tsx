@@ -20,12 +20,14 @@ const ListWorkType = () => {
   return (
     <List headerButtons={<CreateButton data-testid="create-button">添加工作</CreateButton>}>
       <Alert
+      data-testid="Base-alert"
         className="mb-2!"
         message="基础工作类型一经创建便不可编辑和删除"
         type="info"
         showIcon
       />
       <Alert
+        data-testid="delete-alert"
         className="mb-2!"
         message="删除工作将一并删除与之相关的考勤记录和薪资计算方式"
         type="warning"
@@ -45,17 +47,20 @@ const ListWorkType = () => {
         <Table.Column
           dataIndex="id"
           title="Id"
+          // @ts-expect-error,111
           onCell={(record: any, rowIndex: any) => ({ "data-testid": `row-id-${rowIndex}` })}
         />
         <Table.Column
           dataIndex="name"
           title="名字"
+          // @ts-expect-error,111
           onCell={(record: any, rowIndex: any) => ({ "data-testid": `row-name-${rowIndex}` })}
         />
         <Table.Column
           dataIndex="num"
           title="考勤记录数"
           render={(text: any, record: any) => WorkRecordNum.get(record.id)}
+          // @ts-expect-error,111
           onCell={(record: any, rowIndex: any) => ({ "data-testid": `row-num-${rowIndex}` })}
         />
         {/* <Table.Column
