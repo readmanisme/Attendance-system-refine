@@ -1,9 +1,9 @@
-import { Edit, TextField, useForm, useSelect } from "@refinedev/antd";
+import { Edit, ListButton, TextField, useForm, useSelect } from "@refinedev/antd";
 import { DatePicker, Form, InputNumber, Select, message } from "antd";
 import dayjs from "dayjs";
 import { useEffect } from "react";
 
- const AttendanceRecordEdit = () => {
+const AttendanceRecordEdit = () => {
   const { formProps, saveButtonProps, formLoading, form } = useForm({
     meta: { expand: ["worker_id"] },
   });
@@ -51,7 +51,13 @@ import { useEffect } from "react";
   };
 
   return (
-    <Edit saveButtonProps={saveButtonProps} isLoading={formLoading}>
+    <Edit
+      saveButtonProps={saveButtonProps}
+      isLoading={formLoading}
+      headerButtons={({ refreshButtonProps, listButtonProps }) => (
+        <>{listButtonProps && <ListButton {...listButtonProps} meta={{ foo: "bar" }} />}</>
+      )}
+    >
       <Form {...formProps} layout="vertical" form={form}>
         <Form.Item label="人员姓名" name={["expand", "worker_id", "name"]}>
           {/* @ts-expect-error,111 */}
@@ -83,7 +89,7 @@ import { useEffect } from "react";
           name="work"
           rules={[{ required: true, message: "请选择工作类型" }]}
         >
-          <Select data-testid="work-type" {...workSelectProps} allowClear />
+          <Select data-testid="work-type" {...workSelectProps} allowClear style={{ width: 200 }}/>
         </Form.Item>
 
         <Form.Item
@@ -101,8 +107,8 @@ import { useEffect } from "react";
           />
         </Form.Item>
 
-        <Form.Item label="工时" name="workTime" >
-          <InputNumber disabled step={0.5} changeOnWheel data-testid="work-time"/>
+        <Form.Item label="工时" name="workTime">
+          <InputNumber disabled step={0.5} changeOnWheel data-testid="work-time" />
         </Form.Item>
       </Form>
     </Edit>

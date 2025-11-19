@@ -1,4 +1,4 @@
-import { Edit, SaveButton, useForm } from "@refinedev/antd";
+import { Edit, ListButton, SaveButton, useForm } from "@refinedev/antd";
 import { Alert, Form, Input, Space } from "antd";
 import React, { useCallback } from "react";
 import { useNameValidation } from "../useNameValidation";
@@ -13,7 +13,7 @@ const WorkersEdit = () => {
 
   const handleOnFinish = useCallback(
     (values: any) => {
-      formProps.onFinish?.({id: values.id, name: values.name.trim()});
+      formProps.onFinish?.({ id: values.id, name: values.name.trim() });
     },
     [formProps]
   );
@@ -21,12 +21,11 @@ const WorkersEdit = () => {
   return (
     <Edit
       saveButtonProps={saveButtonProps}
+      headerButtons={({ refreshButtonProps, listButtonProps }) => (
+        <>{listButtonProps && <ListButton {...listButtonProps} meta={{ foo: "bar" }} />}</>
+      )}
       footerButtons={({ saveButtonProps }) => (
-        <SaveButton
-          {...saveButtonProps}
-          disabled={!!errorMsg}
-          data-testid="save-button"
-        />
+        <SaveButton {...saveButtonProps} disabled={!!errorMsg} data-testid="save-button" />
       )}
     >
       <Form {...formProps} layout="vertical" onFinish={handleOnFinish}>
@@ -35,7 +34,7 @@ const WorkersEdit = () => {
         </Form.Item>
 
         <Form.Item label="姓名" name="name" rules={[{ required: true }]}>
-          <Input placeholder="请输入姓名" data-testid="name-input" />
+          <Input placeholder="请输入姓名" data-testid="name-input" style={{ width: 200 }}/>
         </Form.Item>
 
         <Space direction="vertical" className="w-full">
@@ -46,14 +45,7 @@ const WorkersEdit = () => {
             showIcon
           />
 
-          {errorMsg && (
-            <Alert
-              data-testid="error-alert"
-              message={errorMsg}
-              type="error"
-              showIcon
-            />
-          )}
+          {errorMsg && <Alert data-testid="error-alert" message={errorMsg} type="error" showIcon />}
         </Space>
       </Form>
     </Edit>

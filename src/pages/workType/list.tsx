@@ -8,6 +8,7 @@ import {
   CreateButton,
 } from "@refinedev/antd";
 import { Table, Space, Alert, Button, Result } from "antd";
+import { useMemo } from "react";
 
 const ListWorkType = () => {
   const { tableProps } = useTable({
@@ -22,7 +23,25 @@ const ListWorkType = () => {
   const { mutate: mutate2 } = useCreate({
     resource: __SalaryType_TableName,
   });
-  const HaveBaseWork = tableProps.dataSource?.some((item: any) => item.name == "基础");
+
+  const sortedDataSource = useMemo(() => {
+    const dataSource = [...(tableProps?.dataSource || [])];
+    // 找到符合条件的项的索引
+    const index = dataSource.findLastIndex(
+      (item) => item.name === "基础"
+    );
+    // 这里用findLastIndex而不是findIndex，因为基础在后面的可能性很大
+
+    if (index > 0) {
+      // 如果找到了且不在第一位，则将其移动到数组开头
+      const [item] = dataSource.splice(index, 1);
+      dataSource.unshift(item);
+    }
+
+    return dataSource;
+  }, [tableProps.dataSource]);
+  // 乐观警告显示不能通过提前设置true来解决，因为马上会被覆盖。
+  const HaveBaseWork = tableProps.dataSource?.some((item: any) => item.name == "基础") ?? true;
   const { result } = useList({ resource: __WorkRecordNum_TableName, pagination: { mode: "off" } });
   const WorkRecordNum = new Map(result.data.map((item: any) => [item.work_id, item.record_count]));
   if (!HaveBaseWork) {
@@ -34,6 +53,7 @@ const ListWorkType = () => {
           title="缺少基础工作，点击下方按钮添加基础工作及其时薪（时薪后续可修改）"
           extra={
             <Button
+              data-testid="add-base-work-button"
               type="primary"
               onClick={() => {
                 mutate({
@@ -44,7 +64,7 @@ const ListWorkType = () => {
                 });
                 mutate({
                   values: {
-                    // id: "basebasebase",
+                    id: "basebasebase1",
                     work_type: "basebasebase",
                     SalaryNum: 10,
                   },
@@ -75,7 +95,7 @@ const ListWorkType = () => {
         showIcon
       />
 
-      <Table {...tableProps} rowKey="id">
+      <Table {...tableProps} dataSource={sortedDataSource} rowKey="id">
         {/* <Table.Column
                     dataIndex="collectionName"
                     title="Collection Name"

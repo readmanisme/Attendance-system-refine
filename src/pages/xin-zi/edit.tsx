@@ -1,4 +1,4 @@
-import { Edit, SaveButton, useForm, useSelect } from "@refinedev/antd";
+import { Edit, ListButton, SaveButton, useForm, useSelect } from "@refinedev/antd";
 import { Form, Input, Select, InputNumber, Alert } from "antd";
 
 const SalaryTypeEdit = () => {
@@ -25,6 +25,9 @@ const SalaryTypeEdit = () => {
   return (
     <Edit
       saveButtonProps={saveButtonProps}
+      headerButtons={({ refreshButtonProps, listButtonProps }) => (
+        <>{listButtonProps && <ListButton {...listButtonProps} meta={{ foo: "bar" }} />}</>
+      )}
       footerButtons={({ saveButtonProps }) => (
         <SaveButton data-testid="save-button" {...saveButtonProps} disabled={isError} />
       )}

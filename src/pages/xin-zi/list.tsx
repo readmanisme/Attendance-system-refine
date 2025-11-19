@@ -1,4 +1,4 @@
-import { BaseRecord } from "@refinedev/core";
+import { BaseRecord, useList } from "@refinedev/core";
 import {
   useTable,
   List,
@@ -17,18 +17,39 @@ const SalaryTypeList = () => {
       expand: ["worker_name", "work_type"],
     },
   });
-  // 重新排序，让["expand", "work_type", "name"]为“基础”的排在第一行
+  const { result, query } = useList({
+    resource: __WorkTypes_TableName,
+    pagination: { mode: "off" },
+  });
+  const get_un_salary_work = useMemo(() => {
+    const work_types = result.data.map((item: any) => item.name);
+    const salary_work_types= tableProps.dataSource?.filter(item => item.worker_name === "").
+    map((item: any) => item.expand?.work_type?.name) || [];
+    const un_salary_work_types = work_types.filter((item) => !salary_work_types.includes(item));
+    if (!un_salary_work_types.length) return "";
+    return `未设置工资的工作类型：${un_salary_work_types.join(
+      ","
+    )}，请设置其对应的工资,否则按照基础工资计算。`;
+  }, [result.data, tableProps.dataSource]);
+
+  // 让["expand", "work_type", "name"]为“基础”的并且worker_name为空的放在第一行
+  // 不通过排序的方法
   const sortedDataSource = useMemo(() => {
-    return [...(tableProps?.dataSource || [])].sort((a, b) => {
-      if (a.expand?.work_type?.name === "基础" && b.expand?.work_type?.name !== "基础") {
-        return -1;
-      }
-      if (b.expand?.work_type?.name === "基础" && a.expand?.work_type?.name !== "基础") {
-        return 1;
-      }
-      return 0;
-    });
-  }, [tableProps?.dataSource]); // 依赖项：仅当 dataSource 变化时重新计算
+    const dataSource = [...(tableProps?.dataSource || [])];
+    // 找到符合条件的项的索引
+    const index = dataSource.findLastIndex(
+      (item) => item.expand?.work_type?.name === "基础" && !item.worker_name
+    );
+    // 这里用findLastIndex而不是findIndex，因为基础在后面的可能性很大
+
+    if (index > 0) {
+      // 如果找到了且不在第一位，则将其移动到数组开头
+      const [item] = dataSource.splice(index, 1);
+      dataSource.unshift(item);
+    }
+
+    return dataSource;
+  }, [tableProps.dataSource]);
 
   return (
     <List headerButtons={<CreateButton data-testid="create-button">添加记录</CreateButton>}>
@@ -39,6 +60,15 @@ const SalaryTypeList = () => {
         type="info"
         showIcon
       />
+      {get_un_salary_work !== "" && (
+        <Alert
+          data-testid="un-salary-work-alert"
+          message={get_un_salary_work}
+          type="warning"
+          showIcon
+          className="mb-2! mr-2! w-full"
+        />
+      )}
       <Table {...tableProps} dataSource={sortedDataSource} rowKey="id">
         <Table.Column
           dataIndex="id"
@@ -79,10 +109,7 @@ const SalaryTypeList = () => {
               {/* <ShowButton hideText size="small" recordItemId={record.id} /> */}
               <DeleteButton
                 data-testid={`delete-button-${index}`}
-                disabled={
-                  record.expand?.work_type?.name === "基础" &&
-                  record.worker_name === ""
-                }
+                disabled={record.expand?.work_type?.name === "基础" && record.worker_name === ""}
                 hideText
                 size="small"
                 recordItemId={record.id}

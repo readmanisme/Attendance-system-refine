@@ -66,11 +66,11 @@ const SalaryTypeCreate = () => {
       <Alert className="mb-2!" message="创建之后只能修改薪资，要修改只能删除" type="warning" showIcon data-testid="warn-alert" />
       <Form {...formProps} layout="vertical">
         <Form.Item label="工人" name={["worker_name"]}>
-          <Select {...nameSelectProps} allowClear onChange={setWorkerName} data-testid="worker-select" />
+          <Select {...nameSelectProps} allowClear onChange={setWorkerName} data-testid="worker-select" style={{ width: 200 }}/>
         </Form.Item>
 
         <Form.Item label="工种" name={["work_type"]}>
-          <Select {...typeSelectProps} allowClear onChange={setWorkType} data-testid="work-type-select" />
+          <Select {...typeSelectProps} allowClear onChange={setWorkType} data-testid="work-type-select" style={{ width: 200 }}/>
         </Form.Item>
 
         <Form.Item label="时薪" name={["SalaryNum"]} rules={[{ required: true }]} initialValue={10}>

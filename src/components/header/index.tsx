@@ -87,7 +87,7 @@ export const Header: React.FC<RefineThemedLayoutHeaderProps> = ({ sticky = true 
     <AntdLayout.Header style={headerStyles}>
       <Space>
         {!BatchError && <Tag color="red" data-testid="batch-error-tag">Batch设置有问题</Tag>}
-        <GradientButton title="刷新数据" onClick={handleRefresh} />
+        <GradientButton data-testid="refresh-button" title="刷新数据" onClick={handleRefresh} />
         {ports.length > 0 && (
           <Radio.Group
             options={radioOptions}
@@ -96,7 +96,7 @@ export const Header: React.FC<RefineThemedLayoutHeaderProps> = ({ sticky = true 
           />
         )}
 
-        <Badge color="red" variant="light" style={{ width: 120 }}>
+        <Badge data-testid="version-badge" color="red" variant="light" style={{ width: 120 }}>
           {__VERSION__}
         </Badge>
 
