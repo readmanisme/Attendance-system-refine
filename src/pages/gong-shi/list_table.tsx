@@ -201,16 +201,17 @@ export default function GongShiList() {
     },
   });
 
-  const { result: workType_test_data } = useList({
+  const { result: workType_test_data, query } = useList({
     resource: __WorkTypes_TableName,
     pagination: {
       mode: "off",
     },
   });
-  const hasBaseWorkType = useMemo(() => {
-    return workType_test_data?.data?.some((t) => t.name === "基础");
-  }, [workType_test_data?.data]);
 
+  // const hasBaseWorkType = workType_test_data?.data?.some((t) => t.name === "基础") ?? true;
+  const hasBaseWorkType = query.isLoading ? true : workType_test_data?.data?.some((t) => t.name === "基础");
+  // 这个要实现乐观显示的方法和工作页面的不一样，因为如果不判断数据加载，workType_test_data?.data?默认空数据也是可以得到false的结果的
+  // console.log("workType_test_data", workType_test_data?.data, hasBaseWorkType);
   const { listProps } = useSimpleList({
     resource: __SalaryType_TableName,
     // syncWithLocation: false, //如果不设置这个，那么table的筛选设置就会被读取；不过更好的方法是
@@ -251,8 +252,10 @@ export default function GongShiList() {
   // const listProps_work_type = useMemo(() => {
   //   return listProps?.dataSource?.map((item) => item.expand?.work_type?.name);
   // }, [listProps?.dataSource]);
-
-  const hasBaseSalaryType = listProps?.dataSource?.some((t) => t.expand?.work_type?.name === "基础" && t.worker_name=== "");
+  const hasBaseSalaryType =
+    listProps?.dataSource?.some(
+      (t) => t.expand?.work_type?.name === "基础" && t.worker_name === ""
+    ) ?? true;
 
   const SalaryDict = useMemo(() => {
     const data = listProps?.dataSource || [];
@@ -270,7 +273,7 @@ export default function GongShiList() {
     //   dict["基础"] = 0;
     // } //工作有
     // 检查dict里面有没有基础
-    if (!("基础" in dict)){
+    if (!("基础" in dict)) {
       dict["基础"] = 0;
     }
     return dict;
@@ -555,11 +558,10 @@ export default function GongShiList() {
     ]
   );
 
-
-
   const get_un_salary_work = useMemo(() => {
     const work_types = [...workTypeMap.values()];
     const un_salary_work_types = work_types.filter((item) => !(item in SalaryDict));
+    // 这里的判断很精准，不会混淆没人的工作和有人的工作
     if (!un_salary_work_types.length) return "";
     return `未设置工资的工作类型：${un_salary_work_types.join(
       ","
@@ -586,7 +588,7 @@ export default function GongShiList() {
       />
     );
   }
-  if (!listProps.loading && !hasBaseSalaryType) {
+  if (!hasBaseSalaryType) {
     return (
       <Alert
         message="基础工作的时薪 不存在，请添加"

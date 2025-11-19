@@ -533,6 +533,7 @@ export default function QianDaoPage() {
           <Space direction="vertical">
             <Space>
               <Alert
+                data-testid="edit-alert"
                 type="info"
                 message="在表格中修改工时会使得签到时间变为7:00,如有其他需求可以删除记录然后手动选择时间录入"
                 showIcon
@@ -554,9 +555,10 @@ export default function QianDaoPage() {
               </Popconfirm>
             </Space>
             <Alert
+            data-testid="search-alert"
               type="info"
               message="要确定某人是否已经记录，可以使用Ctrl+F搜索" //还是说已经有记录的显示已录入tag？不推荐，那样的话拼音搜索组件又要改了
-              // showIcon
+              showIcon
             />
           </Space>
           <Form {...formProps} onFinish={handleOnFinish}>

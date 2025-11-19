@@ -1,5 +1,5 @@
 import { test, expect } from "@playwright/test";
-
+import { Workers_TableName } from "./constants";
 test.describe("帮助功能测试", () => {
   test.beforeEach(async ({ page }) => {
     await page.goto("/qiandao"); //beforeEach为每个test执行，但step不执行
@@ -23,12 +23,6 @@ test.describe("帮助功能测试", () => {
     });
 
     await test.step("通过关闭按钮应能关闭帮助", async () => {
-      // await page.getByTestId("help-button").click();
-      // await expect(
-      //   page.getByRole("heading", { name: "人员签到页面" }),
-      //   "应显示人员签到帮助内容"
-      // ).toBeVisible();
-
       await page.getByRole("button", { name: "关闭" }).click();
       await expect(
         page.getByRole("heading", { name: "人员签到页面" }),
@@ -71,5 +65,25 @@ test.describe("帮助功能测试", () => {
         ).not.toBeVisible();
       });
     }
+  });
+  test("点击图标和标题回到首页", async ({ page }) => {
+    await page.goto(Workers_TableName);
+    await expect(page.getByTestId("Base-alert"),"工人页面已显示").toBeVisible();
+    await page.getByTestId("logoAndTitle").click();
+    await expect(page.getByRole("heading", { name: "签到录入系统" }),"首页标题可见").toBeVisible();
+  });
+  test("菜单折叠与展开", async ({ page }) => {
+    await page.goto("/")
+    await expect(page.getByTestId("version-badge"),"版本号可见").toBeVisible()
+    await page.getByRole('button', { name: 'left' }).click()
+    // codegen不能加viewpoint的参数，否则看不到，但是测试的时候好像无所谓
+    await expect(page.getByText('工人考勤系统'),"折叠后标题不可见").not.toBeVisible()
+    // await expect(page.getByText('考勤记录')).not.toBeInViewport() //菜单折叠后，元素还在，toBeInViewport不行，toBeVisible不行。hidden不行。总是就是没办法认为这个元素不存在
+    // 除非通过底层css，ant-menu-item和ant-menu-title-content前后的width有差别，但是这和用户体验不是一回事，所以不管了
+    // await page.getByRole('link', { name: '考勤记录' }).hover()
+    // await expect(page.getByText('考勤记录')).toBeVisible()
+    // 因为上述原因，这里的判断也不能保证
+    await page.getByRole('button', { name: 'right' }).click()
+    await expect(page.getByText('工人考勤系统'),"展开后标题可见").toBeVisible()
   });
 });

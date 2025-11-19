@@ -19,20 +19,10 @@ import { BrowserRouter, Outlet, Route, Routes } from "react-router";
 import { Header } from "./components/header";
 import { ColorModeContextProvider } from "./contexts/color-mode";
 import  TestPage  from "./pages/test-page/test-page";
-// import { WorkersCreate } from "./pages/workers/create";
-// import { WorkersEdit } from "./pages/workers/edit";
-// import { WorkersList } from "./pages/workers/list";
 import { dataProvider as pocketbaseDataProvider } from "./providers/pocketbase/dataProvider";
-// import { AttendanceRecordEdit } from "./pages/attendance-record/edit";
-// import { AttendanceRecordList } from "./pages/attendance-record/list";
 import { MantineProvider } from "@mantine/core";
 import logo from "@/public/logo-64.webp?inline";
-// import QianDaoPage from "./pages/qian-dao/qiandao";
-// import GongShiList from "./pages/gong-shi/list_table";-
 import { SampleList, SampleCreate, SampleEdit, SampleShow } from "./pages/Inferencer_example";
-// import { EditWorkType } from "./pages/workType/edit";
-// import { CreateWorkType } from "./pages/workType/create";
-// import { ListWorkType } from "./pages/workType/list";
 import {
   IconChecks,
   IconUsers,
@@ -43,9 +33,6 @@ import {
   IconBriefcase,
   IconCode,
 } from "@tabler/icons-react";
-// import { SalaryTypeCreate } from "./pages/xin-zi/create";
-// import { SalaryTypeEdit } from "./pages/xin-zi/edit";
-// import { SalaryTypeList } from "./pages/xin-zi/list";
 import { GlobalHelp } from "./components/GlobalHelp";
 import { useTranslation } from "react-i18next";
 import { getPb } from "@/utils/pocketbase";
@@ -68,21 +55,7 @@ const SalaryTypeList = React.lazy(() => import("./pages/xin-zi/list"));
 const SalaryTypeCreate = React.lazy(() => import("./pages/xin-zi/create"));
 const SalaryTypeEdit = React.lazy(() => import("./pages/xin-zi/edit"));
 
-// const TestPage = React.lazy(() => import("./pages/test-page/test-page"));
-// const SampleList = React.lazy(() =>
-//   import("./pages/Inferencer_example").then((m) => ({ default: m.SampleList }))
-// );
-// const SampleCreate = React.lazy(() =>
-//   import("./pages/Inferencer_example").then((m) => ({ default: m.SampleCreate }))
-// );
-// const SampleEdit = React.lazy(() =>
-//   import("./pages/Inferencer_example").then((m) => ({ default: m.SampleEdit }))
-// );
-// const SampleShow = React.lazy(() =>
-//   import("./pages/Inferencer_example").then((m) => ({ default: m.SampleShow }))
-// );
-
-// 统一 Loading 组件（可替换为 Skeleton）
+// 统一加载组件，可以考虑骨架屏
 const RouteLoading = () => (
   <div className="flex items-center justify-center h-full min-h-96">
     <Spin size="large"/>
@@ -110,7 +83,7 @@ const devOnlyRoutesConfig = import.meta.env.DEV
       },
     ]
   : [];
-// 开发路由（仅开发环境渲染 + 懒加载）
+// 开发路由（仅开发环境渲染）
 const DevRoutes = import.meta.env.DEV ? (
   <>
     <Route path="/test-page" element={<TestPage />} />
@@ -129,7 +102,7 @@ const AppTitle = React.memo(({ collapsed }: { collapsed: boolean }) => (
   <ThemedTitleV2
     collapsed={collapsed}
     icon={
-      <Space>
+      <Space data-testid="logoAndTitle">
         <Avatar src={logo} alt="Company Logo" size={collapsed ? "default" : "large"} />
         {!collapsed && (
           <Typography.Text className="whitespace-nowrap">{__SystemName__}</Typography.Text>
@@ -182,7 +155,7 @@ function App() {
                     edit: "/attendance-record/edit/:id",
                     show: "/attendance-record/show/:id",
                     meta: {
-                      canDelete: true,
+                      // canDelete: true,
                       label: "考勤记录",
                       icon: <IconClipboardData />,
                     },
@@ -206,7 +179,7 @@ function App() {
                     edit: "/workType/edit/:id",
                     show: "/workType/show/:id",
                     meta: {
-                      canDelete: true,
+                      // canDelete: true,
                       label: "工作管理",
                       icon: <IconBriefcase />,
                     },

@@ -15,7 +15,6 @@ import { useGetDatePickerFilter } from "@/utils/get_data_picker_filter";
 import PySearchSelect from "@/components/PySearchSelect";
 import { DeleteOutlined, PlusSquareOutlined } from "@ant-design/icons";
 import { useResourceParams } from "@refinedev/core";
-import { useSomeStore } from "@/stores";
 const AttendanceRecordList = () => {
   const datePickerFilter = useGetDatePickerFilter();
   const { resource } = useResourceParams();
@@ -98,19 +97,21 @@ const AttendanceRecordList = () => {
       headerButtons={
         <Tooltip title="请到签到页面添加记录">
           {/* 因为CreateButton会导致tooltip位置异常，所以换成普通的button，无所谓，反正不用 */}
-          <Button disabled icon={<PlusSquareOutlined />}>
+          <Button data-testid="add-button" disabled icon={<PlusSquareOutlined />}>
             添加记录
           </Button>
         </Tooltip>
       }
     >
       <Alert
+        data-testid="help-alert"
         message="点选复选框选择记录，然后可以批量删除；只能选择当页记录，记录较多的情况下可以到右下角切换每页显示数量。"
         type="info"
         showIcon
         className="mb-2!"
       />
       <Alert
+        data-testid="help-alert-2"
         message="要查看特定天数的记录，推荐到人员签到页面切换时间到此天查看"
         // 因为考勤记录页面和工时页面同步，而工时页面如果精细到天那么显示可能会出问题，因为月的数据直接从表读取而不是通过天的数据计算而来；不过也可以让这两个分离，设置两个存储，往组件里面传参数，不同参数用不同存储
         // 不过我觉得可能需求不是很大？
