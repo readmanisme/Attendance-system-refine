@@ -110,8 +110,8 @@ test("表格显示", async ({ page }) => {
   await page.goto(xinzi_url);
   // 确认数据
   await expect(page.getByTestId("row-id-0")).toContainText("62nyyri2e0np05d");
-  await expect(page.getByTestId("row-id-2")).toContainText("h9pqyz3950a31c6");
-  await expect(page.getByTestId("row-id-3")).toContainText("ara31u88462y859");
+  await expect(page.getByTestId("row-id-1")).toContainText("h9pqyz3950a31c6");
+  await expect(page.getByTestId("row-id-2")).toContainText("ara31u88462y859");
   // 确认警告
   await expect(page.getByTestId("alert")).toBeVisible();
   await expect(page.getByTestId("un-salary-work-alert")).toContainText(
@@ -142,7 +142,7 @@ test("添加校验", async ({ page }) => {
   await expect(page.getByTestId("error-alert")).not.toBeVisible();
   await expect(page.getByTestId("save-button")).not.toBeDisabled();
   // 清除工种，应该重新出现警告
-  await page.locator(".anticon.anticon-close-circle > svg").nth(1).click();
+  await page.locator(".anticon.anticon-close-circle > svg").click();
   await expect(page.getByTestId("error-alert")).toContainText("工人和工种不能全为空");
   await expect(page.getByTestId("save-button")).toBeDisabled();
   // 检查工种重复判定
@@ -339,8 +339,8 @@ test.describe("添加编辑删除", () => {
     await page.getByTestId("worker-select").click();
     await page.getByTitle("陈玉琴").click();
     // 选择工作
-    await page.getByTestId("work-select").click();
-    await expect(page.getByTitle("重工")).not.toBeVisible();
+    await page.getByTestId("work-type-select").click();
+    await page.getByTitle("重工").click();
     // 设置时薪
     await page.getByTestId("salary-input").hover();
     await page.getByRole("button", { name: "Increase Value" }).click();
@@ -356,6 +356,8 @@ test.describe("添加编辑删除", () => {
     });
     // 保存
     await page.getByTestId("save-button").click();
+          // 成功提示
+      await expect(page.getByText('成功创建')).toBeVisible();
     // 检查内容
     await expect(page.getByTestId("row-worker-3")).toContainText("陈玉琴");
     await expect(page.getByTestId('row-work-3')).toContainText("重工");
@@ -363,7 +365,7 @@ test.describe("添加编辑删除", () => {
     // 编辑
     await page.getByTestId("edit-button-3").click();
     // 测试回到主页
-    await page.getByRole("button", { name: "bars 考勤记录" }).click();
+    await page.getByRole("button", { name: "bars 薪资设置" }).click();
     await expect(page.getByTestId("alert")).toBeVisible();
     // 编辑
     await page.getByTestId("edit-button-3").click();
@@ -372,12 +374,16 @@ test.describe("添加编辑删除", () => {
     await page.getByRole("button", { name: "Increase Value" }).click();
     // 保存
     await page.getByTestId("save-button").click();
+          // 成功提示
+      // await expect(page.getByText('成功编辑')).toBeVisible();
     // 检查内容
     await expect(page.getByTestId("row-worker-3")).toContainText("陈玉琴");
     await expect(page.getByTestId("row-salary-3")).toContainText("13");
     // 删除
     await page.getByTestId("delete-button-3").click();
     await page.getByRole("button", { name: "删 除" }).click();
+          // 成功提示
+      // await expect(page.getByText('成功删除')).toBeVisible();
     await expect(page.getByText("陈玉琴")).not.toBeVisible();
   });
 });

@@ -1,3 +1,5 @@
+/// <reference types="vitest/config" />
+
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 // import react from '@vitejs/plugin-react-swc'
@@ -34,11 +36,12 @@ export default defineConfig({
     // visualizer(),
     ...visualizerConfigs.map((config) => visualizer(config)),
   ],
-  // test: {
-  //   globals: true,
-  //   environment: 'jsdom',
-  //   setupFiles: './vitest.setup.mjs',
-  // },
+  test: {
+    // globals: true,
+    // environment: 'jsdom',
+    // setupFiles: './vitest.setup.mjs',
+    exclude: ["**/node_modules/**", "**/dist/**", "**/playwright-report/**","**/.git/**","**/tests/**"],
+  },
   define: {
     // __BACKEND_API_URL__: JSON.stringify('http://localhost:8090'),
     // __BACKEND_Admin_URL__: JSON.stringify('http://localhost:8090/_/'),
@@ -55,7 +58,7 @@ export default defineConfig({
     __SystemName__: JSON.stringify("工人考勤系统"),
     __Backend_UserName__: JSON.stringify("shed2705@outlook.com"),
     __Backend_Password__: JSON.stringify("bPWU8GCMuqwKF9z"),
-    __VERSION__: JSON.stringify("v2025.11.17.1922"),
+    __VERSION__: JSON.stringify("v2025.11.20.1332"),
   },
   base: "/",
   resolve: {

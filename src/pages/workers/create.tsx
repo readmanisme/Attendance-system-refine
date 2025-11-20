@@ -12,15 +12,6 @@ const WorkersCreate: React.FC = () => {
 
   const { mutate } = useCreateMany({
     resource: resource?.name,
-    mutationOptions: {
-      onSuccess: (response) => {
-        go({
-          // @ts-expect-error,111
-          to: { resource: resource?.name, action: "list" },
-          type: "push",
-        });
-      },
-    },
   });
 
   // 使用抽离的 Hook，label="姓名"
@@ -30,8 +21,19 @@ const WorkersCreate: React.FC = () => {
   );
 
   const handleSave = useCallback(() => {
-    mutate({ values: parseValues() });
-  }, [parseValues, mutate]);
+    mutate(
+      { values: parseValues() },
+      {
+        onSuccess: (response) => {
+          go({
+            // @ts-expect-error,111
+            to: { resource: resource?.name, action: "list" },
+            type: "push",
+          });
+        },
+      }
+    );
+  }, [mutate, parseValues, go, resource?.name]);
 
   return (
     <Create
@@ -41,6 +43,13 @@ const WorkersCreate: React.FC = () => {
         </SaveButton>
       )}
     >
+      <Alert
+        data-testid="leave-alert"
+        message="离开页面不保留数据，请自行保存数据。推荐在别处准备好数据，复制粘贴到此处。"
+        type="warning"
+        className="mb-2!"
+        showIcon
+      />
       <Input.TextArea
         data-testid="name-input"
         rows={15}

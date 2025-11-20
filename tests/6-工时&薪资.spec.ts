@@ -75,6 +75,7 @@ test("筛选测试", async ({ page }) => {
     await expect(page.getByTestId("row-day-张孝刚-1")).toContainText("2025-10-31"); //显示31号
   });
   await test.step("筛选持久化", async () => {
+    // 通过检查考勤页面的数据是不是9-10月来判断
     await page.getByRole("link", { name: "人员签到" }).click();
     await expect(page.getByRole("heading", { name: "签到录入系统" })).toBeVisible();
     await page.getByRole("link", { name: "考勤记录" }).click();
@@ -82,4 +83,25 @@ test("筛选测试", async ({ page }) => {
     await expect(page.getByRole("textbox", { name: "开始月份" })).toHaveValue("2025-09");
     await expect(page.getByRole("textbox", { name: "结束月份" })).toHaveValue("2025-10");
   });
+});
+
+test("数值测试", async ({ page }) => {
+  await page.goto(gongshi_url);
+  await page.getByRole("textbox", { name: "开始月份" }).fill("2025-10");
+  await page.getByRole("textbox", { name: "结束月份" }).fill("2025-11");
+  await page.getByRole("button", { name: "应 用" }).click();
+  await page.getByTestId("row-id-0").click();
+  await page.getByTestId("row-month-张孝刚-0").click();
+  await page.getByTestId("row-day-张孝刚-0").click();
+  await page.getByTestId("row-day-张孝刚-1").click();
+  await page.getByTestId("row-month-张孝刚-1").click();
+  await page.getByTestId("row-day-张孝刚-0").nth(1).click();
+  await page.getByTestId("row-day-张孝刚-1").nth(1).click();
+  await page.getByTestId("row-day-张孝刚-2").click();
+  await page.getByTestId("row-day-张孝刚-3").click();
+  await page.getByTestId("row-day-张孝刚-4").click();
+  await page.getByTestId("row-day-张孝刚-5").click();
+  await expect(page.locator(".ant-table-cell > div > div > div").first()).toContainText(
+    "月份工人总工时薪资2025-10张孝刚20400日期工人总工时薪资2025-10-30张孝刚10200工人签到时间签退时间工作类型总工时薪资张孝刚2025-10-30 07:002025-10-30 17:00司机102002025-10-31张孝刚10200工人签到时间签退时间工作类型总工时薪资张孝刚2025-10-31 07:002025-10-31 17:00司机10200110 条/页2025-11张孝刚551100日期工人总工时薪资2025-11-01张孝刚10200工人签到时间签退时间工作类型总工时薪资张孝刚2025-11-01 07:002025-11-01 17:00司机102002025-11-02张孝刚10200工人签到时间签退时间工作类型总工时薪资张孝刚2025-11-02 07:002025-11-02 17:00司机102002025-11-03张孝刚10200工人签到时间签退时间工作类型总工时薪资张孝刚2025-11-03 07:002025-11-03 17:00司机102002025-11-04张孝刚10200工人签到时间签退时间工作类型总工时薪资张孝刚2025-11-04 07:002025-11-04 17:00司机102002025-11-07张孝刚5100工人签到时间签退时间工作类型总工时薪资张孝刚2025-11-07 07:002025-11-07 12:00司机51002025-11-08张孝刚10200工人签到时间签退时间工作类型总工时薪资张孝刚2025-11-08 07:002025-11-08 17:00司机10200110 条/页1"
+  );
 });

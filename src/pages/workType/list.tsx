@@ -9,27 +9,27 @@ import {
 } from "@refinedev/antd";
 import { Table, Space, Alert, Button, Result } from "antd";
 import { useMemo } from "react";
-
+import { useInvalidate } from "@refinedev/core";
 const ListWorkType = () => {
+  const invalidate = useInvalidate();
+
   const { tableProps } = useTable({
     sorters: {
       permanent: [{ field: "created", order: "desc" }],
     },
     pagination: { mode: "off" },
   });
-  const { mutate } = useCreate({
-    resource: __WorkTypes_TableName,
-  });
+
   const { mutate: mutate2 } = useCreate({
     resource: __SalaryType_TableName,
   });
-
+  const { mutate } = useCreate({
+    resource: __WorkTypes_TableName,
+  });
   const sortedDataSource = useMemo(() => {
     const dataSource = [...(tableProps?.dataSource || [])];
     // 找到符合条件的项的索引
-    const index = dataSource.findLastIndex(
-      (item) => item.name === "基础"
-    );
+    const index = dataSource.findLastIndex((item) => item.name === "基础");
     // 这里用findLastIndex而不是findIndex，因为基础在后面的可能性很大
 
     if (index > 0) {
@@ -48,7 +48,6 @@ const ListWorkType = () => {
     return (
       <List headerButtons={<CreateButton data-testid="create-button">添加工作</CreateButton>}>
         <Result
-          data-testid="no-Base-result"
           status="warning"
           title="缺少基础工作，点击下方按钮添加基础工作及其时薪（时薪后续可修改）"
           extra={
@@ -56,19 +55,31 @@ const ListWorkType = () => {
               data-testid="add-base-work-button"
               type="primary"
               onClick={() => {
-                mutate({
-                  values: {
-                    id: "basebasebase",
-                    name: "基础",
+                mutate(
+                  {
+                    values: {
+                      id: "basebasebasebas", //必须刚好15位
+                      name: "基础",
+                    },
                   },
-                });
-                mutate({
-                  values: {
-                    id: "basebasebase1",
-                    work_type: "basebasebase",
-                    SalaryNum: 10,
-                  },
-                });
+                  {
+                    // onSuccess必须放在mutate里面而不是useCreate的里面，后者会导致refine默认行为被覆盖，导致通知和数据失效不起作用。
+                    onSuccess: (data, variables, context) => {
+                      // 如果把mutate2和mutate放在一起，因为是异步的原因可能导致顺序错乱从而创建失败。
+                      mutate2({
+                        values: {
+                          id: "basebasebaseba1",
+                          work_type: "basebasebasebas",
+                          SalaryNum: 10,
+                        },
+                      });
+                      invalidate({ //需要手动刷新数据
+                        resource: __WorkRecordNum_TableName,
+                        invalidates: ["list"],
+                      });
+                    },
+                  }
+                );
               }}
             >
               添加 “基础” 工作及其时薪

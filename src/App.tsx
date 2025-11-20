@@ -136,7 +136,7 @@ function App() {
                 }}
                 // @ts-expect-error,111
                 i18nProvider={i18nProvider}
-                notificationProvider={useNotificationProvider()}
+                notificationProvider={useNotificationProvider}
                 routerProvider={routerBindings}
                 resources={[
                   {

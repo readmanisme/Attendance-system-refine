@@ -5,10 +5,17 @@ import dayjs from "dayjs";
 // import pb from "@/utils/pocketbase";
 import { useSomeStore } from "@/stores";
 
-import { useCreateMany, useDeleteMany, useMany, useUpdateMany } from "@refinedev/core";
+import {
+  useCreate,
+  useCreateMany,
+  useDeleteMany,
+  useList,
+  useMany,
+  useUpdateMany,
+} from "@refinedev/core";
 import { getPb } from "@/utils/pocketbase";
 const _ = { sample, sampleSize };
- function TestPage() {
+function TestPage() {
   const { __BACKEND_API_URL__ } = useSomeStore();
   const pb = useMemo(() => getPb(__BACKEND_API_URL__), [__BACKEND_API_URL__]);
   const 集合 = {
@@ -226,6 +233,17 @@ const _ = { sample, sampleSize };
   const { mutate: UpdateBatchRecord } = useUpdateMany({
     resource: __WorkTypes_TableName,
   });
+  const { mutate } = useCreate({
+    resource: "workers",
+    // mutationOptions: {
+    //   onSuccess: () => {
+    //     console.log("创建成功");
+    //   },
+    // },
+  });
+  // const { result } = useList({
+  //   resource: "workers",
+  // });
   const [ids, setIds] = useState();
 
   // const {
@@ -307,6 +325,9 @@ const _ = { sample, sampleSize };
         <Button onClick={() => Batch_Operation("delete")}>批量 delete</Button>
         {/* <Button onClick={records_time_test}>批量 upsert</Button> */}
       </Space>
+      {/* <Button onClick={() => mutate(
+        { values: { name: "测试" } },{onSuccess: () => {console.log("创建成功")}}
+        )}>useCreate测试</Button> */}
     </div>
   );
 }
