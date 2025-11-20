@@ -212,7 +212,7 @@ export default function GongShiList() {
   const hasBaseWorkType = query.isLoading ? true : workType_test_data?.data?.some((t) => t.name === "基础");
   // 这个要实现乐观显示的方法和工作页面的不一样，因为如果不判断数据加载，workType_test_data?.data?默认空数据也是可以得到false的结果的
   // console.log("workType_test_data", workType_test_data?.data, hasBaseWorkType);
-  const { listProps } = useSimpleList({
+  const { result,query: querySalary } = useList({
     resource: __SalaryType_TableName,
     // syncWithLocation: false, //如果不设置这个，那么table的筛选设置就会被读取；不过更好的方法是
     //关掉table的syncWithLocation，反正我也没什么要刷新的，而且刷新后选择器就会消失，无所谓了
@@ -252,13 +252,15 @@ export default function GongShiList() {
   // const listProps_work_type = useMemo(() => {
   //   return listProps?.dataSource?.map((item) => item.expand?.work_type?.name);
   // }, [listProps?.dataSource]);
-  const hasBaseSalaryType =
-    listProps?.dataSource?.some(
-      (t) => t.expand?.work_type?.name === "基础" && t.worker_name === ""
-    ) ?? true;
-
+  // const hasBaseSalaryType =
+  //   result?.data?.some(
+  //     (t) => t.expand?.work_type?.name === "基础" && t.worker_name === ""
+  //   ) ?? true;
+  const hasBaseSalaryType = querySalary.isLoading ? true : result?.data?.some(
+    (t) => t.expand?.work_type?.name === "基础" && t.worker_name === ""
+  );
   const SalaryDict = useMemo(() => {
-    const data = listProps?.dataSource || [];
+    const data = result?.data || [];
     const dict: Record<string, number> = {};
     data.forEach((item: any) => {
       const workName = item?.expand?.worker_name?.name;
@@ -277,7 +279,7 @@ export default function GongShiList() {
       dict["基础"] = 0;
     }
     return dict;
-  }, [listProps?.dataSource]);
+  }, [result?.data]);
 
   const { dayDuringSalaryMap, daySalaryMap, monthSalaryMap, matchSalaryMap } = useMemo(() => {
     const dayDuringSalaryMap = new Map<string, Decimal>();
@@ -605,6 +607,7 @@ export default function GongShiList() {
       headerButtons={({ defaultButtons }) => (
         <>
           {defaultButtons}
+          <Button onClick={()=>console.log(111)}>用于debug</Button>
           <Space>
             <Popconfirm
               title="导出考勤记录"

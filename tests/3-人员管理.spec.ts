@@ -80,6 +80,7 @@ test.describe("人员 创建", () => {
       // 显示提示，名字是空的，不能提交
       await expect(page.getByTestId("format-requirement-alert")).toBeVisible();
       await expect(page.getByTestId("unknown-alert")).toBeVisible();
+      await expect(page.getByTestId("leave-alert")).toBeVisible();
       await expect(page.getByTestId("name-input")).toBeEmpty();
       await expect(page.getByTestId("save-button")).toBeDisabled();
     });
@@ -280,8 +281,10 @@ test.describe("人员 创建删除编辑", () => {
       // 创建人员，一个有空格用来测试自动去除空格的功能
       await page.getByTestId("create-button").click();
       await page.getByTestId("name-input").click();
-      await page.getByTestId("name-input").fill("张三三撒\n   李四思思"); //空格用来确定数据处理的时候有没有删掉空格,下面判定也改成相等了
+      await page.getByTestId("name-input").fill("张三三撒\n   李四思思"); //空格用来确定数据处理的时候有没有删掉空格
       await page.getByTestId("save-button").click();
+      //成功提示
+      await expect(page.getByText('成功创建')).toBeVisible();
       // 两个人的记录数量应该是0.
       await expect(page.getByTestId("row-num-0")).toContainText("0");
       await expect(page.getByTestId("row-num-1")).toContainText("0");
@@ -291,14 +294,16 @@ test.describe("人员 创建删除编辑", () => {
       const first_name = await page.getByTestId("row-name-0").textContent();
       const second_name = await page.getByTestId("row-name-1").textContent();
       names = [first_name, second_name];
-      expect(names).toEqual("张三三撒");
-      expect(names).toEqual("李四思思");
+      expect(names).toContainEqual("张三三撒");//这个断言就是我需要的，适合数组的
+      expect(names).toContainEqual("李四思思");
     });
     await test.step("删除", async () => {
       // 删除人员，并测试提示；
       await page.getByTestId("delete-button-0").click();
       await expect(page.getByText("确定删除吗？")).toBeVisible();
       await page.getByRole("button", { name: "删 除" }).click();
+      // 成功提示
+      // await expect(page.getByText('成功删除')).toBeVisible();
       await expect(page.getByTestId("row-name-0")).toContainText(names[1]);
       // 有记录的人的删除提示应该不一样
       await page.getByTestId("delete-button-2").click();
@@ -316,6 +321,8 @@ test.describe("人员 创建删除编辑", () => {
       await page.getByTestId("name-input").click();
       await page.getByTestId("name-input").fill("李四思思111");
       await page.getByTestId("save-button").click();
+      // 成功提示
+      // await expect(page.getByText('成功编辑')).toBeVisible();
       // await page.getByText('成功', { exact: true }).click();
       await expect(page.getByTestId("row-name-0")).toContainText("李四思思111");
     });

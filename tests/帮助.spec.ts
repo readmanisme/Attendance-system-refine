@@ -1,5 +1,5 @@
 import { test, expect } from "@playwright/test";
-import { Workers_TableName } from "./constants";
+import { workers_url } from "./constants";
 test.describe("帮助功能测试", () => {
   test.beforeEach(async ({ page }) => {
     await page.goto("/qiandao"); //beforeEach为每个test执行，但step不执行
@@ -67,8 +67,8 @@ test.describe("帮助功能测试", () => {
     }
   });
   test("点击图标和标题回到首页", async ({ page }) => {
-    await page.goto(Workers_TableName);
-    await expect(page.getByTestId("Base-alert"),"工人页面已显示").toBeVisible();
+    await page.goto(workers_url);
+    await expect(page.getByTestId("delete-alert"),"工人页面已显示").toBeVisible();
     await page.getByTestId("logoAndTitle").click();
     await expect(page.getByRole("heading", { name: "签到录入系统" }),"首页标题可见").toBeVisible();
   });

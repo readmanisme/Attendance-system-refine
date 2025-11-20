@@ -106,7 +106,7 @@ export const dataProvider = (pb: PocketBase): DataProvider => ({
     }
   },
 
-  // 因为refine的useUpdateMany是一次性升级多个id的相同的字段为相同的内容，所以并不符合需求
+  // 因为refine的useUpdateMany是一次性升级多个id的相同的字段为相同的内容，所以并不符合需求，所以我根据情况来实现。
   updateMany: async ({ resource, ids, variables, meta }) => {
     // You can handle the request according to your API requirements.
     if (meta?.type === "diff") {

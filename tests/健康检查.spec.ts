@@ -35,7 +35,7 @@ test("Batch检查", async ({ page }) => {
   });
   await test.step("未开启", async () => {
     page.route(SettingsUrl, async (route) => {
-      const json = [
+      const json = 
         {
           batch: {
             enabled: false,
@@ -43,8 +43,8 @@ test("Batch检查", async ({ page }) => {
             timeout: 3,
             maxBodySize: 0,
           },
-        },
-      ];
+        }
+      ;
       await route.fulfill({ json });
     });
     // 刷新网页
@@ -53,7 +53,7 @@ test("Batch检查", async ({ page }) => {
   });
   await test.step("限制太低", async () => {
     page.route(SettingsUrl, async (route) => {
-      const json = [
+      const json = 
         {
           batch: {
             enabled: true,
@@ -61,8 +61,8 @@ test("Batch检查", async ({ page }) => {
             timeout: 3,
             maxBodySize: 0,
           },
-        },
-      ];
+        }
+      ;
       await route.fulfill({ json });
     });
     // 刷新网页
@@ -71,6 +71,7 @@ test("Batch检查", async ({ page }) => {
   });
   await test.step("恢复正常", async () => {
     await page.unroute(SettingsUrl);
+    await page.reload();
     await expect(page.getByTestId("batch-error-tag")).not.toBeVisible();
   });
 });

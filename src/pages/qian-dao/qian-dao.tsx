@@ -102,22 +102,6 @@ export default function QianDaoPage() {
     pagination: {
       mode: "off",
     },
-    // autoSave: { //不能用autoSave实现在提交之前更改数据，因为你每次修改他都会发送保存请求；如果关掉save那就没这功能了
-    //   enabled: false,
-    //   onFinish: (values) => {
-    //     const hours = values.workTime;
-    //     const check_in = CheckDate.hour(7).minute(0).second(0).millisecond(0);
-    //     const check_out = check_in.add(hours, "hour");
-    //     const r= {
-    //       ...values,
-    //       check_in: formatForDB(check_in),
-    //       check_out: formatForDB(check_out),
-    //     };
-    //     // 去除workTime字段
-    //     const { workTime,...rest } = r;
-    //     return rest;
-    //   },
-    // },
     sorters: {
       permanent: [
         {

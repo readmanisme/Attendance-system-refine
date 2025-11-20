@@ -223,14 +223,17 @@ test.describe("一条龙", async () => {
       await page.getByTestId("work-type-select").click();
       await page.getByTitle("重工").click();
       await page.getByRole("textbox", { name: "开始时间" }).click();
-      await page.getByRole("textbox", { name: "开始时间" }).fill("9:00");
+      await page.getByRole("textbox", { name: "开始时间" }).fill("09:00"); //这里必须写09而不是9,9会被当成18:00
       await page.getByRole("button", { name: "确 定" }).click();
       await page.getByRole("textbox", { name: "结束时间" }).fill("15:00");
       await page.getByRole("button", { name: "确 定" }).click();
       await page.getByTestId("submit-button").click();
       await page.getByRole("button", { name: "确 认" }).click();
+            // 成功提示
+      await expect(page.getByText('成功创建')).toBeVisible();
       // 选人，多选
       await page.getByTestId("py-search-select").click();
+      await page.keyboard.type("李红红");//因为前面选择杜淑平之后再次打开select第一个就会是杜淑平，看不到李红红了。
       await page.getByTitle("李红红").click();
       await page.getByTitle("张着萍").click();
       // 选工作
@@ -325,6 +328,8 @@ test.describe("一条龙", async () => {
       await page.getByTitle("司机").nth(3).click();
       // 保存
       await page.getByTestId("save-button-1").click();
+            // 成功提示
+      // await expect(page.getByText('成功编辑')).toBeVisible();
       // 判断编辑是否生效
       await expect(page.getByTestId("row-time-1")).toContainText("3");
       await expect(page.getByTestId("row-work-1")).toContainText("司机");
@@ -332,8 +337,9 @@ test.describe("一条龙", async () => {
       await page.getByTestId("edit-button-1").click();
       await page.getByTestId("cancel-button-1").click();
       await expect(page.getByTestId("row-time-1")).toContainText("3");
-      await expect(page.getByTestId("row-time-1")).not.toBeEditable();
-      await expect(page.getByTestId("row-work-1")).toContainText("司机"); //选择不好判断能不能编辑
+      // await expect(page.getByTestId("row-time-1")).not.toBeEditable();//这东西此时不是input，所以不能判断
+      await expect(page.locator("#workTime")).not.toBeVisible();//只有编辑情况下才有这个
+      await expect(page.getByTestId("row-work-1")).toContainText("司机"); //选择不好判断，因为其他工种都在页面里面
       // 编辑非七点开始的工时，编辑后应该从7点开始
       await page.getByTestId("edit-button-3").click();
       // 编辑工时，需要悬浮才会出现上下调整按键
@@ -350,6 +356,8 @@ test.describe("一条龙", async () => {
       // 测试删除按键的作用
       await page.getByTestId("delete-button-1").click();
       await page.getByRole("button", { name: "删 除" }).click();
+            // 成功提示
+      // await expect(page.getByText('成功删除')).toBeVisible();
       await expect(page.getByText(names[0])).not.toBeVisible();
     });
     await test.step("批量删除", async () => {
@@ -359,10 +367,14 @@ test.describe("一条龙", async () => {
       // await page.getByTestId("row-checkbox-0").check();
       await page.getByTestId("row-checkbox-0").locator("label").check();
       await page.getByTestId("row-checkbox-1").locator("label").check();
+      await page.getByTestId("row-checkbox-2").locator("label").check();
       // 选择之后单独的删除按钮应该不能使用，避免意外
       await expect(page.getByTestId("delete-button-1")).toBeDisabled();
+      await expect(page.getByTestId("batch-delete-button")).toContainText("删除选中 (3)");
       await page.getByTestId("batch-delete-button").click();
       await page.getByRole("button", { name: "确 定" }).click();
+            // 成功提示
+      // await expect(page.getByText('成功删除')).toBeVisible();
       // 批量删除之后，应该没有记录。这个判断只适合完全没有记录的时候
       await page.getByRole("img", { name: "暂无数据" }).click();
     });

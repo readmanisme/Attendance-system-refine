@@ -175,7 +175,7 @@ test.describe("一条龙", () => {
       // 修改结束时间到17:00，早于开始时间，会自动调整，工时变成1.0
       await page.getByTestId("check-out-time").click();
       await page.getByTestId("check-out-time").fill("2025-11-08 17:00");
-      await page.getByRole("button", { name: "确 定" }).click();
+      await page.getByRole("button", { name: "确 定" }).nth(1).click();
       await expect(page.getByText("签出时间必须晚于签到时间，已自动调整。")).toBeVisible();
       await expect(page.getByTestId("check-out-time")).toHaveValue("2025-11-08 19:00");
       await expect(page.getByTestId("work-time")).toHaveValue("1.0");
@@ -209,6 +209,8 @@ test.describe("一条龙", () => {
         await page.getByRole("button", { name: "arrow-left" }).click();
       });
       await page.getByRole("button", { name: "save 保存" }).click();
+            // 成功提示
+      await expect(page.getByText('成功编辑')).toBeVisible();
       // 判断修改是否生效
       await expect(page.getByTestId("row-in-0")).toContainText("2025-11-08 20:00:00");
       await expect(page.getByTestId("row-out-0")).toContainText("2025-11-09 21:00:00");
@@ -220,6 +222,8 @@ test.describe("一条龙", () => {
     await test.step("删除", async () => {
       await page.getByTestId("delete-button-0").click();
       await page.getByRole("button", { name: "删 除" }).click();
+            // 成功提示
+      // await expect(page.getByText('成功删除')).toBeVisible();
       //   await expect(page.getByText("尤响林")).not.toBeVisible();
       //   await expect(page.getByText("张着萍")).not.toBeVisible(); //上面改了之后变了
       await expect(page.getByTestId("row-name-0")).toContainText("尤响林"); //张着萍下面还有记录所以上面那个会报错
@@ -233,8 +237,11 @@ test.describe("一条龙", () => {
       await page.getByTestId("row-checkbox-1").locator("label").check();
       // 进行批量删除的时候删除键不能用
       await expect(page.getByTestId("delete-button-1")).toBeDisabled();
+      await expect(page.getByTestId("batch-delete-button")).toContainText("删除选中 (2)");
       await page.getByTestId("batch-delete-button").click();
       await page.getByRole("button", { name: "确 定" }).click();
+            // 成功提示
+      // await expect(page.getByText('成功删除')).toBeVisible();
       await expect(page.getByTestId("row-id-0")).toContainText("059h96g3r5so341");
     });
   });

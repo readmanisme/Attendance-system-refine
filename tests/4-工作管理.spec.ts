@@ -18,13 +18,13 @@ test.describe("工作 列表", () => {
     await expect(page.getByTestId("Base-alert")).toBeVisible();
     // 表格内容
     await expect(page.getByTestId("row-name-0")).toContainText("基础");
-    await expect(page.getByTestId("row-num-1")).toContainText("1671");
+    await expect(page.getByTestId("row-num-0")).toContainText("1671");
     await expect(page.getByTestId("row-name-1")).toContainText("重工");
     await expect(page.getByTestId("row-num-1")).toContainText("243");
 
     // 基础工种不能删除和编辑
-    await expect(page.getByTestId("edit-button-3")).toBeDisabled();
-    await expect(page.getByTestId("delete-button-3")).toBeDisabled();
+    await expect(page.getByTestId("edit-button-0")).toBeDisabled();
+    await expect(page.getByTestId("delete-button-0")).toBeDisabled();
   });
   // test("搜索测试", async ({ page }) => {}); //因为工作很少所以没有搜索
 });
@@ -47,6 +47,7 @@ test.describe("无基础工作提示", () => {
     }
   });
   test("无基础工作提示", async ({ page }) => {
+    // 这个要手动测试的话可以把数据库里面的基础改成别的名字。
     await page.route(
       API_URL +
         "/collections/workType_test/records?page=1&perPage=500&skipTotal=1&sort=-created&filter=",
@@ -64,9 +65,11 @@ test.describe("无基础工作提示", () => {
       }
     );
     await page.goto(workType_url);
-    await expect(page.getByTestId("no-Base-result")).toContainText(
-      "缺少基础工作，点击下方按钮添加基础工作及其时薪（时薪后续可修改）"
-    );
+    //result设置testid也不行，所以只能这么干了
+    await expect(page.locator(".anticon.anticon-warning > svg")).toBeVisible();
+    await expect(
+      page.getByText("缺少基础工作，点击下方按钮添加基础工作及其时薪（时薪后续可修改）")
+    ).toBeVisible();
     await page.route(
       API_URL +
         "/collections/workType_test/records?page=1&perPage=500&skipTotal=1&sort=-created&filter=",
@@ -74,7 +77,7 @@ test.describe("无基础工作提示", () => {
         const response = await route.fetch();
         const json = await response.json();
         // 去除json中所有id不是basebasebase的项
-        json.items = json.items.filter((item: any) => item.id === "basebasebase");
+        json.items = json.items.filter((item: any) => item.id === "basebasebasebas");
         // Fulfill using the original response, while patching the response body
         // with the given JSON object.
         await route.fulfill({ response, json });
@@ -82,7 +85,7 @@ test.describe("无基础工作提示", () => {
     );
     await page.getByTestId("add-base-work-button").click();
     // 确认存在
-    await expect(page.getByTestId("row-id-0")).toContainText("basebasebase");
+    await expect(page.getByTestId("row-id-0")).toContainText("basebasebasebas");
     await expect(page.getByTestId("row-name-0")).toContainText("基础");
     await expect(page.getByTestId("row-num-0")).toContainText("0"); //因为id不是之前哪个基础呢
     // 前往薪资页面查看
@@ -93,7 +96,7 @@ test.describe("无基础工作提示", () => {
         const response = await route.fetch();
         const json = await response.json();
         // 去除json中所有id不是basebasebase的项
-        json.items = json.items.filter((item: any) => item.id === "basebasebase1");
+        json.items = json.items.filter((item: any) => item.id === "basebasebaseba1");
         // Fulfill using the original response, while patching the response body
         // with the given JSON object.
         await route.fulfill({ response, json });
@@ -101,7 +104,7 @@ test.describe("无基础工作提示", () => {
     );
     await page.goto(xinzi_url);
     // 判断信息
-    await expect(page.getByTestId("row-id-0")).toContainText("basebasebase1");
+    await expect(page.getByTestId("row-id-0")).toContainText("basebasebaseba1");
     await expect(page.getByTestId("row-work-0")).toContainText("基础");
     await expect(page.getByTestId("row-worker-0")).toBeEmpty();
     await expect(page.getByTestId("row-salary-0")).toContainText("10"); //因为id不是之前哪个基础呢
@@ -115,6 +118,7 @@ test.describe("工作 创建", () => {
       // 显示提示
       await expect(page.getByTestId("format-requirement-alert")).toBeVisible();
       await expect(page.getByTestId("unknown-alert")).toBeVisible();
+      await expect(page.getByTestId("leave-alert")).toBeVisible();
       // 输入是空，不能保存
       await expect(page.getByTestId("name-input")).toBeEmpty();
       await expect(page.getByTestId("save-button")).toBeDisabled();
@@ -324,43 +328,49 @@ test.describe("工作 创建删除编辑", () => {
       await page.getByTestId("name-input").click();
       await page.getByTestId("name-input").fill("张三三撒\n   李四思思"); //空格用来确定数据处理的时候有没有删掉空格,下面判定也改成相等了
       await page.getByTestId("save-button").click();
+            // 成功提示
+      await expect(page.getByText('成功创建')).toBeVisible();
       // 记录数应该是0
-      await expect(page.getByTestId("row-num-0")).toContainText("0");
       await expect(page.getByTestId("row-num-1")).toContainText("0");
+      await expect(page.getByTestId("row-num-2")).toContainText("0");
       // await expect(page.getByTestId("row-name-0")).toContainText("李四思思");
       // await expect(page.getByTestId("row-name-1")).toContainText("张三三撒");
       // 获取顺序不确定的姓名
-      const first_name = await page.getByTestId("row-name-0").textContent();
-      const second_name = await page.getByTestId("row-name-1").textContent();
+      const first_name = await page.getByTestId("row-name-1").textContent();
+      const second_name = await page.getByTestId("row-name-2").textContent();
       names = [first_name, second_name];
-      expect(names).toEqual("张三三撒");
-      expect(names).toEqual("李四思思");
+      expect(names).toContainEqual("张三三撒");
+      expect(names).toContainEqual("李四思思");
     });
     await test.step("删除", async () => {
       // 测试删除
-      await page.getByTestId("delete-button-0").click();
+      await page.getByTestId("delete-button-1").click();
       // 删除提醒
       await expect(page.getByText("确定删除吗？")).toBeVisible();
       await page.getByRole("button", { name: "删 除" }).click();
-      await expect(page.getByTestId("row-name-0")).toContainText(names[1]);
-      await page.getByTestId("delete-button-2").click();
+            // 成功提示
+      // await expect(page.getByText('成功删除')).toBeVisible();
+      await expect(page.getByTestId("row-name-1")).toContainText(names[1]);
+      await page.getByTestId("delete-button-3").click();
       // 有记录的删除提醒不一样
       await expect(page.getByText("删除工作将一并删除相关考勤记录！")).toBeVisible();
       await page.getByRole("button", { name: "取 消" }).click();
     });
     await test.step("编辑", async () => {
-      await page.getByTestId("edit-button-0").click();
+      await page.getByTestId("edit-button-1").click();
       // 测试回到主页
-      await page.getByRole("button", { name: "bars 考勤记录" }).click();
+      await page.getByRole("button", { name: "bars 工作管理" }).click();
       await expect(page.getByTestId("Base-alert")).toBeVisible();
       // 编辑
-      await page.getByTestId("edit-button-0").click();
+      await page.getByTestId("edit-button-1").click();
       await page.getByTestId("name-input").click();
       await page.getByTestId("name-input").fill("李四思思111");
       await page.getByTestId("save-button").click();
       // await page.getByText('成功', { exact: true }).click();
+            // 成功提示
+      // await expect(page.getByText('成功编辑')).toBeVisible();
       // 判断结果
-      await expect(page.getByTestId("row-name-0")).toContainText("李四思思111");
+      await expect(page.getByTestId("row-name-1")).toContainText("李四思思111");
     });
   });
 });

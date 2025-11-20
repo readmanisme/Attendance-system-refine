@@ -33,13 +33,13 @@ const useFetchSettings = (backendApiUrl: string) => {
 export const Header: React.FC<RefineThemedLayoutHeaderProps> = ({ sticky = true }) => {
   const { token } = useToken();
   const invalidate = useInvalidate();
-  const { resource } = useResourceParams();
 
   const { helpOpen, setHelpOpen, __BACKEND_API_URL__, set__BACKEND_API_URL__ } = useSomeStore();
 
   const { settings, loading, error } = useFetchSettings(__BACKEND_API_URL__);
   const batch = settings?.batch;
-  const BatchError = batch?.enabled === true && batch?.maxRequests === 999;
+  console.log("batch",batch,"settings",settings);
+  const BatchError =batch ? (batch?.enabled === true && batch?.maxRequests === 999) : true;
   // --- ✅ 样式 useMemo 化，避免每次渲染都重新创建对象 ---
   const headerStyles = useMemo<React.CSSProperties>(
     () => ({
