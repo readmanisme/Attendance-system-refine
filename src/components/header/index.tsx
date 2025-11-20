@@ -1,60 +1,114 @@
-import type { RefineThemedLayoutV2HeaderProps } from "@refinedev/antd";
-import { useGetIdentity } from "@refinedev/core";
-import {
-  Layout as AntdLayout,
-  Avatar,
-  Space,
-  Switch,
-  theme,
-  Typography,
-} from "antd";
-import React, { useContext } from "react";
-import { ColorModeContext } from "../../contexts/color-mode";
-
-const { Text } = Typography;
+import { QuestionCircleOutlined } from "@ant-design/icons";
+import { Badge } from "@mantine/core";
+import type { RefineThemedLayoutHeaderProps } from "@refinedev/antd";
+import { Alert, Layout as AntdLayout, Button, Radio, Space, Tag, theme, Tooltip } from "antd";
+import React, { useMemo, useCallback, useState, useEffect } from "react";
+import { useInvalidate, useResourceParams } from "@refinedev/core";
+import { useSomeStore } from "@/stores";
+import GradientButton from "../GradientButton";
 const { useToken } = theme;
+import { getPbAdmin } from "@/utils/pocketbase_admin";
 
-type IUser = {
-  id: number;
-  name: string;
-  avatar: string;
+const useFetchSettings = (backendApiUrl: string) => {
+  const [settings, setSettings] = useState<any>(null);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<any>(null);
+  useEffect(() => {
+    const fetchSettings = async () => {
+      try {
+        const pb = await getPbAdmin(backendApiUrl);
+        const settingsData = await pb.settings.getAll();
+        setSettings(settingsData);
+      } catch (err) {
+        setError(err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchSettings();
+  }, [backendApiUrl]);
+  return { settings, loading, error };
 };
 
-export const Header: React.FC<RefineThemedLayoutV2HeaderProps> = ({
-  sticky = true,
-}) => {
+export const Header: React.FC<RefineThemedLayoutHeaderProps> = ({ sticky = true }) => {
   const { token } = useToken();
-  const { data: user } = useGetIdentity<IUser>();
-  const { mode, setMode } = useContext(ColorModeContext);
+  const invalidate = useInvalidate();
 
-  const headerStyles: React.CSSProperties = {
-    backgroundColor: token.colorBgElevated,
-    display: "flex",
-    justifyContent: "flex-end",
-    alignItems: "center",
-    padding: "0px 24px",
-    height: "64px",
-  };
+  const { helpOpen, setHelpOpen, __BACKEND_API_URL__, set__BACKEND_API_URL__ } = useSomeStore();
 
-  if (sticky) {
-    headerStyles.position = "sticky";
-    headerStyles.top = 0;
-    headerStyles.zIndex = 1;
-  }
+  const { settings, loading, error } = useFetchSettings(__BACKEND_API_URL__);
+  const batch = settings?.batch;
+  console.log("batch",batch,"settings",settings);
+  const BatchError =batch ? (batch?.enabled === true && batch?.maxRequests === 999) : true;
+  // --- ✅ 样式 useMemo 化，避免每次渲染都重新创建对象 ---
+  const headerStyles = useMemo<React.CSSProperties>(
+    () => ({
+      backgroundColor: token.colorBgElevated,
+      display: "flex",
+      justifyContent: "flex-end",
+      alignItems: "center",
+      padding: "0 24px",
+      height: "64px",
+      ...(sticky && {
+        position: "sticky",
+        top: 0,
+        zIndex: 1,
+      }),
+    }),
+    [token.colorBgElevated, sticky]
+  );
+
+  // --- ✅ 环境端口列表缓存 ---
+  const ports = useMemo(() => (import.meta.env.DEV ? [29401, 29402, 29403] : []), []);
+  const radioOptions = useMemo(
+    () => ports.map((port) => ({ label: port.toString(), value: port })),
+    [ports]
+  );
+
+  // --- ✅ 刷新逻辑优化：修正条件判断错误 ---
+  const handleRefresh = useCallback(() => {
+    invalidate({
+      // dataProviderName: "default",
+      invalidates: ["all"],
+    });
+  }, [invalidate]);
+
+  // --- ✅ API切换逻辑 memo 化 ---
+  const handlePortChange = useCallback(
+    (e: any) => {
+      const newPort = e.target.value;
+      set__BACKEND_API_URL__(`http://localhost:${newPort}`);
+      window.location.reload();
+    },
+    [set__BACKEND_API_URL__]
+  );
 
   return (
     <AntdLayout.Header style={headerStyles}>
       <Space>
-        <Switch
-          checkedChildren="🌛"
-          unCheckedChildren="🔆"
-          onChange={() => setMode(mode === "light" ? "dark" : "light")}
-          defaultChecked={mode === "dark"}
-        />
-        <Space style={{ marginLeft: "8px" }} size="middle">
-          {user?.name && <Text strong>{user.name}</Text>}
-          {user?.avatar && <Avatar src={user?.avatar} alt={user?.name} />}
-        </Space>
+        {!BatchError && <Tag color="red" data-testid="batch-error-tag">Batch设置有问题</Tag>}
+        <GradientButton data-testid="refresh-button" title="刷新数据" onClick={handleRefresh} />
+        {ports.length > 0 && (
+          <Radio.Group
+            options={radioOptions}
+            value={parseInt(__BACKEND_API_URL__.split(":")[2], 10)}
+            onChange={handlePortChange}
+          />
+        )}
+
+        <Badge data-testid="version-badge" color="red" variant="light" style={{ width: 120 }}>
+          {__VERSION__}
+        </Badge>
+
+        <Tooltip title="显示当前页面的帮助">
+          <Button
+            type="primary"
+            shape="circle"
+            data-testid="help-button"
+            icon={<QuestionCircleOutlined />}
+            onClick={() => setHelpOpen(true)}
+          />
+        </Tooltip>
       </Space>
     </AntdLayout.Header>
   );

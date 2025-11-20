@@ -1,0 +1,9 @@
+1、使用yarn yarn-upgrade-all升级所有包
+2、ant design的输入框普遍缺乏label，如有需要可以使用mantine的
+navicat的sql中双引号有识别问题
+
+npx playwright codegen 127.0.0.1:4172 --viewport-size="1536,864"
+npx playwright codegen localhost:5173 --viewport-size="1536,864"
+要考虑笔记本缩放的，不然1920*1080显示有问题
+
+yarn playwright test --ui

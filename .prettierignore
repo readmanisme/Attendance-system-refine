@@ -1,0 +1,5 @@
+bundle-*.html
+/.yarn
+dist
+/.VSCodeCounter
+/.vscode

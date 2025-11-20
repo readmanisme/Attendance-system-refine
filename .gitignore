@@ -24,3 +24,19 @@ _.ntvs_
 _.njsproj
 _.sln
 \*.sw?
+*.png
+*.cpuprofile
+cloc-2.02.exe
+/.VSCodeCounter
+/.yarn
+/doc/.vitepress/cache
+public/~$启动指引.docx
+public/~WRL0003.tmp
+bundle-*.html
+
+# Playwright
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/
+/playwright/.auth/
