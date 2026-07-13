@@ -15,7 +15,14 @@ interface SomeState {
 
 const NEW_MAJOR_VERSION = 1;
 // 您的 API URL，在所有环境下都保持这个值作为默认和生产锁定值
-const FIXED_API_URL = "http://localhost:29401";
+// const FIXED_API_URL = "http://localhost:29401";
+
+// @ts-expect-error,111
+const PORT = window?.process1 ? window.process1.env.PORTTTT : 29401;
+console.log("PORT", PORT);
+
+// const pb = new PocketBase(`http://localhost:${PORT}`);
+const FIXED_API_URL = `http://localhost:${PORT}`;
 
 export const useSomeStore = create<SomeState>()(
   devtools(

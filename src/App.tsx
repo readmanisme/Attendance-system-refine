@@ -15,7 +15,7 @@ import routerBindings, {
   UnsavedChangesNotifier,
 } from "@refinedev/react-router";
 import { App as AntdApp, Avatar, Space, Spin, Typography } from "antd";
-import { BrowserRouter, Outlet, Route, Routes } from "react-router";
+import { BrowserRouter, Outlet, Route, Routes ,HashRouter} from "react-router";
 import { Header } from "./components/header";
 import { ColorModeContextProvider } from "./contexts/color-mode";
 import  TestPage  from "./pages/test-page/test-page";
@@ -125,7 +125,7 @@ function App() {
     [t, i18n]
   );
   return (
-    <BrowserRouter>
+    <HashRouter>
       <MantineProvider>
         <ColorModeContextProvider>
           <AntdApp>
@@ -373,7 +373,7 @@ function App() {
           </AntdApp>
         </ColorModeContextProvider>
       </MantineProvider>
-    </BrowserRouter>
+    </HashRouter>
   );
 }
 

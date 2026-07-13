@@ -49,7 +49,10 @@ export default function QianDaoPage() {
     dayjs().minute(0).second(0).millisecond(0),
     dayjs().minute(0).second(0).millisecond(0),
   ]);
-  const TimeDifference = useMemo(() => RangeTime[1].diff(RangeTime[0], "hour", true), [RangeTime]);
+  const TimeDifference = useMemo(() => RangeTime[1].diff(RangeTime[0], "hour", true), [RangeTime]).toFixed(2);
+  // 避免20分钟这样的时间导致的0.3333333小时数溢出
+  // TODO 这样会导致在别的显示工时的地方出现很长的小数，是否需要处理？
+  // TODO 编写相应的测试
   const [CheckDate, setCheckDate] = useState<Dayjs>(dayjs().minute(0).second(0).millisecond(0));
   const IsPast = useMemo(() => CheckDate.isBefore(dayjs(), "day"), [CheckDate]);
   const IsFuture = useMemo(() => CheckDate.isAfter(dayjs(), "day"), [CheckDate]);
@@ -360,6 +363,22 @@ export default function QianDaoPage() {
       return [prev[0], nextEnd];
     });
   }, []);
+  const addTen = useCallback(() => {
+    setRangeTime((prev) => {
+      const nextEnd = prev[1].add(10, "minute");
+      // 超出当天结束则不变
+      const dayEnd = prev[0].set("hour", 23).set("minute", 59).set("second", 59);
+      if (nextEnd.isAfter(dayEnd)) return prev;
+      return [prev[0], nextEnd];
+    });
+  }, []);
+  const subTen = useCallback(() => {
+    setRangeTime((prev) => {
+      const nextEnd = prev[1].subtract(10, "minute");
+      if (nextEnd.isSameOrBefore(prev[0])) return prev;
+      return [prev[0], nextEnd];
+    });
+  }, []);
   // ======================== UI ========================
 
   return (
@@ -432,6 +451,12 @@ export default function QianDaoPage() {
                       </Button>
                       <Button color="blue" variant="dashed" size="small" onClick={subThirty}>
                         -30min
+                      </Button>
+                      <Button color="blue" variant="dashed" size="small" onClick={addTen}>
+                        +10min
+                      </Button>
+                      <Button color="blue" variant="dashed" size="small" onClick={subTen}>
+                        -10min
                       </Button>
                     </Space>
                   </Space>
