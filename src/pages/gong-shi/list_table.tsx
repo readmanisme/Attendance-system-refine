@@ -17,6 +17,7 @@ export default function GongShiList() {
   const [exportRange, setExportRange] = useState([dayjs().startOf("year"), dayjs().endOf("year")]);
   const [exportPerson, setExportPerson] = useState<string>("");
   const [SelectedPerson, setSelectedPerson] = useState<{ value: string; label: string }[]>([]);
+  
   // ======================== 暂存 ========================
   const {
     tableProps: workerData,
@@ -607,7 +608,7 @@ export default function GongShiList() {
       headerButtons={({ defaultButtons }) => (
         <>
           {defaultButtons}
-          <Button onClick={()=>console.log(111)}>用于debug</Button>
+          {/* <Button onClick={()=>console.log(111)}>用于debug</Button> */}
           <Space>
             <Popconfirm
               title="导出考勤记录"
