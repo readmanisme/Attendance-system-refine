@@ -1,1 +1,0 @@
-powershell -File run-serve.ps1

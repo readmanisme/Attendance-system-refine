@@ -20,7 +20,6 @@ import { Header } from "./components/header";
 import { ColorModeContextProvider } from "./contexts/color-mode";
 import  TestPage  from "./pages/test-page/test-page";
 import { dataProvider as pocketbaseDataProvider } from "./providers/pocketbase/dataProvider";
-import { MantineProvider } from "@mantine/core";
 import logo from "@/public/logo-64.webp?inline";
 import {
   IconChecks,
@@ -109,9 +108,8 @@ function App() {
   );
   return (
     <HashRouter>
-      <MantineProvider>
-        <ColorModeContextProvider>
-          <AntdApp>
+      <ColorModeContextProvider>
+        <AntdApp>
             <DevtoolsProvider>
               <Refine
                 dataProvider={{
@@ -353,9 +351,8 @@ function App() {
               </Refine>
               <DevtoolsPanel />
             </DevtoolsProvider>
-          </AntdApp>
-        </ColorModeContextProvider>
-      </MantineProvider>
+        </AntdApp>
+      </ColorModeContextProvider>
     </HashRouter>
   );
 }

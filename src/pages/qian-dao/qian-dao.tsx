@@ -19,7 +19,6 @@ import {
 import { IconHelp } from "@tabler/icons-react";
 import { useState, useCallback, useMemo } from "react";
 import dayjs, { Dayjs } from "dayjs";
-import { Card } from "@mantine/core";
 import { BaseRecord, useCreateMany, useDeleteMany } from "@refinedev/core";
 import { ClockCircleOutlined, CloseCircleOutlined, DeleteOutlined } from "@ant-design/icons";
 import {
@@ -384,7 +383,7 @@ export default function QianDaoPage() {
   return (
     <List>
       <div className={`min-h-screen bg-gray-50 p-4 sm:p-6 lg:p-8`}>
-        <Card className="max-w-6xl mx-auto">
+        <div className="max-w-6xl mx-auto">
           <div className="mb-6">
             <AntdTitle level={3} className="mb-6! text-center">
               签到录入系统
@@ -701,7 +700,7 @@ export default function QianDaoPage() {
               />
             </Table>
           </Form>
-        </Card>
+        </div>
       </div>
     </List>
   );

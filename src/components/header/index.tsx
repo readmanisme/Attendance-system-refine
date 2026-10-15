@@ -1,5 +1,4 @@
 import { QuestionCircleOutlined } from "@ant-design/icons";
-import { Badge } from "@mantine/core";
 import type { RefineThemedLayoutHeaderProps } from "@refinedev/antd";
 import { Alert, Layout as AntdLayout, Button, Radio, Space, Tag, theme, Tooltip } from "antd";
 import React, { useMemo, useCallback, useState, useEffect } from "react";
@@ -96,9 +95,9 @@ export const Header: React.FC<RefineThemedLayoutHeaderProps> = ({ sticky = true 
           />
         )}
 
-        <Badge data-testid="version-badge" color="red" variant="light" style={{ width: 120 }}>
+        <Tag data-testid="version-badge" color="red" style={{ width: 120 }}>
           {__VERSION__}
-        </Badge>
+        </Tag>
 
         <Tooltip title="显示当前页面的帮助">
           <Button
