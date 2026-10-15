@@ -1,57 +1,22 @@
 /// <reference types="vitest/config" />
 
-import { defineConfig } from "vite";
+import { defineConfig, perEnvironmentPlugin } from "vite";
 import react from "@vitejs/plugin-react";
 import { visualizer } from "rollup-plugin-visualizer";
 import * as path from "path";
 import tailwindcss from "@tailwindcss/vite";
-import { analyzer } from 'vite-bundle-analyzer'
+import { electronSimple } from 'vite-plugin-electron/multi-env'
 
-const visualizerConfigs = [
-  // https://github.com/btd/rollup-plugin-visualizer
-  { template: "treemap", filename: "bundle-treemap.html", open: true,projectRoot: /.*?node_modules\/\.pnpm\/[^/]+\/node_modules\// },
-  // { template: "sunburst", filename: "bundle-sunburst.html", gzipSize: true },
-  // { template: "network", filename: "bundle-network.html",gzipSize: true },
-  // { template: "list", filename: "bundle-list.html" ,gzipSize: true},
-  // {
-  //   template: "flamegraph",
-  //   filename: "bundle-flamegraph.html",
-  //   gzipSize: true,
-  // },
-];
-function formatModulePath(path: string, defaultWd: string): string {
-  // 统一 Windows 和 POSIX 路径分隔符
-  let result = path.replace(/\\/g, '/')
-  const root = defaultWd.replace(/\\/g, '/').replace(/\/+$/, '')
+export default defineConfig(({ command, mode }) => {
+  const isServe = command === 'serve'
+  const isBuild = command === 'build'
+  const sourcemap = true
+  // 只有显式执行 `vite build --mode analyze` 时才生成打包分析报告。
+  // 注意：--mode analyze 不会改变 NODE_ENV，仍是 production（import.meta.env.PROD 仍为 true）
+  const isAnalyze = mode === 'analyze'
 
-  // 将 pnpm 虚拟存储路径折叠为普通 node_modules 路径
-  result = result.replace(
-    /(^|\/)node_modules\/\.pnpm\/[^/]+\/node_modules\//,
-    '$1node_modules/',
-  )
-
-  // 移除项目根目录，保留相对路径
-  if (
-    result.toLowerCase().startsWith(root.toLowerCase() + '/')
-  ) {
-    result = result.slice(root.length + 1)
-  }
-
-  return result
-}
-export default defineConfig({
-  // 帮助文档 https://cn.vite.dev/config/
-  plugins: [
-    react({ compiler: true }),
-    tailwindcss(),
-    // analyzer({pathFormatter: formatModulePath,})
-    // visualizer(),
-    ...visualizerConfigs.map((config) => visualizer(config)),
-  ],
-  test: {
-    // globals: true,
-    // environment: 'jsdom',
-    // setupFiles: './vitest.setup.mjs',
+  return {
+      test: {
     exclude: ["**/node_modules/**", "**/dist/**", "**/playwright-report/**","**/.git/**","**/tests/**"],
   },
   define: {
@@ -99,8 +64,41 @@ export default defineConfig({
       ],
     },
   },
-  build: {
-    outDir: "dist",
-    sourcemap: true,
-  },
-});
+    plugins: [react({ compiler: true }), tailwindcss(),
+    // visualizer 只在 analyze 模式下启用，并且只用在该配置的 client 环境（渲染进程）上。
+    // 因为 electron 的 main/preload 是同一份配置下的另外两个 environment【electron_main / electron_preload】，
+    // 不加限制的话插件会对三个 environment 各跑一次，三次都写同一个文件，互相覆盖。
+    isAnalyze && perEnvironmentPlugin('visualizer', (environment) =>
+      environment.name === 'client'
+        ? visualizer({ template: "treemap", filename: "bundle-treemap.html", open: true, projectRoot: /.*?node_modules\/\.pnpm\/[^/]+\/node_modules\// })
+        : false
+    ),
+    electronSimple({
+      main: {
+        input: 'electron/main/index.ts',
+        options: {
+          build: {
+            sourcemap,
+            minify: isBuild,
+            outDir: 'dist-electron/main',
+          },
+        },
+      },
+      preload: {
+        input: 'electron/preload/index.ts',
+        options: {
+          build: {
+            sourcemap: sourcemap ? 'inline' : undefined,
+            minify: isBuild,
+            outDir: 'dist-electron/preload',
+          },
+        },
+      },
+      // Polyfill the Electron and Node.js API for Renderer process.
+      // If you want use Node.js in Renderer process, the `nodeIntegration` needs to be enabled in the Main process.
+      // See 👉 https://github.com/electron-vite/vite-plugin-electron-renderer
+      // renderer: {},
+    }),],
+  }
+}
+)
