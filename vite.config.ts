@@ -5,10 +5,11 @@ import react from "@vitejs/plugin-react";
 import { visualizer } from "rollup-plugin-visualizer";
 import * as path from "path";
 import tailwindcss from "@tailwindcss/vite";
+import { analyzer } from 'vite-bundle-analyzer'
 
 const visualizerConfigs = [
   // https://github.com/btd/rollup-plugin-visualizer
-  { template: "treemap", filename: "bundle-treemap.html", open: true },
+  { template: "treemap", filename: "bundle-treemap.html", open: true,projectRoot: /.*?node_modules\/\.pnpm\/[^/]+\/node_modules\// },
   // { template: "sunburst", filename: "bundle-sunburst.html", gzipSize: true },
   // { template: "network", filename: "bundle-network.html",gzipSize: true },
   // { template: "list", filename: "bundle-list.html" ,gzipSize: true},
@@ -18,14 +19,34 @@ const visualizerConfigs = [
   //   gzipSize: true,
   // },
 ];
+function formatModulePath(path: string, defaultWd: string): string {
+  // 统一 Windows 和 POSIX 路径分隔符
+  let result = path.replace(/\\/g, '/')
+  const root = defaultWd.replace(/\\/g, '/').replace(/\/+$/, '')
 
+  // 将 pnpm 虚拟存储路径折叠为普通 node_modules 路径
+  result = result.replace(
+    /(^|\/)node_modules\/\.pnpm\/[^/]+\/node_modules\//,
+    '$1node_modules/',
+  )
+
+  // 移除项目根目录，保留相对路径
+  if (
+    result.toLowerCase().startsWith(root.toLowerCase() + '/')
+  ) {
+    result = result.slice(root.length + 1)
+  }
+
+  return result
+}
 export default defineConfig({
   // 帮助文档 https://cn.vite.dev/config/
   plugins: [
     react({ compiler: true }),
     tailwindcss(),
+    // analyzer({pathFormatter: formatModulePath,})
     // visualizer(),
-    // ...visualizerConfigs.map((config) => visualizer(config)),
+    ...visualizerConfigs.map((config) => visualizer(config)),
   ],
   test: {
     // globals: true,
