@@ -22,7 +22,6 @@ import  TestPage  from "./pages/test-page/test-page";
 import { dataProvider as pocketbaseDataProvider } from "./providers/pocketbase/dataProvider";
 import { MantineProvider } from "@mantine/core";
 import logo from "@/public/logo-64.webp?inline";
-import { SampleList, SampleCreate, SampleEdit, SampleShow } from "./pages/Inferencer_example";
 import {
   IconChecks,
   IconUsers,
@@ -71,28 +70,12 @@ const devOnlyRoutesConfig = import.meta.env.DEV
           icon: <IconMicroscope />,
         },
       },
-      {
-        name: "Inferencer生成",
-        list: "/Inferencer_example",
-        create: "/Inferencer_example/create",
-        edit: "/Inferencer_example/edit/:id",
-        show: "/Inferencer_example/show/:id",
-        meta: {
-          icon: <IconCode />,
-        },
-      },
     ]
   : [];
 // 开发路由（仅开发环境渲染）
 const DevRoutes = import.meta.env.DEV ? (
   <>
     <Route path="/test-page" element={<TestPage />} />
-    <Route path="/Inferencer_example">
-      <Route index element={<SampleList />} />
-      <Route path="create" element={<SampleCreate />} />
-      <Route path="edit/:id" element={<SampleEdit />} />
-      <Route path="show/:id" element={<SampleShow />} />
-    </Route>
   </>
 ) : (
   <></>

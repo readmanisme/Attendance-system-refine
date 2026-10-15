@@ -2,11 +2,7 @@
 
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
-// import react from '@vitejs/plugin-react-swc'
-import tsconfigPaths from "vite-tsconfig-paths";
 import { visualizer } from "rollup-plugin-visualizer";
-// import browserslist from "browserslist"; //报错但是可以运行，如果import * as rolldown vite会报错
-// import { browserslistToTargets } from "lightningcss";
 import * as path from "path";
 import tailwindcss from "@tailwindcss/vite";
 
@@ -26,15 +22,10 @@ const visualizerConfigs = [
 export default defineConfig({
   // 帮助文档 https://cn.vite.dev/config/
   plugins: [
-    react({
-      babel: {
-        plugins: [["babel-plugin-react-compiler", {}]],
-      },
-    }),
-    tsconfigPaths(),
+    react({ compiler: true }),
     tailwindcss(),
     // visualizer(),
-    ...visualizerConfigs.map((config) => visualizer(config)),
+    // ...visualizerConfigs.map((config) => visualizer(config)),
   ],
   test: {
     // globals: true,
@@ -64,9 +55,10 @@ export default defineConfig({
   resolve: {
     alias: {
       // '@': '/src',
-      "@": path.resolve(__dirname, "./src"),
+      "@": path.resolve(import.meta.dirname, "./src"),
       "@tabler/icons-react": "@tabler/icons-react/dist/esm/icons/index.mjs",
     },
+    tsconfigPaths:true
   },
   server: {
     port: 5173,
@@ -85,28 +77,9 @@ export default defineConfig({
         "**/tests/**",
       ],
     },
-    // open: true,
   },
-  // css: {
-  //   transformer: "lightningcss",
-  //   lightningcss: {
-  //     targets: browserslistToTargets(browserslist(">= 0.25%")),
-  //   },
-  // },
   build: {
     outDir: "dist",
     sourcemap: true,
-    // cssMinify: 'lightningcss'
-    // assetsDir: 'assets',
-    // emptyOutDir: true,
-
-    // rollupOptions: {
-    //   input: '/src/index.html',
-    //   output: {
-    //     entryFileNames: 'assets/js/[name].[hash].js',
-    //     chunkFileNames: 'assets/js/[name].[hash].js',
-    //     assetFileNames: 'assets/[name].[hash][extname]',
-    //   },
-    // },
   },
 });
