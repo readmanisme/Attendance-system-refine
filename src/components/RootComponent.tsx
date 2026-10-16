@@ -1,5 +1,3 @@
-
-
 import React, { useEffect, useState, useCallback } from "react";
 
 import { Alert, Spin } from "antd";
@@ -52,7 +50,14 @@ export const RootComponent: React.FC = () => {
         size="large"
         fullscreen
         tip={
-          <Alert data-testid="Initializing-alert" className="mt-4" message="正在初始化" description="请稍候" type="info" showIcon />
+          <Alert
+            data-testid="Initializing-alert"
+            className="mt-4"
+            message="正在初始化"
+            description="请稍候"
+            type="info"
+            showIcon
+          />
         }
       />
     );

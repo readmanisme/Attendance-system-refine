@@ -17,7 +17,7 @@ const WorkersCreate: React.FC = () => {
   // 使用抽离的 Hook，label="姓名"
   const { inputValue, setInputValue, status, parseValues, alertProps } = useBatchCreateForm(
     namelist?.data || [],
-    "姓名"
+    "姓名",
   );
 
   const handleSave = useCallback(() => {
@@ -31,7 +31,7 @@ const WorkersCreate: React.FC = () => {
             type: "push",
           });
         },
-      }
+      },
     );
   }, [mutate, parseValues, go, resource?.name]);
 

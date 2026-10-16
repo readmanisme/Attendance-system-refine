@@ -31,7 +31,7 @@ export const login =
           message: translate("authProvider.login.successMessage", "Login successful"),
           description: translate(
             "authProvider.login.successDescription",
-            "You're now signed in and ready to go."
+            "You're now signed in and ready to go.",
           ),
         }
       : undefined;
@@ -58,7 +58,7 @@ export const login =
               name: translate("authProvider.login.errorName", "Something went wrong"),
               message: translate(
                 "authProvider.login.errorMessage",
-                "We couldn’t complete your request. Please refresh or try again later."
+                "We couldn’t complete your request. Please refresh or try again later.",
               ),
             }
           : undefined,
@@ -73,7 +73,7 @@ export const login =
             name: translate("authProvider.login.unsupportedLoginName", "Unsupported login"),
             message: translate(
               "authProvider.login.unsupportedLoginMessage",
-              "This authentication method isn’t available. Try another way to sign in."
+              "This authentication method isn’t available. Try another way to sign in.",
             ),
           }
         : undefined,
@@ -94,7 +94,7 @@ const loginWithProvider = async (
   pb: PocketBase,
   loginArgs: LoginWithProvider,
   options: RequiredAuthOptions,
-  successNotification?: SuccessNotificationResponse
+  successNotification?: SuccessNotificationResponse,
 ): Promise<AuthActionResponse> => {
   await pb.collection(options.collection).authWithOAuth2({
     ...loginArgs,
@@ -118,7 +118,7 @@ const loginWithOtp = async (
   loginArgs: LoginWithEmail,
   options: RequiredAuthOptions,
   successNotification?: SuccessNotificationResponse,
-  translate?: TranslateFn
+  translate?: TranslateFn,
 ): Promise<AuthActionResponse> => {
   const { otpId } = await pb
     .collection(options.collection)
@@ -139,7 +139,7 @@ const loginWithOtp = async (
             name: translate("authProvider.login.otpCanceled", "Verification canceled"),
             message: translate(
               "authProvider.login.otpCanceledMessage",
-              "You stopped entering the code. Try again when you’re ready."
+              "You stopped entering the code. Try again when you’re ready.",
             ),
           }
         : undefined,
@@ -162,7 +162,7 @@ const loginWithOtp = async (
             name: translate("authProvider.login.otpInvalid", "Invalid verification code"),
             message: translate(
               "authProvider.login.otpInvalidMessage",
-              "The code you entered is invalid or has expired. Request a new one and try again."
+              "The code you entered is invalid or has expired. Request a new one and try again.",
             ),
           }
         : undefined,
@@ -175,7 +175,7 @@ const loginWithPassword = async (
   loginArgs: LoginWithEmail,
   options: RequiredAuthOptions,
   successNotification?: SuccessNotificationResponse,
-  translate?: TranslateFn
+  translate?: TranslateFn,
 ): Promise<AuthActionResponse> => {
   if (!loginArgs.password) {
     throw Error("password is requiered");
@@ -220,7 +220,7 @@ const loginWithPassword = async (
                 name: translate("authProvider.login.otpCanceled", "Verification canceled"),
                 message: translate(
                   "authProvider.login.otpCanceledMessage",
-                  "You stopped entering the code. Try again when you’re ready."
+                  "You stopped entering the code. Try again when you’re ready.",
                 ),
               }
             : undefined,
@@ -247,7 +247,7 @@ const loginWithPassword = async (
                 name: translate("authProvider.login.mfaError", "Verification failed"),
                 message: translate(
                   "authProvider.login.mfaErrorMessage",
-                  "Multi-factor authentication was not completed successfully. Please try again."
+                  "Multi-factor authentication was not completed successfully. Please try again.",
                 ),
               }
             : undefined,
@@ -262,7 +262,7 @@ const loginWithPassword = async (
               name: translate("authProvider.login.credentialsError", "Invalid credentials"),
               message: translate(
                 "authProvider.login.credentialsErrorMessage",
-                "The email or password you entered is incorrect. Please try again."
+                "The email or password you entered is incorrect. Please try again.",
               ),
             }
           : undefined,

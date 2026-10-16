@@ -42,16 +42,14 @@ test("Batch检查", async ({ page }) => {
   });
   await test.step("未开启", async () => {
     page.route(SettingsUrl, async (route) => {
-      const json = 
-        {
-          batch: {
-            enabled: false,
-            maxRequests: 3,
-            timeout: 3,
-            maxBodySize: 0,
-          },
-        }
-      ;
+      const json = {
+        batch: {
+          enabled: false,
+          maxRequests: 3,
+          timeout: 3,
+          maxBodySize: 0,
+        },
+      };
       await route.fulfill({ json });
     });
     // 刷新网页
@@ -60,16 +58,14 @@ test("Batch检查", async ({ page }) => {
   });
   await test.step("限制太低", async () => {
     page.route(SettingsUrl, async (route) => {
-      const json = 
-        {
-          batch: {
-            enabled: true,
-            maxRequests: 3,
-            timeout: 3,
-            maxBodySize: 0,
-          },
-        }
-      ;
+      const json = {
+        batch: {
+          enabled: true,
+          maxRequests: 3,
+          timeout: 3,
+          maxBodySize: 0,
+        },
+      };
       await route.fulfill({ json });
     });
     // 刷新网页
@@ -82,4 +78,3 @@ test("Batch检查", async ({ page }) => {
     await expect(page.getByTestId("batch-error-tag")).not.toBeVisible();
   });
 });
-

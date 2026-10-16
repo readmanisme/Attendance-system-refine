@@ -8,10 +8,7 @@ export function useBatchCreateForm(namelist: any[], label: string) {
   const [inputValue, setInputValue] = useState("");
 
   /** 已存在集合 */
-  const existingNames = useMemo(
-    () => new Set(namelist?.map((i) => i.name) || []),
-    [namelist]
-  );
+  const existingNames = useMemo(() => new Set(namelist?.map((i) => i.name) || []), [namelist]);
 
   const specialChars = useMemo(() => /[./\\|"'`<>:?*%$]/, []);
 
@@ -86,13 +83,10 @@ export function useBatchCreateForm(namelist: any[], label: string) {
 
       return { status: "success", error: "" };
     },
-    [existingNames, specialChars, label]
+    [existingNames, specialChars, label],
   );
 
-  const { status, error } = useMemo(
-    () => validateNames(inputValue),
-    [inputValue, validateNames]
-  );
+  const { status, error } = useMemo(() => validateNames(inputValue), [inputValue, validateNames]);
 
   /** 提交格式化 */
   const parseValues = () =>

@@ -39,11 +39,11 @@ export const register =
             ? {
                 message: translate(
                   "authProvider.register.requestVerificationMessage",
-                  "Account verification"
+                  "Account verification",
                 ),
                 description: translate(
                   "authProvider.register.requestVerificationDescription",
-                  "Please verify your account by clicking the link we sent to your email address"
+                  "Please verify your account by clicking the link we sent to your email address",
                 ),
               }
             : undefined,
@@ -56,11 +56,11 @@ export const register =
           ? {
               message: translate(
                 "authProvider.register.completedMessage",
-                "Registration completed"
+                "Registration completed",
               ),
               description: translate(
                 "authProvider.register.completedDescription",
-                "Please sign in using your credentials"
+                "Please sign in using your credentials",
               ),
             }
           : undefined,
@@ -74,7 +74,7 @@ export const register =
               name: translate("authProvider.register.errorName", "Registration failed"),
               message: translate(
                 "authProvider.register.errorMessage",
-                "Something went wrong while creating your account. Please try again."
+                "Something went wrong while creating your account. Please try again.",
               ),
             }
           : undefined,

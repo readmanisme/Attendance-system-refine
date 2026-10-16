@@ -89,7 +89,7 @@ const AttendanceRecordEdit = () => {
           name="work"
           rules={[{ required: true, message: "请选择工作类型" }]}
         >
-          <Select data-testid="work-type" {...workSelectProps} allowClear style={{ width: 200 }}/>
+          <Select data-testid="work-type" {...workSelectProps} allowClear style={{ width: 200 }} />
         </Form.Item>
 
         <Form.Item

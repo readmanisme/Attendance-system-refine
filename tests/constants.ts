@@ -1,7 +1,6 @@
 import PocketBase from "pocketbase";
 export const pb = new PocketBase("http://localhost:29401");
 
-
 export const Backend_URL = "http://localhost:29401";
 export const API_URL = "http://localhost:29401/api";
 export const AttendanceRecord_TableName = "attendance_record_test";
@@ -15,9 +14,9 @@ export const WorkRecordNum_TableName = "work_record_num";
 export const Backend_UserName = "shed2705@outlook.com";
 export const Backend_Password = "bPWU8GCMuqwKF9z";
 
-export const workers_url = "/#/workers"
-export const attendance_record_url = "/#/attendance-record"
-export const qiandao_url = "/#/qiandao"
-export const workType_url = "/#/workType"
-export const xinzi_url = "/#/xinzi"
-export const gongshi_url = "/#/gongshi"
+export const workers_url = "/#/workers";
+export const attendance_record_url = "/#/attendance-record";
+export const qiandao_url = "/#/qiandao";
+export const workType_url = "/#/workType";
+export const xinzi_url = "/#/xinzi";
+export const gongshi_url = "/#/gongshi";

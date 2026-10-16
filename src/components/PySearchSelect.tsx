@@ -69,14 +69,14 @@ export default function PySearchSelect({
       const result = match(label, input, { v: true });
       if (result) {
         const matchedChars = result.map((idx) => label[idx]);
-        
+
         // 🚨 修改点 1: 将匹配到的字符添加到 Set 中，而不是合并数组
         setHighlightWords((prev) => {
           const newSet = new Set(prev);
-          matchedChars.forEach(char => newSet.add(char));
+          matchedChars.forEach((char) => newSet.add(char));
           return newSet;
         });
-        
+
         return true;
       }
       return false;
@@ -106,7 +106,7 @@ export default function PySearchSelect({
 
       // 将 Set 转换回数组以进行 join 操作用于创建正则表达式
       const highlightArray = Array.from(highlightWords);
-      
+
       const regex = new RegExp(`(${highlightArray.join("|")})`, "gi");
       const parts = label.split(regex);
       return (
@@ -118,12 +118,12 @@ export default function PySearchSelect({
               </span>
             ) : (
               <span key={idx}>{part}</span>
-            )
+            ),
           )}
         </span>
       );
     },
-    [highlightWords]
+    [highlightWords],
   );
 
   const handleClear = useCallback(() => {
@@ -139,7 +139,7 @@ export default function PySearchSelect({
       if (!needButton) onChangeFn(value); //needButton的作用是避免即时筛选
       SelectValue.current = value;
     },
-    [needButton, onChangeFn]
+    [needButton, onChangeFn],
   );
 
   return (

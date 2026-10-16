@@ -48,7 +48,10 @@ export default function QianDaoPage() {
     dayjs().minute(0).second(0).millisecond(0),
     dayjs().minute(0).second(0).millisecond(0),
   ]);
-  const TimeDifference = useMemo(() => RangeTime[1].diff(RangeTime[0], "hour", true), [RangeTime]).toFixed(2);
+  const TimeDifference = useMemo(
+    () => RangeTime[1].diff(RangeTime[0], "hour", true),
+    [RangeTime],
+  ).toFixed(2);
   // 避免20分钟这样的时间导致的0.3333333小时数溢出
   // TODO 这样会导致在别的显示工时的地方出现很长的小数，是否需要处理？
   // TODO 编写相应的测试
@@ -87,7 +90,7 @@ export default function QianDaoPage() {
 
   const formatDateTime = useCallback(
     (date?: string) => (date ? dayjs(date).format("YYYY-MM-DD HH:mm:ss") : "--"),
-    []
+    [],
   );
   // ======================== 获取数据 ========================
   const {
@@ -156,7 +159,7 @@ export default function QianDaoPage() {
         formProps.onFinish(rest);
       }
     },
-    [CheckDate, formatForDB, formProps]
+    [CheckDate, formatForDB, formProps],
   );
   const dataSourceWithWorkTime = useMemo(() => {
     const ds = tableProps.dataSource ?? [];
@@ -195,7 +198,7 @@ export default function QianDaoPage() {
         start1.isBefore(end2) && end1.isAfter(start2)
       );
     },
-    [CheckDate, RangeTime]
+    [CheckDate, RangeTime],
   );
   const recordsByWorkerId = useMemo(() => {
     const map = new Map();
@@ -260,7 +263,7 @@ export default function QianDaoPage() {
                 {name.label}，所选时间与历史签到时间
                 {recordCheckIn.format("YYYY-MM-DD HH:mm:ss")}至
                 {recordCheckOut.format("YYYY-MM-DD HH:mm:ss")}有重叠
-              </div>
+              </div>,
             );
           }
         }
@@ -335,7 +338,7 @@ export default function QianDaoPage() {
       onChange: setSelectedRowKeys,
       onCell: (record: any, rowIndex: any) => ({ "data-testid": `row-checkbox-${rowIndex}` }),
     }),
-    [selectedRowKeys]
+    [selectedRowKeys],
   );
   const setRangeForHour = useCallback(
     (hour: number) => {
@@ -343,7 +346,7 @@ export default function QianDaoPage() {
       const end = base.add(hour, "hour");
       setRangeTime([base, end]);
     },
-    [CheckDate]
+    [CheckDate],
   );
   // +30 / -30 按钮的安全实现（使用函数式 setState，并且基于 prev 保持不变性）
   const addThirty = useCallback(() => {
@@ -401,8 +404,8 @@ export default function QianDaoPage() {
                         IsPast
                           ? "你正在过去日期中进行操作"
                           : IsFuture
-                          ? "你正在未来日期中进行操作"
-                          : "你正在录入今日数据"
+                            ? "你正在未来日期中进行操作"
+                            : "你正在录入今日数据"
                       }
                       type={IsPast ? "warning" : IsFuture ? "error" : "success"}
                       showIcon
@@ -563,7 +566,7 @@ export default function QianDaoPage() {
               </Popconfirm>
             </Space>
             <Alert
-            data-testid="search-alert"
+              data-testid="search-alert"
               type="info"
               message="要确定某人是否已经记录，可以使用Ctrl+F搜索" //还是说已经有记录的显示已录入tag？不推荐，那样的话拼音搜索组件又要改了
               showIcon

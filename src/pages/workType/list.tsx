@@ -73,12 +73,13 @@ const ListWorkType = () => {
                           SalaryNum: 10,
                         },
                       });
-                      invalidate({ //需要手动刷新数据
+                      invalidate({
+                        //需要手动刷新数据
                         resource: __WorkRecordNum_TableName,
                         invalidates: ["list"],
                       });
                     },
-                  }
+                  },
                 );
               }}
             >

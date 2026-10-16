@@ -62,13 +62,13 @@ test.describe("无基础工作提示", () => {
         await route.fulfill({
           json,
         });
-      }
+      },
     );
     await page.goto(workType_url);
     //result设置testid也不行，所以只能这么干了
     await expect(page.locator(".anticon.anticon-warning > svg")).toBeVisible();
     await expect(
-      page.getByText("缺少基础工作，点击下方按钮添加基础工作及其时薪（时薪后续可修改）")
+      page.getByText("缺少基础工作，点击下方按钮添加基础工作及其时薪（时薪后续可修改）"),
     ).toBeVisible();
     await page.route(
       API_URL +
@@ -81,7 +81,7 @@ test.describe("无基础工作提示", () => {
         // Fulfill using the original response, while patching the response body
         // with the given JSON object.
         await route.fulfill({ response, json });
-      }
+      },
     );
     await page.getByTestId("add-base-work-button").click();
     // 确认存在
@@ -100,7 +100,7 @@ test.describe("无基础工作提示", () => {
         // Fulfill using the original response, while patching the response body
         // with the given JSON object.
         await route.fulfill({ response, json });
-      }
+      },
     );
     await page.goto(xinzi_url);
     // 判断信息
@@ -132,7 +132,7 @@ test.describe("工作 创建", () => {
       await page.getByTestId("name-input").fill(texts.join("\n"));
       await expect(page.getByTestId("name-input")).toHaveValue(texts.join("\n"));
       await expect(page.getByTestId("error-alert")).toContainText(
-        "以下工作包含下划线：_郝致远郝致远_郝_致远"
+        "以下工作包含下划线：_郝致远郝致远_郝_致远",
       );
       await expect(page.getByTestId("save-button")).toBeDisabled();
       // 输入姓名，不包含下划线，提示成功，可以提交
@@ -168,7 +168,7 @@ test.describe("工作 创建", () => {
       await page.getByTestId("name-input").fill(texts.join("\n"));
       await expect(page.getByTestId("name-input")).toHaveValue(texts.join("\n"));
       await expect(page.getByTestId("error-alert")).toContainText(
-        "以下工作包含特殊字符：郝.致远郝/致远郝<致远郝>致远郝|致远郝'致远郝\"致远郝`致远郝:致远郝?致远郝*致远郝%致远"
+        "以下工作包含特殊字符：郝.致远郝/致远郝<致远郝>致远郝|致远郝'致远郝\"致远郝`致远郝:致远郝?致远郝*致远郝%致远",
       );
       await expect(page.getByTestId("save-button")).toBeDisabled();
       // 输入姓名，不包含特殊字符，提示成功，可以提交
@@ -203,7 +203,7 @@ test.describe("工作 创建", () => {
       await page.getByTestId("name-input").fill(texts.join("\n"));
       await expect(page.getByTestId("name-input")).toHaveValue(texts.join("\n"));
       await expect(page.getByTestId("error-alert")).toContainText(
-        "以下工作重复或已存在：重工三轮车司机"
+        "以下工作重复或已存在：重工三轮车司机",
       );
       await expect(page.getByTestId("save-button")).toBeDisabled();
       // 输入姓名，不重复，提示成功，可以提交
@@ -229,7 +229,7 @@ test.describe("工作 编辑", () => {
       // 显示提示
       await expect(page.getByTestId("format-requirement-alert")).toBeVisible();
       await expect(page.getByTestId("error-alert")).toContainText(
-        "工作已存在，若不想继续编辑可返回"
+        "工作已存在，若不想继续编辑可返回",
       );
       // 确认内容正确；不能编辑id；不能提交
       await expect(page.getByTestId("name-input")).toHaveValue("司机");
@@ -290,7 +290,7 @@ test.describe("工作 编辑", () => {
       await page.getByTestId("name-input").fill(text);
       await expect(page.getByTestId("name-input")).toHaveValue(text);
       await expect(page.getByTestId("error-alert")).toContainText(
-        "工作已存在，若不想继续编辑可返回"
+        "工作已存在，若不想继续编辑可返回",
       );
       await expect(page.getByTestId("save-button")).toBeDisabled();
     });
@@ -328,8 +328,8 @@ test.describe("工作 创建删除编辑", () => {
       await page.getByTestId("name-input").click();
       await page.getByTestId("name-input").fill("张三三撒\n   李四思思"); //空格用来确定数据处理的时候有没有删掉空格,下面判定也改成相等了
       await page.getByTestId("save-button").click();
-            // 成功提示
-      await expect(page.getByText('成功创建')).toBeVisible();
+      // 成功提示
+      await expect(page.getByText("成功创建")).toBeVisible();
       // 记录数应该是0
       await expect(page.getByTestId("row-num-1")).toContainText("0");
       await expect(page.getByTestId("row-num-2")).toContainText("0");
@@ -348,7 +348,7 @@ test.describe("工作 创建删除编辑", () => {
       // 删除提醒
       await expect(page.getByText("确定删除吗？")).toBeVisible();
       await page.getByRole("button", { name: "删 除" }).click();
-            // 成功提示
+      // 成功提示
       // await expect(page.getByText('成功删除')).toBeVisible();
       await expect(page.getByTestId("row-name-1")).toContainText(names[1]);
       await page.getByTestId("delete-button-3").click();
@@ -367,7 +367,7 @@ test.describe("工作 创建删除编辑", () => {
       await page.getByTestId("name-input").fill("李四思思111");
       await page.getByTestId("save-button").click();
       // await page.getByText('成功', { exact: true }).click();
-            // 成功提示
+      // 成功提示
       // await expect(page.getByText('成功编辑')).toBeVisible();
       // 判断结果
       await expect(page.getByTestId("row-name-1")).toContainText("李四思思111");

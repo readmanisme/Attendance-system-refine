@@ -97,15 +97,15 @@ const getExpression = (filter: TypedLogicalFilter) => {
 
 export const transformFilter = (
   filters: CrudFilters,
-  joinOperator: ConditionalFilter["operator"] = "and"
+  joinOperator: ConditionalFilter["operator"] = "and",
 ) =>
   filters
     .map((filter): string | undefined =>
       wrap(
         isConditionalFilter(filter)
           ? transformFilter(filter.value, filter.operator)
-          : getExpression(filter)
-      )
+          : getExpression(filter),
+      ),
     )
     .filter((expression): expression is string => expression != null)
     .join(` ${conditionalOperators[joinOperator]} `);

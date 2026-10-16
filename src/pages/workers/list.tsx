@@ -17,7 +17,7 @@ const WorkersList = () => {
   });
   const WorkerRecordNum = useMemo(
     () => new Map(result.data.map((item: any) => [item.worker_id, item.record_count])),
-    [result.data]
+    [result.data],
   );
   // ✅ 用 useCallback 避免函数每次渲染重建，减少子组件重渲染
   const handleChange = useCallback(
@@ -38,7 +38,7 @@ const WorkersList = () => {
       setFilters(filters);
       setCurrentPage(1);
     },
-    [setFilters, setCurrentPage]
+    [setFilters, setCurrentPage],
   );
 
   // ✅ Table 列定义用 useMemo，避免每次 render 都新建列对象
@@ -63,7 +63,7 @@ const WorkersList = () => {
       {
         title: "操作",
         dataIndex: "actions",
-        render: (value: any, record: BaseRecord,index: number) => (
+        render: (value: any, record: BaseRecord, index: number) => (
           <Space>
             <EditButton size="small" recordItemId={record.id} data-testid={`edit-button-${index}`}>
               编辑
@@ -85,7 +85,7 @@ const WorkersList = () => {
         ),
       },
     ],
-    [WorkerRecordNum]
+    [WorkerRecordNum],
   );
 
   return (

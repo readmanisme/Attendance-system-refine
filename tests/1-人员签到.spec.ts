@@ -23,7 +23,7 @@ test("日期检测检查", async ({ page }) => {
   await test.step("是今天", async () => {
     await expect(
       page.getByRole("textbox", { name: "请选择日期" }),
-      "选择器应该显示今天"
+      "选择器应该显示今天",
     ).toHaveValue(today);
     await expect(page.getByTestId("today-alert"), "提示应该显示今天").toBeVisible();
   });
@@ -32,7 +32,7 @@ test("日期检测检查", async ({ page }) => {
     await page.getByRole("textbox", { name: "请选择日期" }).click();
     await page.getByTitle(tomorrow_short).click();
     await expect(page.getByRole("textbox", { name: "请选择日期" }), "选择明天成功").toHaveValue(
-      tomorrow
+      tomorrow,
     );
     await expect(page.getByTestId("future-alert"), "提示应该显示明天").toBeVisible();
   });
@@ -45,7 +45,7 @@ test("日期检测检查", async ({ page }) => {
     // 不能直接fill，需要click后fill才能输进去。同时fill也不会改变值，需要点选或确认才行
     await page.getByTitle(yesterday_short).click();
     await expect(page.getByRole("textbox", { name: "请选择日期" }), "选择成功").toHaveValue(
-      yesterday
+      yesterday,
     );
     // 不能fill，内容能塞进去，但是不会触发onChange事件
     await expect(page.getByTestId("past-alert"), "提示应该显示昨天").toBeVisible();
@@ -57,7 +57,7 @@ test("日期检测检查", async ({ page }) => {
     // await page.getByTitle(today_short).click();
     await page.reload();
     await expect(page.getByRole("textbox", { name: "请选择日期" }), "刷新后显示今天").toHaveValue(
-      today
+      today,
     );
     await expect(page.getByTestId("today-alert"), "提示应该显示今天").toBeVisible();
   });
@@ -84,13 +84,13 @@ test("时间测试", async ({ page }) => {
     // 测试+，因为+30就会超出24小时，所以应该不会发生
     await page.getByRole("button", { name: "+30min" }).click();
     await expect(page.getByRole("textbox", { name: "结束时间" }), "时间不会超出24小时").toHaveValue(
-      "23:30"
+      "23:30",
     );
     // 测试-，因为-30就会早于开始时间，所以应该不会发生。【这里相等也不行，无所谓都一样】
     await page.getByRole("button", { name: "-30min" }).click();
     await expect(
       page.getByRole("textbox", { name: "结束时间" }),
-      "结束时间不会早于开始时间"
+      "结束时间不会早于开始时间",
     ).toHaveValue("23:30");
   });
   await test.step("时间加减与工时计算", async () => {
@@ -229,11 +229,11 @@ test.describe("一条龙", async () => {
       await page.getByRole("button", { name: "确 定" }).click();
       await page.getByTestId("submit-button").click();
       await page.getByRole("button", { name: "确 认" }).click();
-            // 成功提示
-      await expect(page.getByText('成功创建')).toBeVisible();
+      // 成功提示
+      await expect(page.getByText("成功创建")).toBeVisible();
       // 选人，多选
       await page.getByTestId("py-search-select").click();
-      await page.keyboard.type("李红红");//因为前面选择杜淑平之后再次打开select第一个就会是杜淑平，看不到李红红了。
+      await page.keyboard.type("李红红"); //因为前面选择杜淑平之后再次打开select第一个就会是杜淑平，看不到李红红了。
       await page.getByTitle("李红红").click();
       await page.getByTitle("张着萍").click();
       // 选工作
@@ -277,7 +277,7 @@ test.describe("一条龙", async () => {
       // 相应的提示，以及不能提交
       await expect(page.getByTestId("overlap-alert")).toBeVisible();
       await expect(page.getByTestId("overlap-alert")).toContainText(
-        `尤响林，所选时间与历史签到时间${today} 07:00:00至${today} 12:00:00有重叠`
+        `尤响林，所选时间与历史签到时间${today} 07:00:00至${today} 12:00:00有重叠`,
       );
       await expect(page.getByTestId("submit-button")).toBeDisabled();
       // 选时间，和之前的记录存在交叉
@@ -286,7 +286,7 @@ test.describe("一条龙", async () => {
       // // 相应的提示，以及不能提交
       await expect(page.getByTestId("overlap-alert")).toBeVisible();
       await expect(page.getByTestId("overlap-alert")).toContainText(
-        `尤响林，所选时间与历史签到时间${today} 07:00:00至${today} 12:00:00有重叠`
+        `尤响林，所选时间与历史签到时间${today} 07:00:00至${today} 12:00:00有重叠`,
       );
       await expect(page.getByTestId("submit-button")).toBeDisabled();
       // 因为同一批次创建的记录顺序不固定，所以只能这么做
@@ -328,7 +328,7 @@ test.describe("一条龙", async () => {
       await page.getByTitle("司机").nth(3).click();
       // 保存
       await page.getByTestId("save-button-1").click();
-            // 成功提示
+      // 成功提示
       // await expect(page.getByText('成功编辑')).toBeVisible();
       // 判断编辑是否生效
       await expect(page.getByTestId("row-time-1")).toContainText("3");
@@ -338,7 +338,7 @@ test.describe("一条龙", async () => {
       await page.getByTestId("cancel-button-1").click();
       await expect(page.getByTestId("row-time-1")).toContainText("3");
       // await expect(page.getByTestId("row-time-1")).not.toBeEditable();//这东西此时不是input，所以不能判断
-      await expect(page.locator("#workTime")).not.toBeVisible();//只有编辑情况下才有这个
+      await expect(page.locator("#workTime")).not.toBeVisible(); //只有编辑情况下才有这个
       await expect(page.getByTestId("row-work-1")).toContainText("司机"); //选择不好判断，因为其他工种都在页面里面
       // 编辑非七点开始的工时，编辑后应该从7点开始
       await page.getByTestId("edit-button-3").click();
@@ -356,7 +356,7 @@ test.describe("一条龙", async () => {
       // 测试删除按键的作用
       await page.getByTestId("delete-button-1").click();
       await page.getByRole("button", { name: "删 除" }).click();
-            // 成功提示
+      // 成功提示
       // await expect(page.getByText('成功删除')).toBeVisible();
       await expect(page.getByText(names[0])).not.toBeVisible();
     });
@@ -373,7 +373,7 @@ test.describe("一条龙", async () => {
       await expect(page.getByTestId("batch-delete-button")).toContainText("删除选中 (3)");
       await page.getByTestId("batch-delete-button").click();
       await page.getByRole("button", { name: "确 定" }).click();
-            // 成功提示
+      // 成功提示
       // await expect(page.getByText('成功删除')).toBeVisible();
       // 批量删除之后，应该没有记录。这个判断只适合完全没有记录的时候
       await page.getByRole("img", { name: "暂无数据" }).click();

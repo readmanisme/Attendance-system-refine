@@ -1,7 +1,7 @@
-import React from 'react';
-import { AntDesignOutlined } from '@ant-design/icons';
-import { Button, ConfigProvider, Space } from 'antd';
-import { createStyles } from 'antd-style';
+import React from "react";
+import { AntDesignOutlined } from "@ant-design/icons";
+import { Button, ConfigProvider, Space } from "antd";
+import { createStyles } from "antd-style";
 
 const useStyle = createStyles(({ prefixCls, css }) => ({
   linearGradientButton: css`
@@ -11,7 +11,7 @@ const useStyle = createStyles(({ prefixCls, css }) => ({
       }
 
       &::before {
-        content: '';
+        content: "";
         background: linear-gradient(135deg, #6253e1, #04befe);
         position: absolute;
         inset: -1px;
@@ -27,7 +27,11 @@ const useStyle = createStyles(({ prefixCls, css }) => ({
   `,
 }));
 
-const GradientButton: React.FC<{ "data-testid": string, title: string, onClick?: () => void }> = ({ "data-testid": dataTestId, title, onClick }) => {
+const GradientButton: React.FC<{ "data-testid": string; title: string; onClick?: () => void }> = ({
+  "data-testid": dataTestId,
+  title,
+  onClick,
+}) => {
   const { styles } = useStyle();
 
   return (
@@ -37,13 +41,12 @@ const GradientButton: React.FC<{ "data-testid": string, title: string, onClick?:
       }}
     >
       <Space>
-        <Button  type="primary" onClick={onClick} data-testid={dataTestId}>
+        <Button type="primary" onClick={onClick} data-testid={dataTestId}>
           {title}
         </Button>
       </Space>
     </ConfigProvider>
   );
-}
-
+};
 
 export default GradientButton;

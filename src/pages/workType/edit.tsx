@@ -15,7 +15,7 @@ const EditWorkType: React.FC = () => {
     (values: any) => {
       formProps.onFinish?.({ id: values.id, name: values.name.trim() });
     },
-    [formProps]
+    [formProps],
   );
 
   return (
@@ -34,7 +34,7 @@ const EditWorkType: React.FC = () => {
         </Form.Item>
 
         <Form.Item label="工作名称" name="name" rules={[{ required: true }]}>
-          <Input placeholder="请输入工作名称" data-testid="name-input" style={{ width: 200 }}/>
+          <Input placeholder="请输入工作名称" data-testid="name-input" style={{ width: 200 }} />
         </Form.Item>
 
         <Space direction="vertical" className="w-full">

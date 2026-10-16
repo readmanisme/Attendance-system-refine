@@ -2,14 +2,14 @@ import { RefineThemes } from "@refinedev/antd";
 import { ConfigProvider } from "antd";
 import { type PropsWithChildren } from "react";
 import locale from "antd/es/locale/zh_CN";
-import dayjs from 'dayjs';
-import 'dayjs/locale/zh-cn';
+import dayjs from "dayjs";
+import "dayjs/locale/zh-cn";
 import timezone from "dayjs/plugin/timezone";
 import utc from "dayjs/plugin/utc";
 import isSameOrBefore from "dayjs/plugin/isSameOrBefore";
 import isSameOrAfter from "dayjs/plugin/isSameOrAfter";
-import weekday from "dayjs/plugin/weekday"
-import localeData from "dayjs/plugin/localeData"
+import weekday from "dayjs/plugin/weekday";
+import localeData from "dayjs/plugin/localeData";
 dayjs.extend(utc);
 dayjs.extend(timezone);
 dayjs.extend(isSameOrBefore);

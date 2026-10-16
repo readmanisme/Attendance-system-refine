@@ -15,10 +15,10 @@ import routerBindings, {
   UnsavedChangesNotifier,
 } from "@refinedev/react-router";
 import { App as AntdApp, Avatar, Space, Spin, Typography } from "antd";
-import { BrowserRouter, Outlet, Route, Routes ,HashRouter} from "react-router";
+import { BrowserRouter, Outlet, Route, Routes, HashRouter } from "react-router";
 import { Header } from "./components/header";
 import { ColorModeContextProvider } from "./contexts/color-mode";
-import  TestPage  from "./pages/test-page/test-page";
+import TestPage from "./pages/test-page/test-page";
 import { dataProvider as pocketbaseDataProvider } from "./providers/pocketbase/dataProvider";
 import logo from "@/public/logo-64.webp?inline";
 import {
@@ -56,7 +56,7 @@ const SalaryTypeEdit = React.lazy(() => import("./pages/xin-zi/edit"));
 // 统一加载组件，可以考虑骨架屏
 const RouteLoading = () => (
   <div className="flex items-center justify-center h-full min-h-96">
-    <Spin size="large"/>
+    <Spin size="large" />
   </div>
 );
 const devOnlyRoutesConfig = import.meta.env.DEV
@@ -104,253 +104,253 @@ function App() {
       changeLocale: (lang: string) => i18n.changeLanguage(lang),
       getLocale: () => i18n.language,
     }),
-    [t, i18n]
+    [t, i18n],
   );
   return (
     <HashRouter>
       <ColorModeContextProvider>
         <AntdApp>
-            <DevtoolsProvider>
-              <Refine
-                dataProvider={{
-                  default: pocketbaseDataProvider(pb),
-                }}
-                // @ts-expect-error,111
-                i18nProvider={i18nProvider}
-                notificationProvider={useNotificationProvider}
-                routerProvider={routerBindings}
-                resources={[
-                  {
-                    name: "qiandao",
-                    list: "/qiandao",
-                    meta: {
-                      label: "人员签到",
-                      dataProviderName: undefined,
-                      icon: <IconChecks />,
-                    },
+          <DevtoolsProvider>
+            <Refine
+              dataProvider={{
+                default: pocketbaseDataProvider(pb),
+              }}
+              // @ts-expect-error,111
+              i18nProvider={i18nProvider}
+              notificationProvider={useNotificationProvider}
+              routerProvider={routerBindings}
+              resources={[
+                {
+                  name: "qiandao",
+                  list: "/qiandao",
+                  meta: {
+                    label: "人员签到",
+                    dataProviderName: undefined,
+                    icon: <IconChecks />,
                   },
-                  {
-                    name: __AttendanceRecord_TableName,
-                    list: "/attendance-record",
-                    create: "/attendance-record/create",
-                    edit: "/attendance-record/edit/:id",
-                    show: "/attendance-record/show/:id",
-                    meta: {
-                      // canDelete: true,
-                      label: "考勤记录",
-                      icon: <IconClipboardData />,
-                    },
+                },
+                {
+                  name: __AttendanceRecord_TableName,
+                  list: "/attendance-record",
+                  create: "/attendance-record/create",
+                  edit: "/attendance-record/edit/:id",
+                  show: "/attendance-record/show/:id",
+                  meta: {
+                    // canDelete: true,
+                    label: "考勤记录",
+                    icon: <IconClipboardData />,
                   },
-                  {
-                    name: __Workers_TableName,
-                    list: "/workers",
-                    create: "/workers/create",
-                    edit: "/workers/edit/:id",
-                    show: "/workers/show/:id",
-                    meta: {
-                      canDelete: true,
-                      label: "人员管理",
-                      icon: <IconUsers />,
-                    },
+                },
+                {
+                  name: __Workers_TableName,
+                  list: "/workers",
+                  create: "/workers/create",
+                  edit: "/workers/edit/:id",
+                  show: "/workers/show/:id",
+                  meta: {
+                    canDelete: true,
+                    label: "人员管理",
+                    icon: <IconUsers />,
                   },
-                  {
-                    name: __WorkTypes_TableName,
-                    list: "/workType",
-                    create: "/workType/create",
-                    edit: "/workType/edit/:id",
-                    show: "/workType/show/:id",
-                    meta: {
-                      // canDelete: true,
-                      label: "工作管理",
-                      icon: <IconBriefcase />,
-                    },
+                },
+                {
+                  name: __WorkTypes_TableName,
+                  list: "/workType",
+                  create: "/workType/create",
+                  edit: "/workType/edit/:id",
+                  show: "/workType/show/:id",
+                  meta: {
+                    // canDelete: true,
+                    label: "工作管理",
+                    icon: <IconBriefcase />,
                   },
-                  {
-                    name: __SalaryType_TableName,
-                    list: "/xinzi",
-                    show: "/xinzi/show/:id",
-                    create: "/xinzi/create",
-                    edit: "/xinzi/edit/:id",
-                    meta: {
-                      label: "薪资设置",
-                      icon: <IconCoinYen />,
-                    },
+                },
+                {
+                  name: __SalaryType_TableName,
+                  list: "/xinzi",
+                  show: "/xinzi/show/:id",
+                  create: "/xinzi/create",
+                  edit: "/xinzi/edit/:id",
+                  meta: {
+                    label: "薪资设置",
+                    icon: <IconCoinYen />,
                   },
-                  {
-                    name: "gongshi",
-                    list: "/gongshi",
-                    meta: {
-                      label: "工时&薪资显示",
-                      dataProviderName: undefined,
-                      icon: <IconReport />,
-                    },
+                },
+                {
+                  name: "gongshi",
+                  list: "/gongshi",
+                  meta: {
+                    label: "工时&薪资显示",
+                    dataProviderName: undefined,
+                    icon: <IconReport />,
                   },
-                  ...devOnlyRoutesConfig,
-                ]}
-                options={{
-                  syncWithLocation: false,
-                  warnWhenUnsavedChanges: true,
-                  projectId: "1LFZhY-g5ZTkQ-8ndYcP",
-                }}
-              >
-                {/* <Suspense fallback={<Spin size="large" fullscreen />}> */}
-                <Routes>
-                  <Route
-                    element={
-                      <ThemedLayoutV2
-                        Title={AppTitle}
-                        Header={() => <Header sticky />}
-                        Sider={(props) => <ThemedSiderV2 {...props} fixed />}
-                      >
-                        <Outlet />
-                      </ThemedLayoutV2>
-                    }
-                  >
-                    {/* 首页重定向 */}
-                    <Route index element={<NavigateToResource resource="qiandao" />} />
+                },
+                ...devOnlyRoutesConfig,
+              ]}
+              options={{
+                syncWithLocation: false,
+                warnWhenUnsavedChanges: true,
+                projectId: "1LFZhY-g5ZTkQ-8ndYcP",
+              }}
+            >
+              {/* <Suspense fallback={<Spin size="large" fullscreen />}> */}
+              <Routes>
+                <Route
+                  element={
+                    <ThemedLayoutV2
+                      Title={AppTitle}
+                      Header={() => <Header sticky />}
+                      Sider={(props) => <ThemedSiderV2 {...props} fixed />}
+                    >
+                      <Outlet />
+                    </ThemedLayoutV2>
+                  }
+                >
+                  {/* 首页重定向 */}
+                  <Route index element={<NavigateToResource resource="qiandao" />} />
 
-                    {/* 人员签到 */}
-                    <Route path="/qiandao">
-                      <Route
-                        index
-                        element={
-                          <Suspense fallback={<RouteLoading />}>
-                            <QianDaoPage />
-                          </Suspense>
-                        }
-                      />
-                    </Route>
-
-                    {/* 考勤记录 */}
-                    <Route path="/attendance-record">
-                      <Route
-                        index
-                        element={
-                          <Suspense fallback={<RouteLoading />}>
-                            <AttendanceRecordList />
-                          </Suspense>
-                        }
-                      />
-                      <Route
-                        path="edit/:id"
-                        element={
-                          <Suspense fallback={<RouteLoading />}>
-                            <AttendanceRecordEdit />
-                          </Suspense>
-                        }
-                      />
-                    </Route>
-
-                    {/* 人员管理 */}
-                    <Route path="/workers">
-                      <Route
-                        index
-                        element={
-                          <Suspense fallback={<RouteLoading />}>
-                            <WorkersList />
-                          </Suspense>
-                        }
-                      />
-                      <Route
-                        path="create"
-                        element={
-                          <Suspense fallback={<RouteLoading />}>
-                            <WorkersCreate />
-                          </Suspense>
-                        }
-                      />
-                      <Route
-                        path="edit/:id"
-                        element={
-                          <Suspense fallback={<RouteLoading />}>
-                            <WorkersEdit />
-                          </Suspense>
-                        }
-                      />
-                    </Route>
-
-                    {/* 工作管理 */}
-                    <Route path="/workType">
-                      <Route
-                        index
-                        element={
-                          <Suspense fallback={<RouteLoading />}>
-                            <ListWorkType />
-                          </Suspense>
-                        }
-                      />
-                      <Route
-                        path="create"
-                        element={
-                          <Suspense fallback={<RouteLoading />}>
-                            <CreateWorkType />
-                          </Suspense>
-                        }
-                      />
-                      <Route
-                        path="edit/:id"
-                        element={
-                          <Suspense fallback={<RouteLoading />}>
-                            <EditWorkType />
-                          </Suspense>
-                        }
-                      />
-                    </Route>
-
-                    {/* 薪资设置 */}
-                    <Route path="/xinzi">
-                      <Route
-                        index
-                        element={
-                          <Suspense fallback={<RouteLoading />}>
-                            <SalaryTypeList />
-                          </Suspense>
-                        }
-                      />
-                      <Route
-                        path="create"
-                        element={
-                          <Suspense fallback={<RouteLoading />}>
-                            <SalaryTypeCreate />
-                          </Suspense>
-                        }
-                      />
-                      <Route
-                        path="edit/:id"
-                        element={
-                          <Suspense fallback={<RouteLoading />}>
-                            <SalaryTypeEdit />
-                          </Suspense>
-                        }
-                      />
-                    </Route>
-
-                    {/* 工时&薪资显示 */}
-                    <Route path="/gongshi">
-                      <Route
-                        index
-                        element={
-                          <Suspense fallback={<RouteLoading />}>
-                            <GongShiList />
-                          </Suspense>
-                        }
-                      />
-                    </Route>
-
-                    {/* 开发专用路由（懒加载 + 生产剔除） */}
-                    {DevRoutes} 
-
-                    {/* 404 */}
-                    <Route path="*" element={<ErrorComponent />} />
+                  {/* 人员签到 */}
+                  <Route path="/qiandao">
+                    <Route
+                      index
+                      element={
+                        <Suspense fallback={<RouteLoading />}>
+                          <QianDaoPage />
+                        </Suspense>
+                      }
+                    />
                   </Route>
-                </Routes>
-                {/* </Suspense> */}
-                <GlobalHelp />
-                <UnsavedChangesNotifier />
-                <DocumentTitleHandler />;
-              </Refine>
-              <DevtoolsPanel />
-            </DevtoolsProvider>
+
+                  {/* 考勤记录 */}
+                  <Route path="/attendance-record">
+                    <Route
+                      index
+                      element={
+                        <Suspense fallback={<RouteLoading />}>
+                          <AttendanceRecordList />
+                        </Suspense>
+                      }
+                    />
+                    <Route
+                      path="edit/:id"
+                      element={
+                        <Suspense fallback={<RouteLoading />}>
+                          <AttendanceRecordEdit />
+                        </Suspense>
+                      }
+                    />
+                  </Route>
+
+                  {/* 人员管理 */}
+                  <Route path="/workers">
+                    <Route
+                      index
+                      element={
+                        <Suspense fallback={<RouteLoading />}>
+                          <WorkersList />
+                        </Suspense>
+                      }
+                    />
+                    <Route
+                      path="create"
+                      element={
+                        <Suspense fallback={<RouteLoading />}>
+                          <WorkersCreate />
+                        </Suspense>
+                      }
+                    />
+                    <Route
+                      path="edit/:id"
+                      element={
+                        <Suspense fallback={<RouteLoading />}>
+                          <WorkersEdit />
+                        </Suspense>
+                      }
+                    />
+                  </Route>
+
+                  {/* 工作管理 */}
+                  <Route path="/workType">
+                    <Route
+                      index
+                      element={
+                        <Suspense fallback={<RouteLoading />}>
+                          <ListWorkType />
+                        </Suspense>
+                      }
+                    />
+                    <Route
+                      path="create"
+                      element={
+                        <Suspense fallback={<RouteLoading />}>
+                          <CreateWorkType />
+                        </Suspense>
+                      }
+                    />
+                    <Route
+                      path="edit/:id"
+                      element={
+                        <Suspense fallback={<RouteLoading />}>
+                          <EditWorkType />
+                        </Suspense>
+                      }
+                    />
+                  </Route>
+
+                  {/* 薪资设置 */}
+                  <Route path="/xinzi">
+                    <Route
+                      index
+                      element={
+                        <Suspense fallback={<RouteLoading />}>
+                          <SalaryTypeList />
+                        </Suspense>
+                      }
+                    />
+                    <Route
+                      path="create"
+                      element={
+                        <Suspense fallback={<RouteLoading />}>
+                          <SalaryTypeCreate />
+                        </Suspense>
+                      }
+                    />
+                    <Route
+                      path="edit/:id"
+                      element={
+                        <Suspense fallback={<RouteLoading />}>
+                          <SalaryTypeEdit />
+                        </Suspense>
+                      }
+                    />
+                  </Route>
+
+                  {/* 工时&薪资显示 */}
+                  <Route path="/gongshi">
+                    <Route
+                      index
+                      element={
+                        <Suspense fallback={<RouteLoading />}>
+                          <GongShiList />
+                        </Suspense>
+                      }
+                    />
+                  </Route>
+
+                  {/* 开发专用路由（懒加载 + 生产剔除） */}
+                  {DevRoutes}
+
+                  {/* 404 */}
+                  <Route path="*" element={<ErrorComponent />} />
+                </Route>
+              </Routes>
+              {/* </Suspense> */}
+              <GlobalHelp />
+              <UnsavedChangesNotifier />
+              <DocumentTitleHandler />;
+            </Refine>
+            <DevtoolsPanel />
+          </DevtoolsProvider>
         </AntdApp>
       </ColorModeContextProvider>
     </HashRouter>

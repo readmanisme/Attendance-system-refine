@@ -37,8 +37,8 @@ export const Header: React.FC<RefineThemedLayoutHeaderProps> = ({ sticky = true 
 
   const { settings, loading, error } = useFetchSettings(__BACKEND_API_URL__);
   const batch = settings?.batch;
-  console.log("batch",batch,"settings",settings);
-  const BatchError =batch ? (batch?.enabled === true && batch?.maxRequests === 999) : true;
+  console.log("batch", batch, "settings", settings);
+  const BatchError = batch ? batch?.enabled === true && batch?.maxRequests === 999 : true;
   // --- ✅ 样式 useMemo 化，避免每次渲染都重新创建对象 ---
   const headerStyles = useMemo<React.CSSProperties>(
     () => ({
@@ -54,14 +54,14 @@ export const Header: React.FC<RefineThemedLayoutHeaderProps> = ({ sticky = true 
         zIndex: 1,
       }),
     }),
-    [token.colorBgElevated, sticky]
+    [token.colorBgElevated, sticky],
   );
 
   // --- ✅ 环境端口列表缓存 ---
   const ports = useMemo(() => (import.meta.env.DEV ? [29401, 29402, 29403] : []), []);
   const radioOptions = useMemo(
     () => ports.map((port) => ({ label: port.toString(), value: port })),
-    [ports]
+    [ports],
   );
 
   // --- ✅ 刷新逻辑优化：修正条件判断错误 ---
@@ -79,13 +79,17 @@ export const Header: React.FC<RefineThemedLayoutHeaderProps> = ({ sticky = true 
       set__BACKEND_API_URL__(`http://localhost:${newPort}`);
       window.location.reload();
     },
-    [set__BACKEND_API_URL__]
+    [set__BACKEND_API_URL__],
   );
 
   return (
     <AntdLayout.Header style={headerStyles}>
       <Space>
-        {!BatchError && <Tag color="red" data-testid="batch-error-tag">Batch设置有问题</Tag>}
+        {!BatchError && (
+          <Tag color="red" data-testid="batch-error-tag">
+            Batch设置有问题
+          </Tag>
+        )}
         <GradientButton data-testid="refresh-button" title="刷新数据" onClick={handleRefresh} />
         {ports.length > 0 && (
           <Radio.Group

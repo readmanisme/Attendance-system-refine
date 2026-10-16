@@ -82,7 +82,7 @@ export const useSomeStore = create<SomeState>()(
           }
           return persistedState;
         },
-      }
-    )
-  )
+      },
+    ),
+  ),
 );

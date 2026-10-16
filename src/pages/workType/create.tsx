@@ -16,7 +16,7 @@ const CreateWorkType = () => {
   // 使用抽离 Hook，label="工作"
   const { inputValue, setInputValue, status, parseValues, alertProps } = useBatchCreateForm(
     namelist?.data || [],
-    "工作"
+    "工作",
   );
 
   const handleSave = useCallback(() => {
@@ -30,7 +30,7 @@ const CreateWorkType = () => {
             type: "push",
           });
         },
-      }
+      },
     );
   }, [mutate, parseValues, go, resource?.name]);
 

@@ -6,7 +6,7 @@ const exportExcel = async (
   export_range: dayjs.Dayjs[],
   exportPerson: string,
   SalaryDict: Record<string, number>,
-  __BACKEND_API_URL__: string
+  __BACKEND_API_URL__: string,
 ) => {
   const XLSX = await import("xlsx");
   const pb = getPb(__BACKEND_API_URL__);
@@ -65,10 +65,10 @@ const exportExcel = async (
       `${worker_name}_${work_name}` in SalaryDict
         ? `${worker_name}_${work_name}`
         : worker_name in SalaryDict
-        ? worker_name
-        : work_name in SalaryDict
-        ? work_name
-        : "基础";
+          ? worker_name
+          : work_name in SalaryDict
+            ? work_name
+            : "基础";
 
     const salary = new Decimal(SalaryDict[salaryKey] || 0);
     const totalSalary = duration.mul(salary);

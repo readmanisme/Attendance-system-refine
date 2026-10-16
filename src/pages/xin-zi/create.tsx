@@ -39,11 +39,8 @@ const SalaryTypeCreate = () => {
 
     const duplicate = recordsData?.data.find((record: any) => {
       // 注意：这里的类型推断可能需要根据实际数据结构调整，我添加了any
-      const sameWorker =
-        record.worker_name === workerName ||
-        (!record.worker_name && !workerName);
-      const sameType =
-        record.work_type === workType || (!record.work_type && !workType);
+      const sameWorker = record.worker_name === workerName || (!record.worker_name && !workerName);
+      const sameType = record.work_type === workType || (!record.work_type && !workType);
       return sameWorker && sameType;
     });
 
@@ -63,14 +60,32 @@ const SalaryTypeCreate = () => {
         <SaveButton {...saveButtonProps} disabled={!!errorMsg} data-testid="save-button" />
       )}
     >
-      <Alert className="mb-2!" message="创建之后只能修改薪资，要修改只能删除" type="warning" showIcon data-testid="warn-alert" />
+      <Alert
+        className="mb-2!"
+        message="创建之后只能修改薪资，要修改只能删除"
+        type="warning"
+        showIcon
+        data-testid="warn-alert"
+      />
       <Form {...formProps} layout="vertical">
         <Form.Item label="工人" name={["worker_name"]}>
-          <Select {...nameSelectProps} allowClear onChange={setWorkerName} data-testid="worker-select" style={{ width: 200 }}/>
+          <Select
+            {...nameSelectProps}
+            allowClear
+            onChange={setWorkerName}
+            data-testid="worker-select"
+            style={{ width: 200 }}
+          />
         </Form.Item>
 
         <Form.Item label="工种" name={["work_type"]}>
-          <Select {...typeSelectProps} allowClear onChange={setWorkType} data-testid="work-type-select" style={{ width: 200 }}/>
+          <Select
+            {...typeSelectProps}
+            allowClear
+            onChange={setWorkType}
+            data-testid="work-type-select"
+            style={{ width: 200 }}
+          />
         </Form.Item>
 
         <Form.Item label="时薪" name={["SalaryNum"]} rules={[{ required: true }]} initialValue={10}>

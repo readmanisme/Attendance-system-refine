@@ -92,7 +92,7 @@ test.describe("人员 创建", () => {
       await page.getByTestId("name-input").fill(texts.join("\n"));
       await expect(page.getByTestId("name-input")).toHaveValue(texts.join("\n"));
       await expect(page.getByTestId("error-alert")).toContainText(
-        "以下姓名包含下划线：_郝致远郝致远_郝_致远"
+        "以下姓名包含下划线：_郝致远郝致远_郝_致远",
       );
       await expect(page.getByTestId("save-button")).toBeDisabled();
       // 输入姓名，不包含下划线，提示成功，可以提交
@@ -127,7 +127,7 @@ test.describe("人员 创建", () => {
       await page.getByTestId("name-input").fill(texts.join("\n"));
       await expect(page.getByTestId("name-input")).toHaveValue(texts.join("\n"));
       await expect(page.getByTestId("error-alert")).toContainText(
-        "以下姓名包含特殊字符：郝.致远郝/致远郝<致远郝>致远郝|致远郝'致远郝\"致远郝`致远郝:致远郝?致远郝*致远郝%致远"
+        "以下姓名包含特殊字符：郝.致远郝/致远郝<致远郝>致远郝|致远郝'致远郝\"致远郝`致远郝:致远郝?致远郝*致远郝%致远",
       );
       await expect(page.getByTestId("save-button")).toBeDisabled();
       // 输入姓名，不包含特殊字符，提示成功，可以提交
@@ -159,7 +159,7 @@ test.describe("人员 创建", () => {
       await page.getByTestId("name-input").fill(texts.join("\n"));
       await expect(page.getByTestId("name-input")).toHaveValue(texts.join("\n"));
       await expect(page.getByTestId("error-alert")).toContainText(
-        "以下姓名重复或已存在：马小琴魏变变"
+        "以下姓名重复或已存在：马小琴魏变变",
       );
       await expect(page.getByTestId("save-button")).toBeDisabled();
       // 输入姓名，不重复，提示成功，可以提交
@@ -185,7 +185,7 @@ test.describe("人员 编辑", () => {
       // 显示提示；内容正确；id不能改；不能保存。
       await expect(page.getByTestId("format-requirement-alert")).toBeVisible();
       await expect(page.getByTestId("error-alert")).toContainText(
-        "姓名已存在，若不想继续编辑可返回"
+        "姓名已存在，若不想继续编辑可返回",
       );
       await expect(page.getByTestId("name-input")).toHaveValue("魏变变");
       await expect(page.getByTestId("id-input")).toBeDisabled();
@@ -245,7 +245,7 @@ test.describe("人员 编辑", () => {
       await page.getByTestId("name-input").fill(text);
       await expect(page.getByTestId("name-input")).toHaveValue(text);
       await expect(page.getByTestId("error-alert")).toContainText(
-        "姓名已存在，若不想继续编辑可返回"
+        "姓名已存在，若不想继续编辑可返回",
       );
       await expect(page.getByTestId("save-button")).toBeDisabled();
     });
@@ -284,7 +284,7 @@ test.describe("人员 创建删除编辑", () => {
       await page.getByTestId("name-input").fill("张三三撒\n   李四思思"); //空格用来确定数据处理的时候有没有删掉空格
       await page.getByTestId("save-button").click();
       //成功提示
-      await expect(page.getByText('成功创建')).toBeVisible();
+      await expect(page.getByText("成功创建")).toBeVisible();
       // 两个人的记录数量应该是0.
       await expect(page.getByTestId("row-num-0")).toContainText("0");
       await expect(page.getByTestId("row-num-1")).toContainText("0");
@@ -294,7 +294,7 @@ test.describe("人员 创建删除编辑", () => {
       const first_name = await page.getByTestId("row-name-0").textContent();
       const second_name = await page.getByTestId("row-name-1").textContent();
       names = [first_name, second_name];
-      expect(names).toContainEqual("张三三撒");//这个断言就是我需要的，适合数组的
+      expect(names).toContainEqual("张三三撒"); //这个断言就是我需要的，适合数组的
       expect(names).toContainEqual("李四思思");
     });
     await test.step("删除", async () => {

@@ -17,7 +17,7 @@ export default function GongShiList() {
   const [exportRange, setExportRange] = useState([dayjs().startOf("year"), dayjs().endOf("year")]);
   const [exportPerson, setExportPerson] = useState<string>("");
   const [SelectedPerson, setSelectedPerson] = useState<{ value: string; label: string }[]>([]);
-  
+
   // ======================== 暂存 ========================
   const {
     tableProps: workerData,
@@ -210,10 +210,12 @@ export default function GongShiList() {
   });
 
   // const hasBaseWorkType = workType_test_data?.data?.some((t) => t.name === "基础") ?? true;
-  const hasBaseWorkType = query.isLoading ? true : workType_test_data?.data?.some((t) => t.name === "基础");
+  const hasBaseWorkType = query.isLoading
+    ? true
+    : workType_test_data?.data?.some((t) => t.name === "基础");
   // 这个要实现乐观显示的方法和工作页面的不一样，因为如果不判断数据加载，workType_test_data?.data?默认空数据也是可以得到false的结果的
   // console.log("workType_test_data", workType_test_data?.data, hasBaseWorkType);
-  const { result,query: querySalary } = useList({
+  const { result, query: querySalary } = useList({
     resource: __SalaryType_TableName,
     // syncWithLocation: false, //如果不设置这个，那么table的筛选设置就会被读取；不过更好的方法是
     //关掉table的syncWithLocation，反正我也没什么要刷新的，而且刷新后选择器就会消失，无所谓了
@@ -257,9 +259,9 @@ export default function GongShiList() {
   //   result?.data?.some(
   //     (t) => t.expand?.work_type?.name === "基础" && t.worker_name === ""
   //   ) ?? true;
-  const hasBaseSalaryType = querySalary.isLoading ? true : result?.data?.some(
-    (t) => t.expand?.work_type?.name === "基础" && t.worker_name === ""
-  );
+  const hasBaseSalaryType = querySalary.isLoading
+    ? true
+    : result?.data?.some((t) => t.expand?.work_type?.name === "基础" && t.worker_name === "");
   const SalaryDict = useMemo(() => {
     const data = result?.data || [];
     const dict: Record<string, number> = {};
@@ -313,10 +315,10 @@ export default function GongShiList() {
         `${workerName}_${workName}` in salaryDict
           ? `${workerName}_${workName}`
           : workerName in salaryDict
-          ? workerName
-          : workName in salaryDict
-          ? workName
-          : "基础";
+            ? workerName
+            : workName in salaryDict
+              ? workName
+              : "基础";
       const salaryNum = new Decimal(salaryDict[salaryKey] ?? 0);
       // 单条记录工资
       const recordSalary = durationHours.mul(salaryNum);
@@ -453,7 +455,7 @@ export default function GongShiList() {
         const expandedRowRender_d3 = (d2Record: any) => {
           const work_date = d2Record.date;
           const recs = attendance_records.filter((ar: any) =>
-            dayjs(ar.check_in).format("YYYY-MM-DD").startsWith(work_date)
+            dayjs(ar.check_in).format("YYYY-MM-DD").startsWith(work_date),
           );
 
           const dataSource_d3 = recs.map((r: any) => {
@@ -463,7 +465,7 @@ export default function GongShiList() {
             const check_out = dayjs(r.check_out);
             const dbID = String(r.id);
             const uniqueKey = `${worker_name}_${work_name}_${check_in.format(
-              "YYYY-MM-DD"
+              "YYYY-MM-DD",
             )}_${dbID}`;
             return {
               key: dbID,
@@ -558,7 +560,7 @@ export default function GongShiList() {
       workTypeMap,
       matchSalaryMap,
       dayDuringSalaryMap,
-    ]
+    ],
   );
 
   const get_un_salary_work = useMemo(() => {
@@ -567,7 +569,7 @@ export default function GongShiList() {
     // 这里的判断很精准，不会混淆没人的工作和有人的工作
     if (!un_salary_work_types.length) return "";
     return `未设置工资的工作类型：${un_salary_work_types.join(
-      ","
+      ",",
     )}，请设置其对应的工资,否则按照基础工资计算。`;
   }, [workTypeMap, SalaryDict]);
   // 使用稳定的 key 来避免 JSON.stringify 全表重渲染（GongShiData 由 store 提供，取 valueOf）

@@ -18,8 +18,10 @@
     "start": "vite preview",
     "refine": "refine",
     "scan": "npx react-scan localhost:5173",
-    "format": "npx prettier --write src/",
-    "eslint:check": "pnpm eslint --ext .ts,.tsx src/"
+    "lint": "oxlint",
+    "lint:fix": "oxlint --fix",
+    "fmt": "oxfmt",
+    "fmt:check": "oxfmt --check"
   },
   "dependencies": {
     "@ant-design/icons": "^6.3.4",
@@ -66,6 +68,8 @@
     "eslint-plugin-react-refresh": "^0.5.7",
     "globals": "^16.5.0",
     "oxc-transform-react": "^0.154.0",
+    "oxfmt": "^0.73.0",
+    "oxlint": "^1.88.0",
     "rollup-plugin-visualizer": "^7.1.1",
     "typescript": "^5.9.3",
     "typescript-eslint": "^8.71.2",

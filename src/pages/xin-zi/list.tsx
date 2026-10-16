@@ -23,12 +23,14 @@ const SalaryTypeList = () => {
   });
   const get_un_salary_work = useMemo(() => {
     const work_types = result.data.map((item: any) => item.name);
-    const salary_work_types= tableProps.dataSource?.filter(item => item.worker_name === "").
-    map((item: any) => item.expand?.work_type?.name) || [];
+    const salary_work_types =
+      tableProps.dataSource
+        ?.filter((item) => item.worker_name === "")
+        .map((item: any) => item.expand?.work_type?.name) || [];
     const un_salary_work_types = work_types.filter((item) => !salary_work_types.includes(item));
     if (!un_salary_work_types.length) return "";
     return `未设置工资的工作类型：${un_salary_work_types.join(
-      ","
+      ",",
     )}，请设置其对应的工资,否则按照基础工资计算。`;
   }, [result.data, tableProps.dataSource]);
 
@@ -38,7 +40,7 @@ const SalaryTypeList = () => {
     const dataSource = [...(tableProps?.dataSource || [])];
     // 找到符合条件的项的索引
     const index = dataSource.findLastIndex(
-      (item) => item.expand?.work_type?.name === "基础" && !item.worker_name
+      (item) => item.expand?.work_type?.name === "基础" && !item.worker_name,
     );
     // 这里用findLastIndex而不是findIndex，因为基础在后面的可能性很大
 

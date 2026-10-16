@@ -105,7 +105,7 @@ test("表格显示", async ({ page }) => {
         totalPages: 1,
       };
       await route.fulfill({ json });
-    }
+    },
   );
   await page.goto(xinzi_url);
   // 确认数据
@@ -115,7 +115,7 @@ test("表格显示", async ({ page }) => {
   // 确认警告
   await expect(page.getByTestId("alert")).toBeVisible();
   await expect(page.getByTestId("un-salary-work-alert")).toContainText(
-    "未设置工资的工作类型：重工，请设置其对应的工资,否则按照基础工资计算。"
+    "未设置工资的工作类型：重工，请设置其对应的工资,否则按照基础工资计算。",
   );
   // 基础不能删
   await expect(page.getByTestId("delete-button-0")).toBeDisabled();
@@ -149,7 +149,7 @@ test("添加校验", async ({ page }) => {
   await page.getByTestId("work-type-select").click();
   await page.getByTitle("三轮车司机").click();
   await expect(page.getByTestId("error-alert")).toContainText(
-    "当前记录与 无工人 / 三轮车司机 重复"
+    "当前记录与 无工人 / 三轮车司机 重复",
   );
   await expect(page.getByTestId("save-button")).toBeDisabled();
   // 只有≥0的时薪才可以设置
@@ -278,7 +278,7 @@ test("添加校验", async ({ page }) => {
         totalPages: -1,
       };
       await route.fulfill({ json });
-    }
+    },
   );
   await page.reload();
   // 工人重复判定
@@ -356,11 +356,11 @@ test.describe("添加编辑删除", () => {
     });
     // 保存
     await page.getByTestId("save-button").click();
-          // 成功提示
-      await expect(page.getByText('成功创建')).toBeVisible();
+    // 成功提示
+    await expect(page.getByText("成功创建")).toBeVisible();
     // 检查内容
     await expect(page.getByTestId("row-worker-3")).toContainText("陈玉琴");
-    await expect(page.getByTestId('row-work-3')).toContainText("重工");
+    await expect(page.getByTestId("row-work-3")).toContainText("重工");
     await expect(page.getByTestId("row-salary-3")).toContainText("12");
     // 编辑
     await page.getByTestId("edit-button-3").click();
@@ -374,16 +374,16 @@ test.describe("添加编辑删除", () => {
     await page.getByRole("button", { name: "Increase Value" }).click();
     // 保存
     await page.getByTestId("save-button").click();
-          // 成功提示
-      // await expect(page.getByText('成功编辑')).toBeVisible();
+    // 成功提示
+    // await expect(page.getByText('成功编辑')).toBeVisible();
     // 检查内容
     await expect(page.getByTestId("row-worker-3")).toContainText("陈玉琴");
     await expect(page.getByTestId("row-salary-3")).toContainText("13");
     // 删除
     await page.getByTestId("delete-button-3").click();
     await page.getByRole("button", { name: "删 除" }).click();
-          // 成功提示
-      // await expect(page.getByText('成功删除')).toBeVisible();
+    // 成功提示
+    // await expect(page.getByText('成功删除')).toBeVisible();
     await expect(page.getByText("陈玉琴")).not.toBeVisible();
   });
 });

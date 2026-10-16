@@ -160,7 +160,7 @@ test.describe("一条龙", () => {
       // 打开编辑页面，确认数据正确
       await page.getByTestId("edit-button-1").click();
       // 测试回到主页的功能
-      await page.getByRole('button', { name: 'bars 考勤记录' }).click();
+      await page.getByRole("button", { name: "bars 考勤记录" }).click();
       await expect(page.getByTestId("help-alert")).toBeVisible();
       // 编辑数据
       await page.getByTestId("edit-button-1").click();
@@ -209,8 +209,8 @@ test.describe("一条龙", () => {
         await page.getByRole("button", { name: "arrow-left" }).click();
       });
       await page.getByRole("button", { name: "save 保存" }).click();
-            // 成功提示
-      await expect(page.getByText('成功编辑')).toBeVisible();
+      // 成功提示
+      await expect(page.getByText("成功编辑")).toBeVisible();
       // 判断修改是否生效
       await expect(page.getByTestId("row-in-0")).toContainText("2025-11-08 20:00:00");
       await expect(page.getByTestId("row-out-0")).toContainText("2025-11-09 21:00:00");
@@ -222,7 +222,7 @@ test.describe("一条龙", () => {
     await test.step("删除", async () => {
       await page.getByTestId("delete-button-0").click();
       await page.getByRole("button", { name: "删 除" }).click();
-            // 成功提示
+      // 成功提示
       // await expect(page.getByText('成功删除')).toBeVisible();
       //   await expect(page.getByText("尤响林")).not.toBeVisible();
       //   await expect(page.getByText("张着萍")).not.toBeVisible(); //上面改了之后变了
@@ -240,7 +240,7 @@ test.describe("一条龙", () => {
       await expect(page.getByTestId("batch-delete-button")).toContainText("删除选中 (2)");
       await page.getByTestId("batch-delete-button").click();
       await page.getByRole("button", { name: "确 定" }).click();
-            // 成功提示
+      // 成功提示
       // await expect(page.getByText('成功删除')).toBeVisible();
       await expect(page.getByTestId("row-id-0")).toContainText("059h96g3r5so341");
     });

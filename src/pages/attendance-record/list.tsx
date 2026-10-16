@@ -83,13 +83,13 @@ const AttendanceRecordList = () => {
       onChange: setSelectedRowKeys,
       onCell: (record: any, rowIndex: any) => ({ "data-testid": `row-checkbox-${rowIndex}` }),
     }),
-    [selectedRowKeys]
+    [selectedRowKeys],
   );
 
   // ✅ 封装格式化函数，避免在每个 cell render 中新建 dayjs 实例
   const formatDateTime = useCallback(
     (date?: string) => (date ? dayjs(date).format("YYYY-MM-DD HH:mm:ss") : "--"),
-    []
+    [],
   );
 
   return (
