@@ -7,7 +7,7 @@ import dayjs, { Dayjs } from "dayjs";
 import PySearchSelect from "@/components/PySearchSelect";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Decimal from "decimal.js";
-import { minutesToHoursDecimal } from "@/utils/workTime";
+import { formatHoursExact, minutesToHoursDecimal } from "@/utils/workTime";
 import { useSomeStore } from "@/stores";
 import { SwitchDataRange } from "@/components/SwitchDataRange";
 export default function GongShiList() {
@@ -78,60 +78,6 @@ export default function GongShiList() {
     }
   }, [selectedIds, setFilters]);
 
-  const monthViewFilter = useMemo(() => {
-    const temp = [
-      {
-        operator: "and",
-        value: [
-          { field: "work_month", operator: "gte", value: recordDateRange[0] },
-          { field: "work_month", operator: "lte", value: recordDateRange[1] },
-        ],
-      },
-    ];
-    if (idFilters.length) {
-      temp.unshift({
-        operator: "or",
-        value: idFilters,
-      });
-    }
-    return {
-      operator: "and",
-      value: temp,
-    };
-
-    // 依赖 selectedIds, GongShiData（来自 store）
-  }, [recordDateRange, idFilters]);
-
-  const dayViewFilter = useMemo(() => {
-    const temp = [
-      {
-        operator: "and",
-        value: [
-          {
-            field: "work_date",
-            operator: "gte",
-            value: dayjs(recordDateRange[0]).startOf("month").format("YYYY-MM-DD"),
-          },
-          {
-            field: "work_date",
-            operator: "lte",
-            value: dayjs(recordDateRange[1]).endOf("month").format("YYYY-MM-DD"),
-          },
-        ],
-      },
-    ];
-    if (idFilters.length) {
-      temp.unshift({
-        operator: "or",
-        value: idFilters,
-      });
-    }
-    return {
-      operator: "and",
-      value: temp,
-    };
-  }, [recordDateRange, idFilters]);
-
   const attendanceFilter = useMemo(() => {
     const temp = [
       {
@@ -163,28 +109,6 @@ export default function GongShiList() {
   }, [recordDateRange, idFilters]);
 
   // ======================== 获取数据 ========================
-
-  const { result: month_view_data, query: queryMonth } = useList({
-    resource: __WorkHours_Month_ViewName,
-    // queryOptions: {
-    //   enabled: !tableProps.loading,
-    // },
-    filters: [monthViewFilter as CrudFilter],
-    pagination: {
-      mode: "off",
-    },
-  });
-
-  const { result: day_view_data, query: queryDay } = useList({
-    resource: __WorkHours_Day_ViewName,
-    // queryOptions: {
-    //   enabled: !tableProps.loading,
-    // },
-    filters: [dayViewFilter as CrudFilter],
-    pagination: {
-      mode: "off",
-    },
-  });
 
   const { result: attendance_record_data, query: queryAttendance } = useList({
     resource: __AttendanceRecord_TableName,
@@ -225,8 +149,6 @@ export default function GongShiList() {
   // 薪资 Maps 是同步 useMemo，query 就绪的同一 commit 即算好，无需额外等待态。
   const isDataLoading =
     !!workerData.loading ||
-    queryMonth.isLoading ||
-    queryDay.isLoading ||
     queryAttendance.isLoading ||
     query.isLoading ||
     querySalary.isLoading;
@@ -243,8 +165,6 @@ export default function GongShiList() {
       return map;
     }, [data?.data]);
   };
-  const month_view_data_map = useGroupByWorkerId(month_view_data);
-  const day_view_data_map = useGroupByWorkerId(day_view_data);
   const attendance_record_data_map = useGroupByWorkerId(attendance_record_data);
 
   const workTypeMap = useMemo(() => {
@@ -288,11 +208,21 @@ export default function GongShiList() {
     return dict;
   }, [result?.data]);
 
-  const { dayDuringSalaryMap, daySalaryMap, monthSalaryMap, matchSalaryMap } = useMemo(() => {
+  const {
+    dayDuringSalaryMap,
+    daySalaryMap,
+    monthSalaryMap,
+    matchSalaryMap,
+    dayMinutesMap,
+    monthMinutesMap,
+  } = useMemo(() => {
     const dayDuringSalaryMap = new Map<string, Decimal>();
     const daySalaryMap = new Map<string, Map<string, Decimal>>();
     const monthSalaryMap = new Map<string, Map<string, Decimal>>();
     const matchSalaryMap = new Map<string, string>();
+    // 工时(整数分钟)聚合:与薪资同一次遍历得出,不再读工时视图
+    const dayMinutesMap = new Map<string, Map<string, number>>();
+    const monthMinutesMap = new Map<string, Map<string, number>>();
 
     const salaryDict = SalaryDict; // local ref
     const attendanceList = attendance_record_data?.data || [];
@@ -335,6 +265,16 @@ export default function GongShiList() {
       if (!monthSalaryMap.has(workerName)) monthSalaryMap.set(workerName, new Map());
       const workerMonthMap = monthSalaryMap.get(workerName)!;
       workerMonthMap.set(month, (workerMonthMap.get(month) || new Decimal(0)).plus(recordSalary));
+
+      // accumulate 分钟(按 worker_id,前端已算好,不读视图)
+      const minutes = Number(rec.work_minutes) || 0;
+      const workerId = rec.worker_id as string;
+      if (!dayMinutesMap.has(workerId)) dayMinutesMap.set(workerId, new Map());
+      const workerDayMinutes = dayMinutesMap.get(workerId)!;
+      workerDayMinutes.set(day, (workerDayMinutes.get(day) ?? 0) + minutes);
+      if (!monthMinutesMap.has(workerId)) monthMinutesMap.set(workerId, new Map());
+      const workerMonthMinutes = monthMinutesMap.get(workerId)!;
+      workerMonthMinutes.set(month, (workerMonthMinutes.get(month) ?? 0) + minutes);
     }
 
     return {
@@ -342,6 +282,8 @@ export default function GongShiList() {
       daySalaryMap,
       monthSalaryMap,
       matchSalaryMap,
+      dayMinutesMap,
+      monthMinutesMap,
     };
   }, [attendance_record_data?.data, SalaryDict, workerMap, workTypeMap]);
 
@@ -365,21 +307,23 @@ export default function GongShiList() {
   const TableExpandedRowRender = useCallback(
     (record: { id: string; name: string }) => {
       const workerId = record.id;
-      const month_records = month_view_data_map.get(workerId) ?? [];
-      const day_records = day_view_data_map.get(workerId) ?? [];
+      const workerName = workerMap.get(workerId) || "未知";
+      const monthEntries = [...(monthMinutesMap.get(workerId) ?? new Map()).entries()].sort((a, b) =>
+        a[0] < b[0] ? -1 : 1,
+      );
+      const dayEntries = [...(dayMinutesMap.get(workerId) ?? new Map()).entries()].sort((a, b) =>
+        a[0] < b[0] ? -1 : 1,
+      );
       const attendance_records = attendance_record_data_map.get(workerId) ?? [];
 
-      // 二级表数据（按月）
-      const expandDataSource = month_records.map((r: any) => {
-        const workerName = workerMap.get(r.worker_id) || "未知";
-        const month = r.work_month;
-        const total_work_hours = r.total_work_hours;
+      // 二级表数据（按月,分钟来自前端聚合）
+      const expandDataSource = monthEntries.map(([month, minutes]) => {
         const xinzi = (monthSalaryMap.get(workerName)?.get(month) || new Decimal(0)).toString();
         return {
           key: month,
           worker: workerName,
           month,
-          total_work_hours,
+          total_work_hours: formatHoursExact(minutes),
           xinzi,
         };
       });
@@ -408,17 +352,14 @@ export default function GongShiList() {
       // depth2 render
       const expandedRowRender_d2 = (rowRecord: any) => {
         const work_month = rowRecord.month;
-        const records = day_records.filter((d: any) => d.work_date.startsWith(work_month));
-        const dataSource_d2 = records.map((r: any) => {
-          const worker_name = workerMap.get(r.worker_id) || "未知";
-          const xinzi = (
-            daySalaryMap.get(worker_name)?.get(r.work_date) || new Decimal(0)
-          ).toString();
+        const records = dayEntries.filter(([date]) => date.startsWith(work_month));
+        const dataSource_d2 = records.map(([date, minutes]) => {
+          const xinzi = (daySalaryMap.get(workerName)?.get(date) || new Decimal(0)).toString();
           return {
-            key: r.work_date,
-            worker: worker_name,
-            date: r.work_date,
-            total_work_hours: r.total_work_hours,
+            key: date,
+            worker: workerName,
+            date,
+            total_work_hours: formatHoursExact(minutes),
             xinzi,
           };
         });
@@ -458,7 +399,7 @@ export default function GongShiList() {
               key: dbID,
               worker: worker_name,
               work: work_name,
-              total_work_hours: minutesToHoursDecimal(r.work_minutes).toString(),
+              total_work_hours: formatHoursExact(r.work_minutes),
               matchvalue: matchSalaryMap.get(dbID) || "",
               xinzi: (dayDuringSalaryMap.get(uniqueKey) || new Decimal(0)).toString(),
             };
@@ -542,8 +483,8 @@ export default function GongShiList() {
     },
     // 依赖列表：只在下面这些映射变化时重建函数体（以减少 Table 重建）
     [
-      month_view_data_map,
-      day_view_data_map,
+      monthMinutesMap,
+      dayMinutesMap,
       attendance_record_data_map,
       workerMap,
       monthSalaryMap,

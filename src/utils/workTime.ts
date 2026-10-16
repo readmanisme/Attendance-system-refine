@@ -15,8 +15,16 @@ export const hoursToMinutes = (hours: number): number => Math.round(hours * 60);
 export const minutesToHoursDecimal = (minutes?: number | null): Decimal =>
   new Decimal(minutes ?? 0).dividedBy(60);
 
-/** 分钟 -> 小时文本:整小时 "5",半小时 "2.5",20分钟 "0.33"(两位小数,去尾零) */
-export const formatMinutes = (minutes?: number | null): string => {
+/** 分钟(整数) -> 工时文本:整数 "8"、一位小数 "10.5"、恰两位 "0.05";
+ * 超过两位小数时保留两位(half-up)并附括号精确值,如 "0.33 (0h 20m)"。
+ * 括号由整数分钟整除/取余精确得出,与小数位无关。
+ */
+export const formatHoursExact = (minutes?: number | null): string => {
   if (minutes == null) return "--";
-  return String(Math.round((minutes / 60) * 100) / 100);
+  const hours = new Decimal(minutes).dividedBy(60);
+  const rounded = hours.toDecimalPlaces(2, Decimal.ROUND_HALF_UP);
+  if (hours.equals(rounded)) return rounded.toString();
+  const sign = minutes < 0 ? "-" : "";
+  const abs = Math.abs(minutes);
+  return `${rounded.toString()} (${sign}${Math.floor(abs / 60)}h ${abs % 60}m)`;
 };

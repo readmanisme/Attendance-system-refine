@@ -36,8 +36,6 @@ export default defineConfig(({ command, mode }) => {
       __AttendanceRecord_TableName: JSON.stringify("attendance_record_test"),
       __Workers_TableName: JSON.stringify("workers_test"),
       __WorkTypes_TableName: JSON.stringify("workType_test"),
-      __WorkHours_Day_ViewName: JSON.stringify("workHour_day_view_test"),
-      __WorkHours_Month_ViewName: JSON.stringify("workHour_month_view_test"),
       __SalaryType_TableName: JSON.stringify("SalaryType_test"),
       __WorkerRecordNum_TableName: JSON.stringify("worker_record_num"),
       __WorkRecordNum_TableName: JSON.stringify("work_record_num"),

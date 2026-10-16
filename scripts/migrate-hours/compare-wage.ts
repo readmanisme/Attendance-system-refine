@@ -49,8 +49,6 @@ const TABLES = {
   workTypes: "workType_test",
   salary: "SalaryType_test",
 };
-const DAY_VIEW = "workHour_day_view_test";
-const MONTH_VIEW = "workHour_month_view_test";
 
 type AnyRec = Record<string, any>;
 type Agg = { wage: Decimal; minutes: number; hoursMs: number };

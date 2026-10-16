@@ -1,6 +1,6 @@
 import type { Dayjs } from "dayjs";
 import Decimal from "decimal.js";
-import { minutesToHoursDecimal } from "@/utils/workTime";
+import { formatHoursExact, minutesToHoursDecimal } from "@/utils/workTime";
 import { getPb } from "@/utils/pocketbase";
 
 const exportExcel = async (
@@ -17,18 +17,14 @@ const exportExcel = async (
     考勤记录: __AttendanceRecord_TableName,
     工人: __Workers_TableName,
     工作类型: __WorkTypes_TableName,
-    月工时: __WorkHours_Month_ViewName,
-    日工时: __WorkHours_Day_ViewName,
   };
 
   // ✅ 日期计算复用(work_date 是 "YYYY-MM-DD" 文本)
   const start_day = export_range[0].format("YYYY-MM-DD");
   const end_day = export_range[1].endOf("month").format("YYYY-MM-DD");
-  const start_month = export_range[0].format("YYYY-MM");
-  const end_month = export_range[1].format("YYYY-MM");
 
-  // ✅ 并行加载所有数据
-  const [attendanceRecords, workers, workTypes, workHoursMonth, workHoursDay] = await Promise.all([
+  // ✅ 并行加载所有数据(月/日工时不再读视图,由考勤记录在前端聚合)
+  const [attendanceRecords, workers, workTypes] = await Promise.all([
     pb.collection(集合.考勤记录).getFullList({
       filter:
         `work_minutes != null && work_date >= '${start_day}' && work_date <= '${end_day}'` +
@@ -38,16 +34,6 @@ const exportExcel = async (
       filter: exportPerson ? `id == '${exportPerson}'` : "",
     }),
     pb.collection(集合.工作类型).getFullList(),
-    pb.collection(集合.月工时).getFullList({
-      filter:
-        `work_month >= '${start_month}' && work_month <= '${end_month}'` +
-        (exportPerson ? ` && worker_id == '${exportPerson}'` : ""),
-    }),
-    pb.collection(集合.日工时).getFullList({
-      filter:
-        `work_date >= '${start_day}' && work_date <= '${end_day}'` +
-        (exportPerson ? ` && worker_id == '${exportPerson}'` : ""),
-    }),
   ]);
 
   // ✅ 转换为快速查找结构
@@ -76,82 +62,76 @@ const exportExcel = async (
       序号: record.id,
       工人: worker_name,
       工作类型: work_name,
-      总工时: duration.toNumber(),
+      总工时: formatHoursExact(record.work_minutes),
       薪资: totalSalary.toNumber(),
       依据: `${salaryKey}:${salary}`,
       日期: record.work_date, // ✅ "YYYY-MM-DD"文本，用于后续索引
     };
   });
 
-  // ✅ 用 Map 聚合日薪资
-  const daySalaryMap = new Map<
-    string,
-    { 工人: string; 日期: string; 总工时: number; 薪资: Decimal }
-  >();
+  // ✅ 按(工人,日期)聚合分钟与薪资,不再读日视图(薪资累加口径保持原样)
+  const minutesById = new Map<string, number>(
+    attendanceRecords.map((r: any) => [r.id, Number(r.work_minutes) || 0]),
+  );
+  const dayGroups = new Map<string, { 工人: string; 日期: string; 分钟: number; 薪资: Decimal }>();
   for (const rec of attendanceSheetData) {
     const key = `${rec.工人}_${rec.日期}`;
-    const existing = daySalaryMap.get(key);
+    const minutes = minutesById.get(rec.序号) ?? 0;
+    const existing = dayGroups.get(key);
     if (existing) {
-      existing.总工时 += rec.总工时;
+      existing.分钟 += minutes;
       existing.薪资 = existing.薪资.add(rec.薪资);
     } else {
-      daySalaryMap.set(key, {
+      dayGroups.set(key, {
         工人: rec.工人,
         日期: rec.日期,
-        总工时: rec.总工时,
+        分钟: minutes,
         薪资: new Decimal(rec.薪资),
       });
     }
   }
 
-  // ✅ 生成 workHoursDaySheetData
-  const workHoursDaySheetData = workHoursDay.map((record: any) => {
-    const worker_name = workerMap.get(record.worker_id);
-    const key = `${worker_name}_${record.work_date}`;
-    const agg = daySalaryMap.get(key);
-    return {
-      序号: record.id,
-      工人: worker_name,
-      日期: record.work_date,
-      总工时: record.total_work_hours ?? agg?.总工时 ?? 0,
-      薪资: agg?.薪资?.toNumber() ?? 0,
-    };
-  });
+  // ✅ 生成 workHoursDaySheetData(行由考勤记录派生,总工时前端格式化)
+  const sortedDays = [...dayGroups.values()].sort((a, b) =>
+    a.工人 === b.工人 ? (a.日期 < b.日期 ? -1 : 1) : a.工人 < b.工人 ? -1 : 1,
+  );
+  const workHoursDaySheetData = sortedDays.map((g, i) => ({
+    序号: i + 1,
+    工人: g.工人,
+    日期: g.日期,
+    总工时: formatHoursExact(g.分钟),
+    薪资: g.薪资.toNumber(),
+  }));
 
-  // ✅ 聚合月薪资
-  const monthSalaryMap = new Map<
-    string,
-    { 工人: string; 月份: string; 总工时: number; 薪资: Decimal }
-  >();
-  for (const rec of workHoursDaySheetData) {
-    const month = dayjs(rec.日期).format("YYYY-MM");
-    const key = `${rec.工人}_${month}`;
-    const existing = monthSalaryMap.get(key);
+  // ✅ 聚合月薪资(分钟精确求和,薪资累加口径保持原样;work_date 是 "YYYY-MM-DD" 文本,直接截取月份)
+  const monthGroups = new Map<string, { 工人: string; 月份: string; 分钟: number; 薪资: Decimal }>();
+  for (const g of sortedDays) {
+    const month = g.日期.slice(0, 7);
+    const key = `${g.工人}_${month}`;
+    const existing = monthGroups.get(key);
     if (existing) {
-      existing.总工时 += rec.总工时;
-      existing.薪资 = existing.薪资.add(rec.薪资);
+      existing.分钟 += g.分钟;
+      existing.薪资 = existing.薪资.add(g.薪资.toNumber());
     } else {
-      monthSalaryMap.set(key, {
-        工人: rec.工人!,
+      monthGroups.set(key, {
+        工人: g.工人,
         月份: month,
-        总工时: rec.总工时,
-        薪资: new Decimal(rec.薪资),
+        分钟: g.分钟,
+        薪资: new Decimal(g.薪资.toNumber()),
       });
     }
   }
 
-  const workHoursMonthSheetData = workHoursMonth.map((record: any) => {
-    const worker_name = workerMap.get(record.worker_id);
-    const key = `${worker_name}_${record.work_month}`;
-    const agg = monthSalaryMap.get(key);
-    return {
-      序号: record.id,
-      工人: worker_name,
-      月份: record.work_month,
-      总工时: record.total_work_hours ?? agg?.总工时 ?? 0,
-      薪资: agg?.薪资?.toNumber() ?? 0,
-    };
-  });
+  const sortedMonths = [...monthGroups.values()].sort((a, b) =>
+    a.工人 === b.工人 ? (a.月份 < b.月份 ? -1 : 1) : a.工人 < b.工人 ? -1 : 1,
+  );
+  const workHoursMonthSheetData = sortedMonths.map((g, i) => ({
+    序号: i + 1,
+    工人: g.工人,
+    月份: g.月份,
+    总工时: formatHoursExact(g.分钟),
+    薪资: g.薪资.toNumber(),
+  }));
 
   // ✅ 创建Excel（XLSX调用不变）
   const wb = XLSX.utils.book_new();

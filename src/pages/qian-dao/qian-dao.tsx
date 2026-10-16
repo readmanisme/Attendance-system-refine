@@ -29,7 +29,7 @@ import {
   useSelect,
 } from "@refinedev/antd";
 import PySearchSelect from "@/components/PySearchSelect";
-import { formatMinutes, hoursToMinutes, minutesToHours } from "@/utils/workTime";
+import { formatHoursExact, hoursToMinutes, minutesToHours } from "@/utils/workTime";
 
 const { Title: AntdTitle } = Typography;
 type WorkerOption = { key: string; label: string; value: string };
@@ -162,8 +162,8 @@ export default function QianDaoPage() {
         mergeDescs.push(
           <div key={`${name.key}-${existing.id}`}>
             {name.label}，当天已有{work_type?.label}记录（
-            {formatMinutes(existing.work_minutes)}小时），录入后自动合并为
-            {formatMinutes((existing.work_minutes ?? 0) + minutes)}小时
+            {formatHoursExact(existing.work_minutes)}小时），录入后自动合并为
+            {formatHoursExact((existing.work_minutes ?? 0) + minutes)}小时
           </div>,
         );
       }
@@ -454,7 +454,7 @@ export default function QianDaoPage() {
                       </Form.Item>
                     );
                   }
-                  return <TextField value={formatMinutes(record.work_minutes)} />;
+                  return <TextField value={formatHoursExact(record.work_minutes)} />;
                 }}
               />
               <Table.Column

@@ -10,7 +10,7 @@ import { useMemo, useCallback, useState } from "react";
 import { SwitchDataRange } from "@/components/SwitchDataRange";
 import { useGetDatePickerFilter } from "@/utils/get_data_picker_filter";
 import PySearchSelect from "@/components/PySearchSelect";
-import { formatMinutes } from "@/utils/workTime";
+import { formatHoursExact } from "@/utils/workTime";
 import { DeleteOutlined, PlusSquareOutlined } from "@ant-design/icons";
 import { useResourceParams } from "@refinedev/core";
 const AttendanceRecordList = () => {
@@ -71,7 +71,7 @@ const AttendanceRecordList = () => {
     [selectedRowKeys],
   );
 
-  // ✅ 统一用 formatMinutes 渲染工时，避免在每个 cell render 中重复换算
+  // ✅ 统一用 formatHoursExact 渲染工时，避免在每个 cell render 中重复换算
 
   return (
     <List
@@ -182,7 +182,7 @@ const AttendanceRecordList = () => {
         <Table.Column
           dataIndex="work_minutes"
           title="工时"
-          render={(value: number | null) => formatMinutes(value)}
+          render={(value: number | null) => formatHoursExact(value)}
           // @ts-expect-error,111
           onCell={(record: any, rowIndex: any) => ({ "data-testid": `row-num-${rowIndex}` })}
         />

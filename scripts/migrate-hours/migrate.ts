@@ -7,9 +7,8 @@
  *   1. work_date    = 本地时区的 check_in 日期（与原视图 DATE(check_in,'localtime') 等价）
  *   2. work_minutes = round((check_out - check_in) / 60000)，on faith 取绝对值
  *   3. 同 (worker_id, work_date, work) 的多条记录合并为一条（分钟求和），多余条删除
- *   4. 重建 workHour_day / workHour_month 视图为 SUM(work_minutes)/60 写法
- *   5. 在 (worker_id, work_date, work) 上加唯一索引，防止再次出现可合并的重复记录
- *   6. 删除 check_in / check_out 字段
+ *   4. 在 (worker_id, work_date, work) 上加唯一索引，防止再次出现可合并的重复记录
+ *   5. 删除 check_in / check_out 字段
  *
  * 幂等：脚本可重复运行；已迁移（无 check_in 字段）的库会跳过数据改动，只做校验。
  *
@@ -36,8 +35,6 @@ function argFlag(name: string): boolean {
 
 const BASE_URL = (argValue("url") || "http://127.0.0.1:29401").replace(/\/+$/, "");
 const TABLE = argValue("table") || "attendance_record_test";
-const DAY_VIEW = argValue("day-view") || "workHour_day_view_test";
-const MONTH_VIEW = argValue("month-view") || "workHour_month_view_test";
 const EMAIL = argValue("email") || process.env.PB_ADMIN_EMAIL || "shed2705@outlook.com";
 const PASSWORD = argValue("password") || process.env.PB_ADMIN_PASSWORD || "bPWU8GCMuqwKF9z";
 const KEEP_OLD_FIELDS = argFlag("keep-old-fields");
@@ -143,7 +140,7 @@ type Snap = Map<Key, GroupStat>;
 type Key = string; // `${worker_id}|${work_date}|${work}`
 
 async function main() {
-  console.log(`目标: ${BASE_URL}  表: ${TABLE}  视图: ${DAY_VIEW}, ${MONTH_VIEW}`);
+  console.log(`目标: ${BASE_URL}  表: ${TABLE}`);
   const off = -tzOffsetMinutes / 60;
   console.log(`时区: UTC${off >= 0 ? "+" : ""}${off}  dry-run: ${DRY_RUN}`);
   if (tzOffsetMinutes !== -480) {
@@ -182,7 +179,7 @@ async function main() {
   const alreadyMigrated = !hasCheckIn && !hasCheckOut && hasWorkDate && hasWorkMinutes;
   if (alreadyMigrated) {
     console.log(
-      "检测到数据已迁移（无 check_in/check_out 字段），跳过数据改动，仅更新视图/索引并校验。",
+      "检测到数据已迁移（无 check_in/check_out 字段），跳过数据改动，仅更新索引并校验。",
     );
     for (const r of records) {
       const key: Key = `${r.worker_id}|${r.work_date}|${r.work}`;
@@ -271,7 +268,7 @@ async function main() {
     }
 
     console.log(
-      `计划: 新增字段=${newFields.map((f) => f.name).join(",") || "无"}  更新记录=${updates.length}  合并去重=${mergedKeys}组(删除${deletes.length}条)  删除字段=${KEEP_OLD_FIELDS ? "无(保留旧字段)" : "check_in,check_out"}  更新视图=2`,
+      `计划: 新增字段=${newFields.map((f) => f.name).join(",") || "无"}  更新记录=${updates.length}  合并去重=${mergedKeys}组(删除${deletes.length}条)  删除字段=${KEEP_OLD_FIELDS ? "无(保留旧字段)" : "check_in,check_out"}`,
     );
 
     if (DRY_RUN) {
@@ -323,21 +320,7 @@ async function main() {
     console.log(`记录完成: 更新 ${updates.length} 条, 删除 ${deletes.length} 条`);
   }
 
-  // ---------- 4. 重建视图（两条路径都要保证视图正确，幂等可重跑） ----------
-  const dayQuery = `SELECT ar.worker_id AS worker_id, ar.work_date AS work_date, (SUM(ar.work_minutes)/60.0) AS total_work_hours, (ROW_NUMBER() OVER()) AS id
-FROM ${TABLE} ar WHERE ar.work_minutes IS NOT NULL
-GROUP BY ar.worker_id, ar.work_date
-ORDER BY ar.worker_id, work_date`;
-  const monthQuery = `SELECT ar.worker_id AS worker_id, STRFTIME('%Y-%m', ar.work_date) AS work_month, (SUM(ar.work_minutes)/60.0) AS total_work_hours, (ROW_NUMBER() OVER()) AS id
-FROM ${TABLE} ar WHERE ar.work_minutes IS NOT NULL
-GROUP BY ar.worker_id, work_month
-ORDER BY ar.worker_id, work_month`;
-
-  await patchView(token, DAY_VIEW, dayQuery);
-  await patchView(token, MONTH_VIEW, monthQuery);
-  console.log("视图已更新");
-
-  // ---------- 5. 添加唯一索引（必须在合并之后，否则有重复会失败） ----------
+  // ---------- 4. 添加唯一索引（必须在合并之后，否则有重复会失败） ----------
   if (!hasUniqueIndex) {
     const cur = await req(`/api/collections/${TABLE}`, { token });
     const uniqueIndexTarget = `CREATE UNIQUE INDEX \`idx_${TABLE}_worker_date_work\` ON \`${TABLE}\` (\`worker_id\`, \`work_date\`, \`work\`)`;
@@ -354,7 +337,7 @@ ORDER BY ar.worker_id, work_month`;
     console.log("已添加唯一索引 (worker_id, work_date, work)");
   }
 
-  // ---------- 6. 删除旧字段（首次迁移且未指定 keep） ----------
+  // ---------- 5. 删除旧字段（首次迁移且未指定 keep） ----------
   if (!alreadyMigrated && !KEEP_OLD_FIELDS) {
     const cur = await req(`/api/collections/${TABLE}`, { token });
     const kept = (cur.fields ?? []).filter(
@@ -364,7 +347,7 @@ ORDER BY ar.worker_id, work_month`;
     console.log("已删除字段: check_in, check_out");
   }
 
-  // ---------- 7. 自校验 ----------
+  // ---------- 6. 自校验 ----------
   const afterRecords: RecordRow[] = await fetchAllRecords(token, TABLE);
   const afterSnapshot: Snap = new Map();
   for (const r of afterRecords) {
@@ -387,31 +370,6 @@ ORDER BY ar.worker_id, work_month`;
   }
   for (const key of afterSnapshot.keys()) {
     if (!preSnapshot.has(key)) diffs.push(`多余键: ${key}`);
-  }
-
-  // 视图校验（day view）
-  const expectedDay = new Map<string, number>();
-  for (const [key, stat] of preSnapshot) {
-    const [worker, date] = key.split("|");
-    const dk = `${worker}|${date}`;
-    expectedDay.set(dk, (expectedDay.get(dk) ?? 0) + stat.minutes);
-  }
-  const afterDay: any[] = await fetchAllRecords(token, DAY_VIEW);
-  for (const r of afterDay) {
-    const dk = `${r.worker_id}|${String(r.work_date ?? "").slice(0, 10)}`;
-    const expectMin = expectedDay.get(dk);
-    if (expectMin === undefined) {
-      diffs.push(`视图中多余日期: ${dk}`);
-      continue;
-    }
-    const got = Number(r.total_work_hours);
-    if (Math.abs(got - expectMin / 60) > 1e-6) {
-      diffs.push(`视图工时不符: ${dk} 期望=${expectMin / 60} 实际=${got}`);
-    }
-    expectedDay.delete(dk);
-  }
-  if (expectedDay.size) {
-    diffs.push(`视图缺少 ${expectedDay.size} 个日期（示例: ${[...expectedDay.keys()][0]}）`);
   }
 
   const report = {
@@ -440,15 +398,6 @@ ORDER BY ar.worker_id, work_month`;
     process.exit(2);
   }
   console.log(`✅ 迁移与校验通过: ${records.length} 条 -> ${afterRecords.length} 条`);
-}
-
-async function patchView(token: string, name: string, query: string) {
-  const col = await req(`/api/collections/${name}`, { token });
-  if ((col.viewQuery ?? "").replace(/\s+/g, " ").includes("work_minutes")) {
-    console.log(`视图 ${name} 已是目标写法，跳过`);
-    return;
-  }
-  await req(`/api/collections/${name}`, { method: "PATCH", token, body: { viewQuery: query } });
 }
 
 main().catch((err) => {
