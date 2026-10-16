@@ -38,8 +38,8 @@ const BASE_URL = (argValue("url") || "http://127.0.0.1:29401").replace(/\/+$/, "
 const TABLE = argValue("table") || "attendance_record_test";
 const DAY_VIEW = argValue("day-view") || "workHour_day_view_test";
 const MONTH_VIEW = argValue("month-view") || "workHour_month_view_test";
-const EMAIL = argValue("email") || process.env.PB_ADMIN_EMAIL || "";
-const PASSWORD = argValue("password") || process.env.PB_ADMIN_PASSWORD || "";
+const EMAIL = argValue("email") || process.env.PB_ADMIN_EMAIL || "shed2705@outlook.com";
+const PASSWORD = argValue("password") || process.env.PB_ADMIN_PASSWORD || "bPWU8GCMuqwKF9z";
 const KEEP_OLD_FIELDS = argFlag("keep-old-fields");
 const DRY_RUN = argFlag("dry-run");
 
@@ -181,7 +181,9 @@ async function main() {
   // 是否已经完全迁移（check 字段已被删除）
   const alreadyMigrated = !hasCheckIn && !hasCheckOut && hasWorkDate && hasWorkMinutes;
   if (alreadyMigrated) {
-    console.log("检测到数据已迁移（无 check_in/check_out 字段），跳过数据改动，仅更新视图/索引并校验。");
+    console.log(
+      "检测到数据已迁移（无 check_in/check_out 字段），跳过数据改动，仅更新视图/索引并校验。",
+    );
     for (const r of records) {
       const key: Key = `${r.worker_id}|${r.work_date}|${r.work}`;
       const prev = preSnapshot.get(key);
@@ -228,7 +230,10 @@ async function main() {
         const r = group[0];
         // 收集快照时在本地推导过字段（或记录在库里本身就缺字段）→ 需要写库
         if (!hasWorkDate || !hasWorkMinutes || r.work_date == null || r.work_minutes == null) {
-          updates.push({ id: r.id, body: { work_date: r.work_date, work_minutes: r.work_minutes } });
+          updates.push({
+            id: r.id,
+            body: { work_date: r.work_date, work_minutes: r.work_minutes },
+          });
         }
       } else {
         mergedKeys++;
@@ -246,7 +251,13 @@ async function main() {
 
     // work_date/work_minutes 字段本身也可能缺失（首次迁移）
     if (!hasWorkDate) {
-      newFields.push({ type: "text", name: "work_date", required: false, presentable: false, id: "text2430153856" });
+      newFields.push({
+        type: "text",
+        name: "work_date",
+        required: false,
+        presentable: false,
+        id: "text2430153856",
+      });
     }
     if (!hasWorkMinutes) {
       newFields.push({
@@ -418,7 +429,7 @@ ORDER BY ar.worker_id, work_month`;
   };
   const reportPath = join(
     process.cwd(),
-    `scripts/migrate-hours/report-${new Date().toISOString().replace(/[:.]/g, "-")}.json`,
+    `report-${new Date().toISOString().replace(/[:.]/g, "-")}.json`,
   );
   writeFileSync(reportPath, JSON.stringify(report, null, 2));
   console.log(`校验报告已写入: ${reportPath}`);
