@@ -1,8 +1,11 @@
 import { useCallback, useMemo } from "react";
 import PySearchSelect from "@/components/PySearchSelect";
 import { DeleteButton, EditButton, List, useTable, CreateButton } from "@refinedev/antd";
-import { useList, type BaseRecord } from "@refinedev/core";
+import { useList, type BaseRecord, type CrudFilter } from "@refinedev/core";
 import { Alert, Space, Table } from "antd";
+import { buildEqOrFilter, cellTestId } from "@/utils/tableHelpers";
+
+type SearchValue = { value: string; label: string };
 
 const WorkersList = () => {
   const { tableProps, setFilters, setCurrentPage } = useTable({
@@ -21,21 +24,11 @@ const WorkersList = () => {
   );
   // ✅ 用 useCallback 避免函数每次渲染重建，减少子组件重渲染
   const handleChange = useCallback(
-    (values: Array<{ value: string; label: string }> | null) => {
-      const filters = values?.length
-        ? [
-            {
-              operator: "or",
-              value: values.map((r) => ({
-                field: "id",
-                operator: "eq",
-                value: r.value,
-              })),
-            },
-          ]
-        : [];
-      // @ts-expect-error，111
-      setFilters(filters);
+    (values: SearchValue | Array<{ value: string; label: string }> | null) => {
+      const optionValues = (Array.isArray(values) ? values : values ? [values] : []).map(
+        (r) => r.value,
+      );
+      setFilters(buildEqOrFilter("id", optionValues) as CrudFilter[]);
       setCurrentPage(1);
     },
     [setFilters, setCurrentPage],
@@ -47,17 +40,17 @@ const WorkersList = () => {
       {
         dataIndex: "id",
         title: "ID",
-        onCell: (record: any, rowIndex: any) => ({ "data-testid": `row-id-${rowIndex}` }),
+        onCell: cellTestId((i) => `row-id-${i}`),
       },
       {
         dataIndex: "name",
         title: "姓名",
-        onCell: (record: any, rowIndex: any) => ({ "data-testid": `row-name-${rowIndex}` }),
+        onCell: cellTestId((i) => `row-name-${i}`),
       },
       {
         dataIndex: "num",
         title: "考勤记录数",
-        onCell: (record: any, rowIndex: any) => ({ "data-testid": `row-num-${rowIndex}` }),
+        onCell: cellTestId((i) => `row-num-${i}`),
         render: (text: any, record: any) => WorkerRecordNum.get(record.id),
       },
       {
@@ -98,7 +91,6 @@ const WorkersList = () => {
         showIcon
       />
       <PySearchSelect
-        // @ts-expect-error，111
         onChangeFn={handleChange}
         placeholder="多选工人，支持拼音"
         mode="multiple"
@@ -110,7 +102,6 @@ const WorkersList = () => {
         data-testid="table"
         {...tableProps}
         rowKey="id"
-        // @ts-expect-error，111
         columns={columns}
         className="mt-2"
         pagination={{ ...tableProps.pagination, showSizeChanger: true }}

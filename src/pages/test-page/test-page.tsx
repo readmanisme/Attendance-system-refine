@@ -3,17 +3,13 @@ import { Alert, Button, Space } from "antd";
 import { sample, sampleSize } from "es-toolkit/array";
 import dayjs from "dayjs";
 // import pb from "@/utils/pocketbase";
-import { useSomeStore } from "@/stores";
+import { useConfigStore } from "@/stores";
 
-import {
-  useCreateMany,
-  useDeleteMany,
-  useUpdateMany,
-} from "@refinedev/core";
+import { useCreateMany, useDeleteMany, useUpdateMany } from "@refinedev/core";
 import { getPb } from "@/utils/pocketbase";
 const _ = { sample, sampleSize };
 function TestPage() {
-  const { __BACKEND_API_URL__ } = useSomeStore();
+  const { __BACKEND_API_URL__ } = useConfigStore();
   const pb = useMemo(() => getPb(__BACKEND_API_URL__), [__BACKEND_API_URL__]);
   const 集合 = {
     考勤记录: __AttendanceRecord_TableName,

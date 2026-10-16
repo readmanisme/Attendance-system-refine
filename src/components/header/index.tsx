@@ -1,44 +1,36 @@
 import { QuestionCircleOutlined } from "@ant-design/icons";
 import type { RefineThemedLayoutHeaderProps } from "@refinedev/antd";
 import { Layout as AntdLayout, Button, Radio, Space, Tag, theme, Tooltip } from "antd";
-import React, { useMemo, useCallback, useState, useEffect } from "react";
+import React, { useMemo, useCallback } from "react";
 import { useInvalidate } from "@refinedev/core";
-import { useSomeStore } from "@/stores";
+import { useUiStore, useConfigStore } from "@/stores";
 import GradientButton from "../GradientButton";
 const { useToken } = theme;
 import { getPbAdmin } from "@/utils/pocketbase_admin";
+import { useQuery } from "@tanstack/react-query";
 
-const useFetchSettings = (backendApiUrl: string) => {
-  const [settings, setSettings] = useState<any>(null);
-  const [loading, setLoading] = useState<boolean>(true);
-  const [error, setError] = useState<any>(null);
-  useEffect(() => {
-    const fetchSettings = async () => {
-      try {
-        const pb = await getPbAdmin(backendApiUrl);
-        const settingsData = await pb.settings.getAll();
-        setSettings(settingsData);
-      } catch (err) {
-        setError(err);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchSettings();
-  }, [backendApiUrl]);
-  return { settings, loading, error };
-};
+/** 后端设置的批量接口配置(refine 的 QueryClientProvider 提供缓存,60s 内不重复请求) */
+const useFetchSettings = (backendApiUrl: string) =>
+  useQuery({
+    queryKey: ["pb-settings", backendApiUrl],
+    queryFn: async () => {
+      const pb = await getPbAdmin(backendApiUrl);
+      return pb.settings.getAll();
+    },
+    staleTime: 60_000,
+  });
 
 export const Header: React.FC<RefineThemedLayoutHeaderProps> = ({ sticky = true }) => {
   const { token } = useToken();
   const invalidate = useInvalidate();
 
-  const { setHelpOpen, __BACKEND_API_URL__, set__BACKEND_API_URL__ } = useSomeStore();
+  const { setHelpOpen } = useUiStore();
+  const { __BACKEND_API_URL__, set__BACKEND_API_URL__ } = useConfigStore();
 
-  const { settings } = useFetchSettings(__BACKEND_API_URL__);
+  const { data: settings } = useFetchSettings(__BACKEND_API_URL__);
   const batch = settings?.batch;
-  console.log("batch", batch, "settings", settings);
-  const BatchError = batch ? batch?.enabled === true && batch?.maxRequests === 999 : true;
+  // Batch 是否配置错误:未取到设置 / 未开启 / maxRequests 是 999 都视为有问题
+  const isBatchMisconfigured = batch ? !(batch.enabled && batch.maxRequests === 999) : true;
   // --- ✅ 样式 useMemo 化，避免每次渲染都重新创建对象 ---
   const headerStyles = useMemo<React.CSSProperties>(
     () => ({
@@ -85,7 +77,7 @@ export const Header: React.FC<RefineThemedLayoutHeaderProps> = ({ sticky = true 
   return (
     <AntdLayout.Header style={headerStyles}>
       <Space>
-        {!BatchError && (
+        {!isBatchMisconfigured && (
           <Tag color="red" data-testid="batch-error-tag">
             Batch设置有问题
           </Tag>

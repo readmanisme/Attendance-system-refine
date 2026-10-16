@@ -24,14 +24,14 @@ node scripts/migrate-hours/migrate.ts --url http://127.0.0.1:29401 --email <超�
 
 参数说明:
 
-| 参数 | 说明 |
-|---|---|
-| `--url` | PocketBase 地址 |
-| `--table` | 考勤表名,默认 `attendance_record_test` |
-| `--day-view` / `--month-view` | 两个工时视图名 |
-| `--email` / `--password` | 超管账号;也可用环境变量 `PB_ADMIN_EMAIL` / `PB_ADMIN_PASSWORD` |
-| `--dry-run` | 只打印计划不动数据 |
-| `--keep-old-fields` | 临时保留 check_in/check_out(调试用),默认删除 |
+| 参数                          | 说明                                                           |
+| ----------------------------- | -------------------------------------------------------------- |
+| `--url`                       | PocketBase 地址                                                |
+| `--table`                     | 考勤表名,默认 `attendance_record_test`                         |
+| `--day-view` / `--month-view` | 两个工时视图名                                                 |
+| `--email` / `--password`      | 超管账号;也可用环境变量 `PB_ADMIN_EMAIL` / `PB_ADMIN_PASSWORD` |
+| `--dry-run`                   | 只打印计划不动数据                                             |
+| `--keep-old-fields`           | 临时保留 check_in/check_out(调试用),默认删除                   |
 
 脚本会自动探测新版(`_superusers`)和旧版(`/api/admins`)登录端点,新旧 PocketBase 都能跑。
 

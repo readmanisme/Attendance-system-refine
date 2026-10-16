@@ -55,11 +55,7 @@ const AttendanceRecordEdit = () => {
           })}
           normalize={(value: any) => (value == null ? undefined : Math.round(value * 60))}
         >
-          <InputNumber
-            min={0}
-            max={24}
-            step={0.5}
-          />
+          <InputNumber min={0} max={24} step={0.5} />
         </Form.Item>
       </Form>
     </Edit>

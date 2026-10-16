@@ -1,39 +1,20 @@
-import {
-  DeleteButton,
-  EditButton,
-  List,
-  useTable,
-} from "@refinedev/antd";
-import { CrudFilter, useDeleteMany, BaseRecord } from "@refinedev/core";
+import { DeleteButton, EditButton, List, useTable } from "@refinedev/antd";
+import { useDeleteMany, BaseRecord, CrudFilter } from "@refinedev/core";
 import { Space, Table, Button, Popconfirm, Alert, Tooltip } from "antd";
-import { useMemo, useCallback, useState } from "react";
+import { useCallback } from "react";
 import { SwitchDataRange } from "@/components/SwitchDataRange";
 import { useGetDatePickerFilter } from "@/utils/get_data_picker_filter";
 import PySearchSelect from "@/components/PySearchSelect";
 import { formatHoursExact } from "@/utils/workTime";
+import { buildEqOrFilter, cellTestId } from "@/utils/tableHelpers";
 import { DeleteOutlined, PlusSquareOutlined } from "@ant-design/icons";
 import { useResourceParams } from "@refinedev/core";
+import { useBatchRowSelection } from "../useBatchRowSelection";
+
 const AttendanceRecordList = () => {
   const datePickerFilter = useGetDatePickerFilter();
   const { resource } = useResourceParams();
-  const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
-  const canNotDelete = useMemo(() => {
-    return selectedRowKeys.length > 0;
-  }, [selectedRowKeys]);
-  // useMemo 避免每次渲染都重新创建过滤函数
-  const getFilter = useCallback((values: any) => {
-    if (!values?.length) return [];
-    return [
-      {
-        operator: "or",
-        value: values.map((r: any) => ({
-          field: "worker_id",
-          operator: "eq",
-          value: r.value,
-        })),
-      },
-    ];
-  }, []);
+  const selection = useBatchRowSelection();
 
   const { tableProps, setFilters, setCurrentPage } = useTable({
     resource: __AttendanceRecord_TableName,
@@ -51,6 +32,7 @@ const AttendanceRecordList = () => {
 
   const { mutate: deleteMany } = useDeleteMany();
 
+  const { selectedRowKeys, clearSelection } = selection;
   const handleBatchDelete = useCallback(() => {
     if (!selectedRowKeys.length) return;
     deleteMany({
@@ -58,20 +40,8 @@ const AttendanceRecordList = () => {
       resource: resource?.name,
       ids: selectedRowKeys as number[],
     });
-    setSelectedRowKeys([]);
-  }, [deleteMany, resource?.name, selectedRowKeys]);
-
-  // ✅ 用 useMemo 固定 rowSelection 对象引用，避免 tableProps 导致 re-render
-  const rowSelection = useMemo(
-    () => ({
-      selectedRowKeys,
-      onChange: setSelectedRowKeys,
-      onCell: (record: any, rowIndex: any) => ({ "data-testid": `row-checkbox-${rowIndex}` }),
-    }),
-    [selectedRowKeys],
-  );
-
-  // ✅ 统一用 formatHoursExact 渲染工时，避免在每个 cell render 中重复换算
+    clearSelection();
+  }, [deleteMany, resource?.name, selectedRowKeys, clearSelection]);
 
   return (
     <List
@@ -94,8 +64,6 @@ const AttendanceRecordList = () => {
       <Alert
         data-testid="help-alert-2"
         message="要查看特定天数的记录，推荐到人员签到页面切换时间到此天查看"
-        // 因为考勤记录页面和工时页面同步，而工时页面如果精细到天那么显示可能会出问题，因为月的数据直接从表读取而不是通过天的数据计算而来；不过也可以让这两个分离，设置两个存储，往组件里面传参数，不同参数用不同存储
-        // 不过我觉得可能需求不是很大？
         type="info"
         showIcon
         className="mb-2!"
@@ -109,23 +77,23 @@ const AttendanceRecordList = () => {
           <Popconfirm
             title="确认删除选中记录？"
             onConfirm={handleBatchDelete}
-            disabled={!selectedRowKeys.length}
+            disabled={!selection.selectedRowKeys.length}
           >
             <Button
               type="primary"
               data-testid="batch-delete-button"
               danger
               icon={<DeleteOutlined />}
-              disabled={!selectedRowKeys.length}
+              disabled={!selection.selectedRowKeys.length}
             >
-              删除选中 ({selectedRowKeys.length})
+              删除选中 ({selection.selectedRowKeys.length})
             </Button>
           </Popconfirm>
 
           <SwitchDataRange
             onApplyFn={() => {
               setCurrentPage(1);
-              setSelectedRowKeys([]);
+              selection.clearSelection();
             }}
           />
         </div>
@@ -133,18 +101,17 @@ const AttendanceRecordList = () => {
 
       {/* 工人筛选 */}
       <PySearchSelect
-        onChangeFn={(value: any) => {
-          // @ts-expect-error,111
-          setFilters(getFilter(value));
+        onChangeFn={(values) => {
+          setFilters(buildEqOrFilter("worker_id", toOptionValues(values) ?? []) as CrudFilter[]);
           setCurrentPage(1);
-          setSelectedRowKeys([]);
+          selection.clearSelection();
         }}
         placeholder="多选工人,支持拼音"
         mode="multiple"
         onClearFn={() => {
           setFilters([], "replace");
           setCurrentPage(1);
-          setSelectedRowKeys([]);
+          selection.clearSelection();
         }}
         needButton
       />
@@ -158,39 +125,30 @@ const AttendanceRecordList = () => {
         }}
         rowKey="id"
         // @ts-expect-error,111
-        rowSelection={rowSelection}
+        rowSelection={selection.rowSelection}
         className="mt-2"
       >
-        <Table.Column
-          dataIndex="id"
-          title="ID"
-          // @ts-expect-error,111
-          onCell={(record: any, rowIndex: any) => ({ "data-testid": `row-id-${rowIndex}` })}
-        />
+        <Table.Column dataIndex="id" title="ID" onCell={cellTestId((i) => `row-id-${i}`)} />
         <Table.Column
           dataIndex={["expand", "worker_id", "name"]}
           title="人员姓名"
-          // @ts-expect-error,111
-          onCell={(record: any, rowIndex: any) => ({ "data-testid": `row-name-${rowIndex}` })}
+          onCell={cellTestId((i) => `row-name-${i}`)}
         />
         <Table.Column
           dataIndex="work_date"
           title="日期"
-          // @ts-expect-error,111
-          onCell={(record: any, rowIndex: any) => ({ "data-testid": `row-date-${rowIndex}` })}
+          onCell={cellTestId((i) => `row-date-${i}`)}
         />
         <Table.Column
           dataIndex="work_minutes"
           title="工时"
           render={(value: number | null) => formatHoursExact(value)}
-          // @ts-expect-error,111
-          onCell={(record: any, rowIndex: any) => ({ "data-testid": `row-num-${rowIndex}` })}
+          onCell={cellTestId((i) => `row-num-${i}`)}
         />
         <Table.Column
           dataIndex={["expand", "work", "name"]}
           title="工作类型"
-          // @ts-expect-error,111
-          onCell={(record: any, rowIndex: any) => ({ "data-testid": `row-work-${rowIndex}` })}
+          onCell={cellTestId((i) => `row-work-${i}`)}
         />
         <Table.Column
           title="操作"
@@ -203,13 +161,12 @@ const AttendanceRecordList = () => {
                 size="small"
                 recordItemId={record.id}
               />
-              {/* <ShowButton hideText size="small" recordItemId={record.id} /> */}
               <DeleteButton
                 data-testid={`delete-button-${index}`}
                 hideText
                 size="small"
                 recordItemId={record.id}
-                disabled={canNotDelete}
+                disabled={selection.hasSelection}
               />
             </Space>
           )}
@@ -218,4 +175,9 @@ const AttendanceRecordList = () => {
     </List>
   );
 };
+
+/** antd labelInValue 的选项载荷 → 纯 value 列表 */
+const toOptionValues = (values: any): Array<string | number> =>
+  values?.length ? values.map((r: any) => r.value) : [];
+
 export default AttendanceRecordList;

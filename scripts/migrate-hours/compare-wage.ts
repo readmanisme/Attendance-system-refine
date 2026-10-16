@@ -56,7 +56,11 @@ const zeroAgg = (): Agg => ({ wage: new Decimal(0), minutes: 0, hoursMs: 0 });
 const zeroMap = () => new Map<string, Agg>();
 
 // ---------- HTTP ----------
-async function req(url: string, path: string, init: { method?: string; body?: any; token?: string } = {}): Promise<any> {
+async function req(
+  url: string,
+  path: string,
+  init: { method?: string; body?: any; token?: string } = {},
+): Promise<any> {
   const res = await fetch(`${url}${path}`, {
     method: init.method ?? "GET",
     headers: {
@@ -86,7 +90,10 @@ async function auth(url: string): Promise<string> {
   let lastError: unknown;
   for (const endpoint of endpoints) {
     try {
-      const r = await req(url, endpoint, { method: "POST", body: { identity: EMAIL, password: PASSWORD } });
+      const r = await req(url, endpoint, {
+        method: "POST",
+        body: { identity: EMAIL, password: PASSWORD },
+      });
       return r.token as string;
     } catch (e) {
       lastError = e;
@@ -95,7 +102,12 @@ async function auth(url: string): Promise<string> {
   throw lastError;
 }
 
-async function fetchAll(url: string, token: string, collection: string, expand = ""): Promise<AnyRec[]> {
+async function fetchAll(
+  url: string,
+  token: string,
+  collection: string,
+  expand = "",
+): Promise<AnyRec[]> {
   const all: AnyRec[] = [];
   let page = 1;
   for (;;) {
@@ -173,7 +185,13 @@ function computeSide(
   const months = zeroMap();
   const skipped: Array<{ id: string; reason: string }> = [];
 
-  const bump = (m: Map<string, Agg>, key: string, wageUp: Decimal, minutes: number, hoursMs: number) => {
+  const bump = (
+    m: Map<string, Agg>,
+    key: string,
+    wageUp: Decimal,
+    minutes: number,
+    hoursMs: number,
+  ) => {
     const a = m.get(key) ?? zeroAgg();
     a.wage = a.wage.plus(wageUp);
     a.minutes += minutes;
@@ -295,8 +313,22 @@ async function main() {
   // ----- 考勤记录 -----
   const repOld = await fetchAll(OLD_URL, tokenOld, TABLES.attendance);
   const repNew = await fetchAll(NEW_URL, tokenNew, TABLES.attendance);
-  const oldModel = computeSide(OLD_URL, "old", repOld, new Map(workersOld.map((w) => [String(w.id), String(w.name)])), new Map(workTypesOld.map((w) => [String(w.id), String(w.name)])), dictOld);
-  const newModel = computeSide(NEW_URL, "new", repNew, new Map(workersNew.map((w) => [String(w.id), String(w.name)])), new Map(workTypesNew.map((w) => [String(w.id), String(w.name)])), dictNew);
+  const oldModel = computeSide(
+    OLD_URL,
+    "old",
+    repOld,
+    new Map(workersOld.map((w) => [String(w.id), String(w.name)])),
+    new Map(workTypesOld.map((w) => [String(w.id), String(w.name)])),
+    dictOld,
+  );
+  const newModel = computeSide(
+    NEW_URL,
+    "new",
+    repNew,
+    new Map(workersNew.map((w) => [String(w.id), String(w.name)])),
+    new Map(workTypesNew.map((w) => [String(w.id), String(w.name)])),
+    dictNew,
+  );
 
   // ----- 逐组比对 -----
   const diffs: RowDiff[] = [];
@@ -359,8 +391,12 @@ async function main() {
   // 对 29403 的逐条毫秒差重算预期分钟数: 需要旧记录逐条数据
   const oldRecordsByFk = new Map<string, AnyRec[]>();
   for (const rec of repOld) {
-    const workerName = new Map(workersOld.map((w) => [String(w.id), String(w.name)])).get(String(rec.worker_id)) ?? "未知";
-    const workName = new Map(workTypesOld.map((w) => [String(w.id), String(w.name)])).get(String(rec.work)) ?? "未知";
+    const workerName =
+      new Map(workersOld.map((w) => [String(w.id), String(w.name)])).get(String(rec.worker_id)) ??
+      "未知";
+    const workName =
+      new Map(workTypesOld.map((w) => [String(w.id), String(w.name)])).get(String(rec.work)) ??
+      "未知";
     const checkIn = parseDate(rec.check_in);
     if (!checkIn) continue;
     const gk = `${workerName}|${localDateKey(checkIn)}|${workName}`;
@@ -383,8 +419,14 @@ async function main() {
   const skippedOld = oldModel.skipped;
 
   // ----- 汇总 -----
-  const totalOldWage: Decimal = [...oldModel.months.values()].reduce((a, v) => a.plus(v.wage), new Decimal(0));
-  const totalNewWage: Decimal = [...newModel.months.values()].reduce((a, v) => a.plus(v.wage), new Decimal(0));
+  const totalOldWage: Decimal = [...oldModel.months.values()].reduce(
+    (a, v) => a.plus(v.wage),
+    new Decimal(0),
+  );
+  const totalNewWage: Decimal = [...newModel.months.values()].reduce(
+    (a, v) => a.plus(v.wage),
+    new Decimal(0),
+  );
   const totalDiff = totalOldWage.minus(totalNewWage);
 
   const summary = {
@@ -394,7 +436,10 @@ async function main() {
     workerDiffs,
     workTypeDiffs,
     salaryDiffs,
-    salaryCount: { old: Object.keys(dictOld).filter((k) => k !== "基础").length, new: Object.keys(dictNew).filter((k) => k !== "基础").length },
+    salaryCount: {
+      old: Object.keys(dictOld).filter((k) => k !== "基础").length,
+      new: Object.keys(dictNew).filter((k) => k !== "基础").length,
+    },
     skipReasonsOld: Object.entries(
       skippedOld.reduce<Record<string, number>>((acc, s) => {
         acc[s.reason] = (acc[s.reason] ?? 0) + 1;
@@ -414,19 +459,32 @@ async function main() {
   };
 
   // 终端摘要
-  console.log(`记录: 旧${repOld.length} 新${repNew.length}  时薪条目: 旧${summary.salaryCount.old} 新${summary.salaryCount.new}`);
-  console.log(`工人字典差异: ${workerDiffs.length}  工种字典差异: ${workTypeDiffs.length}  时薪差异: ${salaryDiffs.length}`);
-  for (const s of [...workerDiffs, ...workTypeDiffs, ...salaryDiffs].slice(0, 10)) console.log("  " + s);
-  console.log(`旧逻辑跳过的记录 ${skippedOld.length} 条, 原因分布: ${JSON.stringify(summary.skipReasonsOld)}`);
+  console.log(
+    `记录: 旧${repOld.length} 新${repNew.length}  时薪条目: 旧${summary.salaryCount.old} 新${summary.salaryCount.new}`,
+  );
+  console.log(
+    `工人字典差异: ${workerDiffs.length}  工种字典差异: ${workTypeDiffs.length}  时薪差异: ${salaryDiffs.length}`,
+  );
+  for (const s of [...workerDiffs, ...workTypeDiffs, ...salaryDiffs].slice(0, 10))
+    console.log("  " + s);
+  console.log(
+    `旧逻辑跳过的记录 ${skippedOld.length} 条, 原因分布: ${JSON.stringify(summary.skipReasonsOld)}`,
+  );
   console.log(`按日按工种组: 一致=${exactMatches} 有差异=${diffs.length}`);
   console.log(`按人按月:      一致=${monthExactMatches} 有差异=${monthDiffs.length}`);
-  console.log(`总工资: 旧=${totalOldWage.toString()} 新=${totalNewWage.toString()} 差=${totalDiff.toString()}`);
+  console.log(
+    `总工资: 旧=${totalOldWage.toString()} 新=${totalNewWage.toString()} 差=${totalDiff.toString()}`,
+  );
   for (const m of monthDiffs.slice(0, 30)) {
-    console.log(`  [月] ${m.key}  旧=${m.oldWage} 新=${m.newWage} 差=${m.diff}  分钟 旧精确=${m.oldMinutesExact} 新=${m.newMinutes} 预期=${m.expectNewMinutes}${m.benign ? " ←仅分钟取整" : " ←数据不一致"}`);
+    console.log(
+      `  [月] ${m.key}  旧=${m.oldWage} 新=${m.newWage} 差=${m.diff}  分钟 旧精确=${m.oldMinutesExact} 新=${m.newMinutes} 预期=${m.expectNewMinutes}${m.benign ? " ←仅分钟取整" : " ←数据不一致"}`,
+    );
   }
   for (const d of diffs.slice(0, 30)) {
     if (d.granule === "day") {
-      console.log(`  [日] ${d.key}  旧=${d.oldWage} 新=${d.newWage} 差=${d.diff}  分钟 旧精确=${d.oldMinutesExact} 新=${d.newMinutes} 预期=${d.expectNewMinutes}${d.benign ? " ←仅分钟取整" : " ←数据不一致"}`);
+      console.log(
+        `  [日] ${d.key}  旧=${d.oldWage} 新=${d.newWage} 差=${d.diff}  分钟 旧精确=${d.oldMinutesExact} 新=${d.newMinutes} 预期=${d.expectNewMinutes}${d.benign ? " ←仅分钟取整" : " ←数据不一致"}`,
+      );
     }
   }
 

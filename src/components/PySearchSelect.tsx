@@ -5,16 +5,21 @@ import type { DefaultOptionType } from "antd/es/select";
 import { useSelect } from "@refinedev/antd";
 import { SearchOutlined } from "@ant-design/icons";
 
-interface PySearchSelectProps {
-  onChangeFn: (value: { value: string; label: string }) => void;
+/** 单个选项,或 antd 多选模式下的选项数组 */
+type SearchValue = { value: string; label: string };
+
+export interface PySearchSelectProps {
+  /** antd 原生 onChange 的完整载荷(多选模式为数组;labelInValue 下不会为 null) */
+  onChangeFn: (value: SearchValue | SearchValue[]) => void;
   tableOptions?: { table: string; optionLabel: string };
   placeholder?: string;
-  Laberplaceholder?: string;
+  labelPlaceholder?: string;
   onClearFn?: () => void;
   mode?: "multiple" | "tags";
   needButton?: boolean;
   width?: number | string;
-  disabeld?: boolean;
+  disabled?: boolean;
+  /** "qiandao" 时接受外部 value 实现受控 */
   type?: string;
   value?: any;
 }
@@ -27,21 +32,20 @@ export default function PySearchSelect({
   onChangeFn,
   tableOptions = { table: __Workers_TableName, optionLabel: "name" },
   placeholder = "请选择考勤人员",
-  Laberplaceholder = "搜索工人：",
+  labelPlaceholder = "搜索工人：",
   onClearFn = () => {},
   mode = undefined,
   needButton = false,
   width = 250,
-  disabeld = false,
+  disabled = false,
   type = undefined,
   value = undefined,
 }: PySearchSelectProps) {
-  // 保持 Set<string> 的定义
+  // 高亮词集合:拼音模式存匹配到的字符,汉字模式存输入词
   const [highlightWords, setHighlightWords] = useState(new Set<string>());
-  const SelectValue = useRef<{ value: string; label: string }>({
-    value: "",
-    label: "",
-  });
+  const clearHighlight = useCallback(() => setHighlightWords(new Set()), []);
+  // needButton 模式下,点击"搜索"按钮才把最后一次选择抛给 onChangeFn
+  const SelectValue = useRef<SearchValue | SearchValue[]>({ value: "", label: "" });
 
   const { selectProps } = useSelect({
     resource: tableOptions.table,
@@ -56,26 +60,21 @@ export default function PySearchSelect({
     ],
   });
 
-  /** 判断输入是否是拼音字母 */
   const isPinyin = (input: string) => /^[a-zA-Z]+$/.test(input);
-  // console.log(highlightWords);
-  /** ✅ 统一的搜索逻辑函数 */
-  const handleFilter = useCallback((input: string, option?: { label?: string; value?: string }) => {
-    if (!option?.label) return false;
-    const label = option.label;
+
+  /** 统一的搜索逻辑:返回该选项是否命中,并顺势记录要高亮的词 */
+  const handleFilter = useCallback((input: string, option?: DefaultOptionType) => {
+    const label = typeof option?.label === "string" ? option.label : undefined;
+    if (!label) return false;
 
     if (isPinyin(input)) {
       const result = match(label, input, { v: true });
       if (result) {
-        const matchedChars = result.map((idx) => label[idx]);
-
-        // 🚨 修改点 1: 将匹配到的字符添加到 Set 中，而不是合并数组
         setHighlightWords((prev) => {
           const newSet = new Set(prev);
-          matchedChars.forEach((char) => newSet.add(char));
+          result.forEach((idx) => newSet.add(label[idx]));
           return newSet;
         });
-
         return true;
       }
       return false;
@@ -83,29 +82,19 @@ export default function PySearchSelect({
 
     const lower = input.toLowerCase();
     if (label.toLowerCase().includes(lower)) {
-      // 🚨 修改点 2: 将输入内容设置为新的 Set
       setHighlightWords(new Set([input]));
       return true;
     }
     return false;
   }, []);
 
-  const otherOptions: any = {}; //可以用于根据条件加入参数
-  if (type === "qiandao") {
-    otherOptions.value = value;
-  }
-
-  /** ✅ 高亮渲染函数 */
+  /** 高亮渲染:把命中的字符/词染成蓝色 */
   const renderOptionLabel = useCallback(
     (option: DefaultOptionType) => {
       const label = option.label as string;
-
-      // 🚨 修改点 3: 检查 Set 是否为空，使用 highlightWords.size
       if (!highlightWords.size) return <span>{label}</span>;
 
-      // 将 Set 转换回数组以进行 join 操作用于创建正则表达式
       const highlightArray = Array.from(highlightWords);
-
       const regex = new RegExp(`(${highlightArray.join("|")})`, "gi");
       const parts = label.split(regex);
       return (
@@ -126,58 +115,42 @@ export default function PySearchSelect({
   );
 
   const handleClear = useCallback(() => {
-    // 🚨 修改点 4: 清空 Set
-    setHighlightWords(new Set());
+    clearHighlight();
     onClearFn();
-  }, [onClearFn]);
+  }, [clearHighlight, onClearFn]);
 
   const handleChange = useCallback(
-    (value: { value: string; label: string }) => {
-      // 🚨 修改点 5: 清空 Set
-      setHighlightWords(new Set());
-      if (!needButton) onChangeFn(value); //needButton的作用是避免即时筛选
+    (value: SearchValue | SearchValue[]) => {
+      clearHighlight();
+      // needButton 的作用是避免即时筛选:点"搜索"按钮才触发 onChangeFn
+      if (!needButton) onChangeFn(value);
       SelectValue.current = value;
     },
-    [needButton, onChangeFn],
+    [needButton, onChangeFn, clearHighlight],
   );
 
   return (
     <Flex gap="small" align="center">
-      {Laberplaceholder && <div>{Laberplaceholder}</div>}
+      {labelPlaceholder && <div>{labelPlaceholder}</div>}
       <Select
-        // classNames={{
-        // 	 root: "my-classname",
-        // }}
         data-testid="py-search-select"
         {...selectProps}
-        {...otherOptions}
+        {...(type === "qiandao" ? { value } : {})}
         placeholder={placeholder}
         mode={mode}
         showSearch
         allowClear
-        disabled={disabeld}
+        disabled={disabled}
         labelInValue
         optionFilterProp="label"
-        // style={{ width: '100%' }}
         style={{ width: width }}
-        // className="w-full!"
-        // classNames={{
-        // 	 "root":"w-full!"
-        // }}
         filterOption={handleFilter}
-        onChange={handleChange} //选择和删除选项触发，输入内容不触发
+        onChange={handleChange} //选择和删除选项触发
         onClear={handleClear}
-        onBlur={() => setHighlightWords(new Set())} // 🚨 修改点 6: 清空 Set
-        // onSelect={() => setHighlightWords([])}
+        onBlur={clearHighlight}
         optionRender={renderOptionLabel}
-        onSearch={(value: string) => {
-          // 输入内容的时候，高亮词重置
-          setHighlightWords(new Set()); // 🚨 修改点 7: 清空 Set
-          if (!value) {
-            setHighlightWords(new Set()); // 🚨 修改点 8: 清空 Set
-            // 内容清空的时候，清空高亮词
-          }
-        }}
+        // 每次输入变化时重置高亮,由 handleFilter 在本轮过滤中重新累积
+        onSearch={() => setHighlightWords(new Set())}
       />
       {needButton && (
         <Button

@@ -1,11 +1,11 @@
 import { useResourceParams } from "@refinedev/core";
 import { FloatButton, Drawer } from "antd";
 import { Typography } from "antd";
-import { useSomeStore } from "@/stores";
+import { useUiStore } from "@/stores";
 const { Title, Paragraph } = Typography;
 export const GlobalHelp = () => {
   const { resource } = useResourceParams();
-  const { helpOpen, setHelpOpen } = useSomeStore();
+  const { helpOpen, setHelpOpen } = useUiStore();
   // 值得注意，由于使用到了useResource这个用到react routerdom的hook，所以需要在路由组件包裹下使用，否则无效
   const helps: Record<string, React.ReactNode> = {
     人员签到: (

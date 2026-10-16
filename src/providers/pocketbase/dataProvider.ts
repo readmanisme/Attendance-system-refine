@@ -12,13 +12,17 @@ import type { RecordListOptions, SendOptions } from "pocketbase";
 import { isClientResponseError, toHttpError } from "./utils";
 import { transformFilter } from "./filters";
 
+/** 把 PocketBase SDK 的错误统一转成 refine 认识的 HTTP 错误再抛出 */
+const rethrow = (e: unknown): never => {
+  throw isClientResponseError(e) ? toHttpError(e) : e;
+};
+
 export const dataProvider = (pb: PocketBase): DataProvider => ({
   // https://refine.dev/docs/data/data-provider/
   getList: async ({ resource, pagination, filters, sorters, meta }) => {
     const { currentPage = 1, pageSize = 10, mode = "server" } = pagination ?? {};
     // refine v5用currentPage，v4用current
     const sort = sorters?.map((s) => `${s.order === "desc" ? "-" : ""}${s.field}`).join(",");
-    // console.log("untransformed filters", filters)
     const options: RecordListOptions = {
       requestKey: meta?.requestKey ?? null,
       ...(sort ? { sort } : {}),
@@ -26,7 +30,6 @@ export const dataProvider = (pb: PocketBase): DataProvider => ({
       ...(meta?.expand ? { expand: meta?.expand.join(",") } : {}),
       ...(meta?.fields ? { fields: meta?.fields?.join(",") } : {}),
     };
-    // console.log("options", options)
     const collection = pb.collection(resource);
     try {
       if (mode === "server") {
@@ -37,7 +40,7 @@ export const dataProvider = (pb: PocketBase): DataProvider => ({
           total: totalItems,
         } as GetListResponse<any>;
       } else {
-        // options.batch = 9999; //没有必要设置，因为根据https://github.com/pocketbase/pocketbase/discussions/4677，getFullList会使用getList一直获取直到结束，默认的500一般情况下足够【2026年10月16日，现在改成1000了】
+        // getFullList 会自动翻页直到取完
         const items = await collection.getFullList(options);
 
         return {
@@ -46,10 +49,7 @@ export const dataProvider = (pb: PocketBase): DataProvider => ({
         } as GetListResponse<any>;
       }
     } catch (e: unknown) {
-      if (isClientResponseError(e)) {
-        throw toHttpError(e);
-      }
-      throw e;
+      return rethrow(e);
     }
   },
 
@@ -61,15 +61,11 @@ export const dataProvider = (pb: PocketBase): DataProvider => ({
 
       return { data } as CreateResponse<any>;
     } catch (e: unknown) {
-      if (isClientResponseError(e)) {
-        throw toHttpError(e);
-      }
-      throw e;
+      return rethrow(e);
     }
   },
 
   createMany: async ({ resource, variables, meta }) => {
-    // 2025年11月9日，应该没问题
     try {
       const batch = pb.createBatch();
       variables.forEach((variable) => {
@@ -82,10 +78,7 @@ export const dataProvider = (pb: PocketBase): DataProvider => ({
       // 测试可以，非成功会直接catch，不用自行判断
       return { data } as CreateResponse<any>;
     } catch (e: unknown) {
-      if (isClientResponseError(e)) {
-        throw toHttpError(e);
-      }
-      throw e;
+      return rethrow(e);
     }
   },
 
@@ -99,54 +92,29 @@ export const dataProvider = (pb: PocketBase): DataProvider => ({
 
       return { data } as UpdateResponse<any>;
     } catch (e: unknown) {
-      if (isClientResponseError(e)) {
-        throw toHttpError(e);
-      }
-      throw e;
+      return rethrow(e);
     }
   },
 
   // 因为refine的useUpdateMany是一次性升级多个id的相同的字段为相同的内容，所以并不符合需求，所以我根据情况来实现。
   updateMany: async ({ resource, ids, variables, meta }) => {
-    // You can handle the request according to your API requirements.
-    if (meta?.type === "diff") {
-      // 升级但是每个内容不一样
-      try {
-        const batch = pb.createBatch();
-        meta.updates.forEach((update: any) => {
-          batch
-            .collection(resource)
-            .update(update.id as string, update.values as Record<string, unknown>, {
-              requestKey: meta?.requestKey ?? null,
-            });
+    // meta.type === "diff": 每个 id 应用各自的 values;否则所有 ids 应用同一份 variables
+    const updates: Array<[id: string, values: unknown]> =
+      meta?.type === "diff"
+        ? (meta.updates as Array<{ id: string; values: unknown }>).map((u) => [u.id, u.values])
+        : (ids ?? []).map((id) => [id as string, variables]);
+    try {
+      const batch = pb.createBatch();
+      updates.forEach(([id, values]) => {
+        batch.collection(resource).update(id, values as Record<string, unknown>, {
+          requestKey: meta?.requestKey ?? null,
         });
-        const results = await batch.send(); //{"body": 一个object,"status": 200}
-        const data = results.map((result) => result.body);
-        return { data } as UpdateResponse<any>;
-      } catch (e: unknown) {
-        if (isClientResponseError(e)) {
-          throw toHttpError(e);
-        }
-        throw e;
-      }
-    } else {
-      // 下面的是升级但是每个升级内容一样
-      try {
-        const batch = pb.createBatch();
-        ids.forEach((id) => {
-          batch.collection(resource).update(id as string, variables as Record<string, unknown>, {
-            requestKey: meta?.requestKey ?? null,
-          });
-        });
-        const results = await batch.send(); //{"body": 一个object,"status": 200}
-        const data = results.map((result) => result.body);
-        return { data } as UpdateResponse<any>;
-      } catch (e: unknown) {
-        if (isClientResponseError(e)) {
-          throw toHttpError(e);
-        }
-        throw e;
-      }
+      });
+      const results = await batch.send(); //{"body": 一个object,"status": 200}
+      const data = results.map((result) => result.body);
+      return { data } as UpdateResponse<any>;
+    } catch (e: unknown) {
+      return rethrow(e);
     }
   },
 
@@ -160,19 +128,15 @@ export const dataProvider = (pb: PocketBase): DataProvider => ({
 
       return { data } as GetOneResponse<any>;
     } catch (e: unknown) {
-      if (isClientResponseError(e)) {
-        throw toHttpError(e);
-      }
-      throw e;
+      return rethrow(e);
     }
   },
 
   // 因为pocketbase没有实现一次性获取多个id的api，所以getMany无法实现,但是可以利用过滤器实现
   getMany: async ({ resource, ids, meta }) => {
-    // 2025年11月9日，应该没问题
     try {
       const data = await pb.collection(resource).getList(1, ids.length, {
-        filters: ids.map((id) => `id="${id}"`).join("||"),
+        filter: ids.map((id) => `id="${id}"`).join("||"),
         requestKey: meta?.requestKey ?? null,
         ...(meta?.expand ? { expand: meta?.expand.join(",") } : {}),
         ...(meta?.fields ? { fields: meta?.fields.join(",") } : {}),
@@ -180,10 +144,7 @@ export const dataProvider = (pb: PocketBase): DataProvider => ({
 
       return { data } as GetOneResponse<any>;
     } catch (e: unknown) {
-      if (isClientResponseError(e)) {
-        throw toHttpError(e);
-      }
-      throw e;
+      return rethrow(e);
     }
   },
 
@@ -194,16 +155,13 @@ export const dataProvider = (pb: PocketBase): DataProvider => ({
         .delete(id as string, { requestKey: meta?.requestKey ?? null });
 
       return { data: deleted ? { id } : undefined } as any;
-    } catch (e) {
-      if (isClientResponseError(e)) {
-        throw toHttpError(e);
-      }
-      throw e;
+    } catch (e: unknown) {
+      return rethrow(e);
     }
   },
 
   deleteMany: async ({ resource, ids, meta }) => {
-    // 2025年11月9日。测试的时候报错了，那是因为pb实例不是管理员级别，而你设置了基础工作类型不能删除，所以会报错
+    // 测试的时候报错了，那是因为pb实例不是管理员级别，而你设置了基础工作类型不能删除，所以会报错
     try {
       const batch = pb.createBatch();
       ids.forEach((id) => {
@@ -211,11 +169,8 @@ export const dataProvider = (pb: PocketBase): DataProvider => ({
       });
       await batch.send(); //{"body": null,"status": 204}
       return { data: ids } as any; //报错那就一个都删不了，不用判断每个的状态
-    } catch (e) {
-      if (isClientResponseError(e)) {
-        throw toHttpError(e);
-      }
-      throw e;
+    } catch (e: unknown) {
+      return rethrow(e);
     }
   },
 
@@ -235,10 +190,7 @@ export const dataProvider = (pb: PocketBase): DataProvider => ({
         data: response,
       } as CustomResponse<any>;
     } catch (e: unknown) {
-      if (isClientResponseError(e)) {
-        throw toHttpError(e);
-      }
-      throw e;
+      return rethrow(e);
     }
   },
 });

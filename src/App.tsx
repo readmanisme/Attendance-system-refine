@@ -33,7 +33,7 @@ import {
 import { GlobalHelp } from "./components/GlobalHelp";
 import { useTranslation } from "react-i18next";
 import { getPb } from "@/utils/pocketbase";
-import { useSomeStore } from "./stores";
+import { useConfigStore } from "./stores";
 import { Suspense, useMemo } from "react";
 import React from "react";
 
@@ -58,6 +58,31 @@ const RouteLoading = () => (
     <Spin size="large" />
   </div>
 );
+
+/** 常规 CRUD 页面的路由配置:同构的 组统一生成 */
+interface CrudRouteItem {
+  path: string;
+  list: React.ComponentType;
+  /** 有 create/edit 能力的资源才需要配 */
+  create?: React.ComponentType;
+  edit?: React.ComponentType;
+}
+
+// 懒加载页面的统一 Suspense 包装
+const lazyRoute = (Comp: React.ComponentType) => (
+  <Suspense fallback={<RouteLoading />}>
+    <Comp />
+  </Suspense>
+);
+
+const crudRoutes: CrudRouteItem[] = [
+  { path: "/qiandao", list: QianDaoPage },
+  { path: "/attendance-record", list: AttendanceRecordList, edit: AttendanceRecordEdit },
+  { path: "/workers", list: WorkersList, create: WorkersCreate, edit: WorkersEdit },
+  { path: "/workType", list: ListWorkType, create: CreateWorkType, edit: EditWorkType },
+  { path: "/xinzi", list: SalaryTypeList, create: SalaryTypeCreate, edit: SalaryTypeEdit },
+  { path: "/gongshi", list: GongShiList },
+];
 const devOnlyRoutesConfig = import.meta.env.DEV
   ? [
       {
@@ -95,7 +120,7 @@ const AppTitle = React.memo(({ collapsed }: { collapsed: boolean }) => (
 ));
 function App() {
   const { t, i18n } = useTranslation();
-  const { __BACKEND_API_URL__ } = useSomeStore();
+  const { __BACKEND_API_URL__ } = useConfigStore();
   const pb = useMemo(() => getPb(__BACKEND_API_URL__), [__BACKEND_API_URL__]);
   const i18nProvider = useMemo(
     () => ({
@@ -208,133 +233,18 @@ function App() {
                   {/* 首页重定向 */}
                   <Route index element={<NavigateToResource resource="qiandao" />} />
 
-                  {/* 人员签到 */}
-                  <Route path="/qiandao">
-                    <Route
-                      index
-                      element={
-                        <Suspense fallback={<RouteLoading />}>
-                          <QianDaoPage />
-                        </Suspense>
-                      }
-                    />
-                  </Route>
-
-                  {/* 考勤记录 */}
-                  <Route path="/attendance-record">
-                    <Route
-                      index
-                      element={
-                        <Suspense fallback={<RouteLoading />}>
-                          <AttendanceRecordList />
-                        </Suspense>
-                      }
-                    />
-                    <Route
-                      path="edit/:id"
-                      element={
-                        <Suspense fallback={<RouteLoading />}>
-                          <AttendanceRecordEdit />
-                        </Suspense>
-                      }
-                    />
-                  </Route>
-
-                  {/* 人员管理 */}
-                  <Route path="/workers">
-                    <Route
-                      index
-                      element={
-                        <Suspense fallback={<RouteLoading />}>
-                          <WorkersList />
-                        </Suspense>
-                      }
-                    />
-                    <Route
-                      path="create"
-                      element={
-                        <Suspense fallback={<RouteLoading />}>
-                          <WorkersCreate />
-                        </Suspense>
-                      }
-                    />
-                    <Route
-                      path="edit/:id"
-                      element={
-                        <Suspense fallback={<RouteLoading />}>
-                          <WorkersEdit />
-                        </Suspense>
-                      }
-                    />
-                  </Route>
-
-                  {/* 工作管理 */}
-                  <Route path="/workType">
-                    <Route
-                      index
-                      element={
-                        <Suspense fallback={<RouteLoading />}>
-                          <ListWorkType />
-                        </Suspense>
-                      }
-                    />
-                    <Route
-                      path="create"
-                      element={
-                        <Suspense fallback={<RouteLoading />}>
-                          <CreateWorkType />
-                        </Suspense>
-                      }
-                    />
-                    <Route
-                      path="edit/:id"
-                      element={
-                        <Suspense fallback={<RouteLoading />}>
-                          <EditWorkType />
-                        </Suspense>
-                      }
-                    />
-                  </Route>
-
-                  {/* 薪资设置 */}
-                  <Route path="/xinzi">
-                    <Route
-                      index
-                      element={
-                        <Suspense fallback={<RouteLoading />}>
-                          <SalaryTypeList />
-                        </Suspense>
-                      }
-                    />
-                    <Route
-                      path="create"
-                      element={
-                        <Suspense fallback={<RouteLoading />}>
-                          <SalaryTypeCreate />
-                        </Suspense>
-                      }
-                    />
-                    <Route
-                      path="edit/:id"
-                      element={
-                        <Suspense fallback={<RouteLoading />}>
-                          <SalaryTypeEdit />
-                        </Suspense>
-                      }
-                    />
-                  </Route>
-
-                  {/* 工时&薪资显示 */}
-                  <Route path="/gongshi">
-                    <Route
-                      index
-                      element={
-                        <Suspense fallback={<RouteLoading />}>
-                          <GongShiList />
-                        </Suspense>
-                      }
-                    />
-                  </Route>
+                  {/* 常规 CRUD 页面(由配置统一生成) */}
+                  {crudRoutes.map(
+                    ({ path, list: ListPage, create: CreatePage, edit: EditPage }) => (
+                      <Route key={path} path={path}>
+                        <Route index element={lazyRoute(ListPage)} />
+                        {CreatePage ? (
+                          <Route path="create" element={lazyRoute(CreatePage)} />
+                        ) : null}
+                        {EditPage ? <Route path="edit/:id" element={lazyRoute(EditPage)} /> : null}
+                      </Route>
+                    ),
+                  )}
 
                   {/* 开发专用路由（懒加载 + 生产剔除） */}
                   {DevRoutes}
@@ -346,8 +256,8 @@ function App() {
               {/* </Suspense> */}
               <GlobalHelp />
               <UnsavedChangesNotifier />
-              <DocumentTitleHandler />;
-            </Refine>
+              <DocumentTitleHandler />
+            </Refine>{" "}
             <DevtoolsPanel />
           </DevtoolsProvider>
         </AntdApp>

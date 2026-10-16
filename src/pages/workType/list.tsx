@@ -1,14 +1,10 @@
 import { BaseRecord, useCreate, useList } from "@refinedev/core";
-import {
-  useTable,
-  List,
-  EditButton,
-  DeleteButton,
-  CreateButton,
-} from "@refinedev/antd";
+import { useTable, List, EditButton, DeleteButton, CreateButton } from "@refinedev/antd";
 import { Table, Space, Alert, Button, Result } from "antd";
 import { useMemo } from "react";
 import { useInvalidate } from "@refinedev/core";
+import { cellTestId } from "@/utils/tableHelpers";
+import { BASE_WORK_TYPE_NAME } from "@/constants";
 const ListWorkType = () => {
   const invalidate = useInvalidate();
 
@@ -28,7 +24,7 @@ const ListWorkType = () => {
   const sortedDataSource = useMemo(() => {
     const dataSource = [...(tableProps?.dataSource || [])];
     // 找到符合条件的项的索引
-    const index = dataSource.findLastIndex((item) => item.name === "基础");
+    const index = dataSource.findLastIndex((item) => item.name === BASE_WORK_TYPE_NAME);
     // 这里用findLastIndex而不是findIndex，因为基础在后面的可能性很大
 
     if (index > 0) {
@@ -40,7 +36,8 @@ const ListWorkType = () => {
     return dataSource;
   }, [tableProps.dataSource]);
   // 乐观警告显示不能通过提前设置true来解决，因为马上会被覆盖。
-  const HaveBaseWork = tableProps.dataSource?.some((item: any) => item.name == "基础") ?? true;
+  const HaveBaseWork =
+    tableProps.dataSource?.some((item: any) => item.name == BASE_WORK_TYPE_NAME) ?? true;
   const { result } = useList({ resource: __WorkRecordNum_TableName, pagination: { mode: "off" } });
   const WorkRecordNum = new Map(result.data.map((item: any) => [item.work_id, item.record_count]));
   if (!HaveBaseWork) {
@@ -58,7 +55,7 @@ const ListWorkType = () => {
                   {
                     values: {
                       id: "basebasebasebas", //必须刚好15位
-                      name: "基础",
+                      name: BASE_WORK_TYPE_NAME,
                     },
                   },
                   {
@@ -116,24 +113,13 @@ const ListWorkType = () => {
                     title="Created"
                     render={(value: any) => <DateField value={value} />}
                 /> */}
-        <Table.Column
-          dataIndex="id"
-          title="Id"
-          // @ts-expect-error,111
-          onCell={(record: any, rowIndex: any) => ({ "data-testid": `row-id-${rowIndex}` })}
-        />
-        <Table.Column
-          dataIndex="name"
-          title="名字"
-          // @ts-expect-error,111
-          onCell={(record: any, rowIndex: any) => ({ "data-testid": `row-name-${rowIndex}` })}
-        />
+        <Table.Column dataIndex="id" title="Id" onCell={cellTestId((i) => `row-id-${i}`)} />
+        <Table.Column dataIndex="name" title="名字" onCell={cellTestId((i) => `row-name-${i}`)} />
         <Table.Column
           dataIndex="num"
           title="考勤记录数"
           render={(text: any, record: any) => WorkRecordNum.get(record.id)}
-          // @ts-expect-error,111
-          onCell={(record: any, rowIndex: any) => ({ "data-testid": `row-num-${rowIndex}` })}
+          onCell={cellTestId((i) => `row-num-${i}`)}
         />
         {/* <Table.Column
                     dataIndex={["updated"]}
@@ -150,13 +136,13 @@ const ListWorkType = () => {
                 hideText
                 size="small"
                 recordItemId={record.id}
-                disabled={record.name === "基础"}
+                disabled={record.name === BASE_WORK_TYPE_NAME}
               />
               {/* <ShowButton hideText size="small" recordItemId={record.id} /> */}
 
               <DeleteButton
                 data-testid={`delete-button-${index}`}
-                disabled={record.name === "基础"}
+                disabled={record.name === BASE_WORK_TYPE_NAME}
                 type={WorkRecordNum.get(record.id) > 0 ? "link" : "dashed"}
                 confirmTitle={
                   WorkRecordNum.get(record.id) > 0

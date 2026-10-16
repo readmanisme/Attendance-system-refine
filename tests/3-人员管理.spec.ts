@@ -1,9 +1,5 @@
 import { test, expect } from "@playwright/test";
-import {
-  Workers_TableName,
-  Backend_URL,
-  workers_url,
-} from "./constants";
+import { Workers_TableName, Backend_URL, workers_url } from "./constants";
 import PocketBase from "pocketbase";
 const pb = new PocketBase(Backend_URL);
 

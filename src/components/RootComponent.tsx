@@ -5,7 +5,7 @@ import { Alert, Spin } from "antd";
 import { CustomErrorBoundary } from "@/components/ErrorBoundary";
 
 import App from "@/App";
-import { useSomeStore } from "@/stores";
+import { useConfigStore } from "@/stores";
 
 async function pbHealthCheck(apiUrl: string) {
   try {
@@ -17,7 +17,7 @@ async function pbHealthCheck(apiUrl: string) {
   }
 }
 export const RootComponent: React.FC = () => {
-  const { __BACKEND_API_URL__ } = useSomeStore();
+  const { __BACKEND_API_URL__ } = useConfigStore();
   const [status, setStatus] = useState<"loading" | "ok" | "error">("loading");
 
   const checkHealth = useCallback(async () => {

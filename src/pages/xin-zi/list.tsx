@@ -1,13 +1,9 @@
 import { BaseRecord, useList } from "@refinedev/core";
-import {
-  useTable,
-  List,
-  EditButton,
-  DeleteButton,
-  CreateButton,
-} from "@refinedev/antd";
+import { useTable, List, EditButton, DeleteButton, CreateButton } from "@refinedev/antd";
 import { Table, Space, Alert } from "antd";
 import { useMemo } from "react";
+import { cellTestId } from "@/utils/tableHelpers";
+import { BASE_WORK_TYPE_NAME } from "@/constants";
 
 const SalaryTypeList = () => {
   const { tableProps } = useTable({
@@ -39,7 +35,7 @@ const SalaryTypeList = () => {
     const dataSource = [...(tableProps?.dataSource || [])];
     // 找到符合条件的项的索引
     const index = dataSource.findLastIndex(
-      (item) => item.expand?.work_type?.name === "基础" && !item.worker_name,
+      (item) => item.expand?.work_type?.name === BASE_WORK_TYPE_NAME && !item.worker_name,
     );
     // 这里用findLastIndex而不是findIndex，因为基础在后面的可能性很大
 
@@ -71,29 +67,21 @@ const SalaryTypeList = () => {
         />
       )}
       <Table {...tableProps} dataSource={sortedDataSource} rowKey="id">
-        <Table.Column
-          dataIndex="id"
-          title="ID"
-          // @ts-expect-error,111
-          onCell={(record: any, rowIndex: any) => ({ "data-testid": `row-id-${rowIndex}` })}
-        />
+        <Table.Column dataIndex="id" title="ID" onCell={cellTestId((i) => `row-id-${i}`)} />
         <Table.Column
           dataIndex={["expand", "worker_name", "name"]}
           title="工人"
-          // @ts-expect-error,111
-          onCell={(record: any, rowIndex: any) => ({ "data-testid": `row-worker-${rowIndex}` })}
+          onCell={cellTestId((i) => `row-worker-${i}`)}
         />
         <Table.Column
           dataIndex={["expand", "work_type", "name"]}
           title="工作"
-          // @ts-expect-error,111
-          onCell={(record: any, rowIndex: any) => ({ "data-testid": `row-work-${rowIndex}` })}
+          onCell={cellTestId((i) => `row-work-${i}`)}
         />
         <Table.Column
           dataIndex="SalaryNum"
           title="时薪"
-          // @ts-expect-error,111
-          onCell={(record: any, rowIndex: any) => ({ "data-testid": `row-salary-${rowIndex}` })}
+          onCell={cellTestId((i) => `row-salary-${i}`)}
         />
         <Table.Column
           title={"Actions"}
@@ -110,7 +98,10 @@ const SalaryTypeList = () => {
               {/* <ShowButton hideText size="small" recordItemId={record.id} /> */}
               <DeleteButton
                 data-testid={`delete-button-${index}`}
-                disabled={record.expand?.work_type?.name === "基础" && record.worker_name === ""}
+                disabled={
+                  record.expand?.work_type?.name === BASE_WORK_TYPE_NAME &&
+                  record.worker_name === ""
+                }
                 hideText
                 size="small"
                 recordItemId={record.id}

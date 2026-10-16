@@ -178,9 +178,7 @@ async function main() {
   // 是否已经完全迁移（check 字段已被删除）
   const alreadyMigrated = !hasCheckIn && !hasCheckOut && hasWorkDate && hasWorkMinutes;
   if (alreadyMigrated) {
-    console.log(
-      "检测到数据已迁移（无 check_in/check_out 字段），跳过数据改动，仅更新索引并校验。",
-    );
+    console.log("检测到数据已迁移（无 check_in/check_out 字段），跳过数据改动，仅更新索引并校验。");
     for (const r of records) {
       const key: Key = `${r.worker_id}|${r.work_date}|${r.work}`;
       const prev = preSnapshot.get(key);
