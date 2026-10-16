@@ -50,12 +50,12 @@ test.describe("无基础工作提示", () => {
     // 这个要手动测试的话可以把数据库里面的基础改成别的名字。
     await page.route(
       API_URL +
-        "/collections/workType_test/records?page=1&perPage=500&skipTotal=1&sort=-created&filter=",
+        "/collections/workType_test/records?page=1&perPage=1000&skipTotal=1&sort=-created&filter=",
       async (route) => {
         const json = {
           items: [],
           page: 1,
-          perPage: 500,
+          perPage: 1000,
           totalItems: -1,
           totalPages: -1,
         };
@@ -72,7 +72,7 @@ test.describe("无基础工作提示", () => {
     ).toBeVisible();
     await page.route(
       API_URL +
-        "/collections/workType_test/records?page=1&perPage=500&skipTotal=1&sort=-created&filter=",
+        "/collections/workType_test/records?page=1&perPage=1000&skipTotal=1&sort=-created&filter=",
       async (route) => {
         const response = await route.fetch();
         const json = await response.json();

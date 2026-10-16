@@ -14,6 +14,10 @@ export default defineConfig(({ command, mode }) => {
   // 只有显式执行 `vite build --mode analyze` 时才生成打包分析报告。
   // 注意：--mode analyze 不会改变 NODE_ENV，仍是 production（import.meta.env.PROD 仍为 true）
   const isAnalyze = mode === 'analyze'
+  // pnpm dev:web (vite dev --mode web) 时跳过 electron 插件，只跑纯网页。
+  // 插件基于 Vite Environment API，会注册 electron_main / electron_preload 两个环境，
+  // 不加它就是普通 Vite dev server。
+  const enableElectron = mode !== 'web' && process.env.ELECTRON !== '0'
 
   return {
       test: {
@@ -73,7 +77,7 @@ export default defineConfig(({ command, mode }) => {
         ? visualizer({ template: "treemap", filename: "bundle-treemap.html", open: true, projectRoot: /.*?node_modules\/\.pnpm\/[^/]+\/node_modules\// })
         : false
     ),
-    electronSimple({
+    ...(enableElectron ? [electronSimple({
       main: {
         input: 'electron/main/index.ts',
         options: {
@@ -98,7 +102,7 @@ export default defineConfig(({ command, mode }) => {
       // If you want use Node.js in Renderer process, the `nodeIntegration` needs to be enabled in the Main process.
       // See 👉 https://github.com/electron-vite/vite-plugin-electron-renderer
       // renderer: {},
-    }),],
+    })] : []),],
   }
 }
 )

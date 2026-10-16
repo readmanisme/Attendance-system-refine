@@ -99,24 +99,24 @@ test("时间测试", async ({ page }) => {
     await page.getByRole("textbox", { name: "开始时间" }).fill("18:00");
     await page.getByRole("button", { name: "确 定" }).click();
     await page.getByRole("button", { name: "确 定" }).click();
-    // 此时工时应该是5.5小时
-    await expect(page.getByTestId("time-difference")).toContainText("5.5小时");
+    // 此时工时应该是5.5小时【2026年10月16日，某次提交中，允许+-10min，所以工时显示改成两位小数了】
+    await expect(page.getByTestId("time-difference")).toContainText("5.50小时");
     // 点击-30min，工时应该是5小时，结束时间也应该发生变化
     await page.getByRole("button", { name: "-30min" }).click();
     await expect(page.getByRole("textbox", { name: "结束时间" })).toHaveValue("23:00");
-    await expect(page.getByTestId("time-difference")).toContainText("5小时");
+    await expect(page.getByTestId("time-difference")).toContainText("5.00小时");
     // 继续-30min
     await page.getByRole("button", { name: "-30min" }).click();
     await expect(page.getByRole("textbox", { name: "结束时间" })).toHaveValue("22:30");
-    await expect(page.getByTestId("time-difference")).toContainText("4.5小时");
+    await expect(page.getByTestId("time-difference")).toContainText("4.50小时");
     // +30min
     await page.getByRole("button", { name: "+30min" }).click();
     await expect(page.getByRole("textbox", { name: "结束时间" })).toHaveValue("23:00");
-    await expect(page.getByTestId("time-difference")).toContainText("5小时");
+    await expect(page.getByTestId("time-difference")).toContainText("5.00小时");
     // +30min
     await page.getByRole("button", { name: "+30min" }).click();
     await expect(page.getByRole("textbox", { name: "结束时间" })).toHaveValue("23:30");
-    await expect(page.getByTestId("time-difference")).toContainText("5.5小时");
+    await expect(page.getByTestId("time-difference")).toContainText("5.50小时");
   });
   await test.step("快速工时", async () => {
     // 测试tooltip显示
@@ -126,12 +126,12 @@ test("时间测试", async ({ page }) => {
     await page.getByTestId("hour-button-2").click();
     await expect(page.getByRole("textbox", { name: "开始时间" })).toHaveValue("07:00");
     await expect(page.getByRole("textbox", { name: "结束时间" })).toHaveValue("09:00");
-    await expect(page.getByTestId("time-difference")).toContainText("2小时");
+    await expect(page.getByTestId("time-difference")).toContainText("2.00小时");
     // 7.5小时
     await page.getByTestId("hour-button-7.5").click();
     await expect(page.getByRole("textbox", { name: "开始时间" })).toHaveValue("07:00");
     await expect(page.getByRole("textbox", { name: "结束时间" })).toHaveValue("14:30");
-    await expect(page.getByTestId("time-difference")).toContainText("7.5小时");
+    await expect(page.getByTestId("time-difference")).toContainText("7.50小时");
   });
 });
 

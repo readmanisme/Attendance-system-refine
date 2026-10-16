@@ -6,8 +6,15 @@ const SettingsUrl = API_URL + "/settings";
 test("健康检查", async ({ page }) => {
   // 测试后端健康检查与相应提示显示
   await test.step("初始化Alert", async () => {
+    // 先拦截 health 接口并延迟放行，人为延长 loading 状态，否则本地后端
+    // 响应太快（goto 返回时 Alert 已卸载），这里会出现竞态导致断言超时
+    await page.route(HealthUrl, async (route) => {
+      await new Promise((r) => setTimeout(r, 2000));
+      await route.fallback();
+    });
     await page.goto("/");
     await expect(page.getByTestId("Initializing-alert"), "初始化Alert").toBeVisible();
+    await page.unroute(HealthUrl);
   });
   await test.step("自动导航到签到页面", async () => {
     await expect(page.getByRole("heading", { name: "签到录入系统" })).toBeVisible();

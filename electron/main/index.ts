@@ -45,6 +45,9 @@ const indexHtml = path.join(RENDERER_DIST, 'index.html')
 async function createWindow() {
     win = new BrowserWindow({
         title: 'Main window',
+        // fullscreen: true,
+        // autoHideMenuBar: false,
+        show: false,
         webPreferences: {
             preload,
             // Warning: Enable nodeIntegration and disable contextIsolation is not secure in production
@@ -55,6 +58,7 @@ async function createWindow() {
             // contextIsolation: false,
         },
     })
+    // win.maximize()
 
     if (VITE_DEV_SERVER_URL) { // #298
         win.loadURL(VITE_DEV_SERVER_URL)
@@ -63,6 +67,11 @@ async function createWindow() {
     } else {
         win.loadFile(indexHtml)
     }
+
+    win.once('ready-to-show', () => {
+    win?.maximize()
+    win?.show()
+    })
 
     // Test actively push message to the Electron-Renderer
     win.webContents.on('did-finish-load', () => {

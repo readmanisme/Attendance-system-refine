@@ -7,6 +7,7 @@
   "scripts": {
     "dev-refine": "refine dev",
     "dev": "vite dev",
+    "dev:web": "vite dev --mode web",
     "tsc-check": "tsc --noEmit",
     "dev-profile": "vite dev --profile --open",
     "build": "vite build && node copy_electron_files.js",

@@ -159,7 +159,7 @@ test("添加校验", async ({ page }) => {
   // 伪造数据用来测试工人重复和工人工种重复
   page.route(
     API_URL +
-      "/collections/SalaryType_test/records?page=1&perPage=500&skipTotal=1&expand=worker_name%2Cwork_type",
+      "/collections/SalaryType_test/records?page=1&perPage=1000&skipTotal=1&expand=worker_name%2Cwork_type",
     async (route) => {
       const json = {
         items: [
@@ -273,7 +273,7 @@ test("添加校验", async ({ page }) => {
           },
         ],
         page: 1,
-        perPage: 500,
+        perPage: 1000,
         totalItems: -1,
         totalPages: -1,
       };
