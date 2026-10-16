@@ -7,6 +7,7 @@ import dayjs, { Dayjs } from "dayjs";
 import PySearchSelect from "@/components/PySearchSelect";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Decimal from "decimal.js";
+import { minutesToHoursDecimal } from "@/utils/workTime";
 import { useSomeStore } from "@/stores";
 import { SwitchDataRange } from "@/components/SwitchDataRange";
 export default function GongShiList() {
@@ -137,19 +138,14 @@ export default function GongShiList() {
         operator: "and",
         value: [
           {
-            field: "check_in",
+            field: "work_date",
             operator: "gte",
-            value: dayjs(recordDateRange[0]).startOf("month").toISOString().replace("T", " "),
+            value: dayjs(recordDateRange[0]).startOf("month").format("YYYY-MM-DD"),
           },
           {
-            field: "check_in",
+            field: "work_date",
             operator: "lte",
-            value: dayjs(recordDateRange[1]).endOf("month").toISOString().replace("T", " "),
-          },
-          {
-            field: "check_out",
-            operator: "ne",
-            value: "",
+            value: dayjs(recordDateRange[1]).endOf("month").format("YYYY-MM-DD"),
           },
         ],
       },
@@ -305,19 +301,11 @@ export default function GongShiList() {
       const dbID = rec.id as string;
       const workerName = workerMap.get(rec.worker_id) || "未知";
       const workName = workTypeMap.get(rec.work) || "未知";
-      // 计算时长小时
-      const checkIn = dayjs(rec.check_in);
-      const checkOut = dayjs(rec.check_out);
-      // 防止异常数据
-      if (!checkIn.isValid() || !checkOut.isValid() || checkOut.isBefore(checkIn)) {
-        continue;
-      }
-      const durationHours = new Decimal(checkOut.diff(checkIn)).dividedBy(1000 * 60 * 60);
+      // 工时(分钟)换算为小时
+      const durationHours = minutesToHoursDecimal(rec.work_minutes);
 
-      const day = checkIn.format("YYYY-MM-DD");
-      //const day = dayjs(item.check_in).format("YYYY-MM-DD").slice(0, 10);
-
-      const month = day.slice(0, 7);
+      const day = rec.work_date as string; // "YYYY-MM-DD"
+      const month = day?.slice(0, 7);
 
       const salaryKey =
         `${workerName}_${workName}` in salaryDict
@@ -410,6 +398,9 @@ export default function GongShiList() {
           title: "总工时",
           dataIndex: "total_work_hours",
           key: "total_work_hours",
+          onCell: (record: any, rowIndex: any) => ({
+            "data-testid": `row-month-hours-${record.worker}-${rowIndex}`,
+          }),
         },
         { title: "薪资", dataIndex: "xinzi", key: "xinzi" },
       ];
@@ -446,6 +437,9 @@ export default function GongShiList() {
             title: "总工时",
             dataIndex: "total_work_hours",
             key: "total_work_hours",
+            onCell: (record: any, rowIndex: any) => ({
+              "data-testid": `row-day-hours-${record.worker}-${rowIndex}`,
+            }),
           },
           { title: "薪资", dataIndex: "xinzi", key: "xinzi" },
         ];
@@ -453,37 +447,32 @@ export default function GongShiList() {
         // depth3 render
         const expandedRowRender_d3 = (d2Record: any) => {
           const work_date = d2Record.date;
-          const recs = attendance_records.filter((ar: any) =>
-            dayjs(ar.check_in).format("YYYY-MM-DD").startsWith(work_date),
-          );
+          const recs = attendance_records.filter((ar: any) => ar.work_date === work_date);
 
           const dataSource_d3 = recs.map((r: any) => {
             const worker_name = workerMap.get(r.worker_id) || "未知";
             const work_name = workTypeMap.get(r.work) || "未知";
-            const check_in = dayjs(r.check_in);
-            const check_out = dayjs(r.check_out);
             const dbID = String(r.id);
-            const uniqueKey = `${worker_name}_${work_name}_${check_in.format(
-              "YYYY-MM-DD",
-            )}_${dbID}`;
+            const uniqueKey = `${worker_name}_${work_name}_${work_date}_${dbID}`;
             return {
               key: dbID,
               worker: worker_name,
-              check_in: check_in.format("YYYY-MM-DD HH:mm"),
-              check_out: check_out.format("YYYY-MM-DD HH:mm"),
               work: work_name,
-              total_work_hours: new Decimal(check_out.diff(check_in))
-                .dividedBy(1000 * 60 * 60)
-                .toString(),
+              total_work_hours: minutesToHoursDecimal(r.work_minutes).toString(),
               matchvalue: matchSalaryMap.get(dbID) || "",
               xinzi: (dayDuringSalaryMap.get(uniqueKey) || new Decimal(0)).toString(),
             };
           });
 
           const columns_d3 = [
-            { title: "工人", dataIndex: "worker", key: "worker" },
-            { title: "签到时间", dataIndex: "check_in", key: "check_in" },
-            { title: "签退时间", dataIndex: "check_out", key: "check_out" },
+            {
+              title: "工人",
+              dataIndex: "worker",
+              key: "worker",
+              onCell: (record: any, rowIndex: any) => ({
+                "data-testid": `row-d3-${work_date}-${rowIndex}`,
+              }),
+            },
             { title: "工作类型", dataIndex: "work", key: "work" },
             {
               title: "总工时",
@@ -512,6 +501,9 @@ export default function GongShiList() {
               dataSource={dataSource_d3}
               size="small"
               pagination={false}
+              onRow={(record: any, rowIndex: any) => ({
+                "data-testid": `row-d3-${work_date}-${rowIndex}`,
+              })}
             />
           );
         };

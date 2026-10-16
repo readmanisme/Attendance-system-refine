@@ -44,7 +44,7 @@ export default defineConfig(({ command, mode }) => {
       __SystemName__: JSON.stringify("工人考勤系统"),
       __Backend_UserName__: JSON.stringify("shed2705@outlook.com"),
       __Backend_Password__: JSON.stringify("bPWU8GCMuqwKF9z"),
-      __VERSION__: JSON.stringify("v2025.12.25.0829"),
+      __VERSION__: JSON.stringify("v2026.10.16.0849"),
     },
     base: "./", //electron模式下使用
     resolve: {

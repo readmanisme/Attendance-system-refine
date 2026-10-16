@@ -6,11 +6,11 @@ import {
 } from "@refinedev/antd";
 import { CrudFilter, useDeleteMany, BaseRecord } from "@refinedev/core";
 import { Space, Table, Button, Popconfirm, Alert, Tooltip } from "antd";
-import dayjs from "dayjs";
 import { useMemo, useCallback, useState } from "react";
 import { SwitchDataRange } from "@/components/SwitchDataRange";
 import { useGetDatePickerFilter } from "@/utils/get_data_picker_filter";
 import PySearchSelect from "@/components/PySearchSelect";
+import { formatMinutes } from "@/utils/workTime";
 import { DeleteOutlined, PlusSquareOutlined } from "@ant-design/icons";
 import { useResourceParams } from "@refinedev/core";
 const AttendanceRecordList = () => {
@@ -41,26 +41,13 @@ const AttendanceRecordList = () => {
       expand: ["work", "worker_id"],
     },
     sorters: {
-      permanent: [{ field: "check_in", order: "desc" }],
+      permanent: [{ field: "created", order: "desc" }],
     },
     filters: {
       permanent: datePickerFilter as CrudFilter[],
       defaultBehavior: "replace",
     },
   });
-
-  // 为tableProps.dataSource的每一个数据添加workTime字段，值为check_out - check_in
-  const dataSourceWithWorkTime = useMemo(() => {
-    return tableProps.dataSource?.map((item) => {
-      if (!item.check_out) return item;
-      const checkIn = dayjs(item.check_in);
-      const checkOut = dayjs(item.check_out);
-      return {
-        ...item,
-        workTime: checkOut.diff(checkIn, "hour", true),
-      };
-    });
-  }, [tableProps.dataSource]);
 
   const { mutate: deleteMany } = useDeleteMany();
 
@@ -84,11 +71,7 @@ const AttendanceRecordList = () => {
     [selectedRowKeys],
   );
 
-  // ✅ 封装格式化函数，避免在每个 cell render 中新建 dayjs 实例
-  const formatDateTime = useCallback(
-    (date?: string) => (date ? dayjs(date).format("YYYY-MM-DD HH:mm:ss") : "--"),
-    [],
-  );
+  // ✅ 统一用 formatMinutes 渲染工时，避免在每个 cell render 中重复换算
 
   return (
     <List
@@ -169,7 +152,6 @@ const AttendanceRecordList = () => {
       {/* 表格部分 */}
       <Table
         {...tableProps}
-        dataSource={dataSourceWithWorkTime}
         pagination={{
           ...tableProps.pagination,
           showSizeChanger: true,
@@ -192,25 +174,17 @@ const AttendanceRecordList = () => {
           onCell={(record: any, rowIndex: any) => ({ "data-testid": `row-name-${rowIndex}` })}
         />
         <Table.Column
-          dataIndex="check_in"
-          title="上班时间"
-          render={(value: string) => formatDateTime(value)}
+          dataIndex="work_date"
+          title="日期"
           // @ts-expect-error,111
-          onCell={(record: any, rowIndex: any) => ({ "data-testid": `row-in-${rowIndex}` })}
+          onCell={(record: any, rowIndex: any) => ({ "data-testid": `row-date-${rowIndex}` })}
         />
         <Table.Column
-          dataIndex="check_out"
-          title="下班时间"
-          render={(value: string) => formatDateTime(value)}
-          // @ts-expect-error,111
-          onCell={(record: any, rowIndex: any) => ({ "data-testid": `row-out-${rowIndex}` })}
-        />
-        <Table.Column
-          dataIndex="workTime"
+          dataIndex="work_minutes"
           title="工时"
+          render={(value: number | null) => formatMinutes(value)}
           // @ts-expect-error,111
           onCell={(record: any, rowIndex: any) => ({ "data-testid": `row-num-${rowIndex}` })}
-          // render={(value: string) => formatDateTime(value)}
         />
         <Table.Column
           dataIndex={["expand", "work", "name"]}

@@ -17,7 +17,7 @@ test.describe("帮助功能测试", () => {
       await page.getByTestId("help-button").click();
       await expect(page.getByText("人员签到 帮助"), "显示帮助标题").toBeVisible();
       await expect(
-        page.getByRole("heading", { name: "人员签到页面" }),
+        page.getByRole("heading", { name: "工时录入页面" }),
         "显示帮助内容",
       ).toBeVisible();
     });
@@ -25,7 +25,7 @@ test.describe("帮助功能测试", () => {
     await test.step("通过关闭按钮应能关闭帮助", async () => {
       await page.getByRole("button", { name: "关闭" }).click();
       await expect(
-        page.getByRole("heading", { name: "人员签到页面" }),
+        page.getByRole("heading", { name: "工时录入页面" }),
         "关闭后应隐藏帮助内容",
       ).not.toBeVisible();
     });
@@ -33,13 +33,13 @@ test.describe("帮助功能测试", () => {
     await test.step("点击遮罩应能关闭帮助", async () => {
       await page.getByTestId("help-button").click();
       await expect(
-        page.getByRole("heading", { name: "人员签到页面" }),
+        page.getByRole("heading", { name: "工时录入页面" }),
         "打开后显示帮助内容",
       ).toBeVisible();
 
       await page.locator(".ant-drawer-mask").click();
       await expect(
-        page.getByRole("heading", { name: "人员签到页面" }),
+        page.getByRole("heading", { name: "工时录入页面" }),
         "点击遮罩后应隐藏帮助内容",
       ).not.toBeVisible();
     });
@@ -70,7 +70,7 @@ test.describe("帮助功能测试", () => {
     await page.goto(workers_url);
     await expect(page.getByTestId("delete-alert"), "工人页面已显示").toBeVisible();
     await page.getByTestId("logoAndTitle").click();
-    await expect(page.getByRole("heading", { name: "签到录入系统" }), "首页标题可见").toBeVisible();
+    await expect(page.getByRole("heading", { name: "工时录入系统" }), "首页标题可见").toBeVisible();
   });
   test("菜单折叠与展开", async ({ page }) => {
     await page.goto("/");

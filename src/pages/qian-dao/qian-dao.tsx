@@ -3,13 +3,11 @@ import {
   Typography,
   Button as AntdButton,
   Table,
-  Badge,
   Alert,
   Select,
   DatePicker,
   Popconfirm,
   Flex,
-  TimePicker,
   Tag,
   Button,
   Tooltip,
@@ -17,9 +15,9 @@ import {
   InputNumber,
 } from "antd";
 import { IconHelp } from "@tabler/icons-react";
-import { useState, useCallback, useMemo } from "react";
+import { useMemo, useState, useCallback } from "react";
 import dayjs, { Dayjs } from "dayjs";
-import { BaseRecord, useCreateMany, useDeleteMany } from "@refinedev/core";
+import { BaseRecord, useCreateMany, useDeleteMany, useUpdate } from "@refinedev/core";
 import { CloseCircleOutlined, DeleteOutlined } from "@ant-design/icons";
 import {
   DeleteButton,
@@ -31,29 +29,20 @@ import {
   useSelect,
 } from "@refinedev/antd";
 import PySearchSelect from "@/components/PySearchSelect";
+import { formatMinutes, hoursToMinutes, minutesToHours } from "@/utils/workTime";
+
 const { Title: AntdTitle } = Typography;
 type WorkerOption = { key: string; label: string; value: string };
 type WorkTypeValue = { value: string; label: string } | undefined;
-const statusMap: Record<string, { text: string; color: string }> = {
-  pending: { text: "待签退", color: "warning" },
-  "checked-out": { text: "已签退", color: "default" },
-};
-const hours = [2, 2.5, 5, 7, 7.5, 8, 8.5, 9, 10, 10.5, 12, 13];
+
+// 快捷工时(小时)
+const hourChips = [2, 2.5, 5, 7, 7.5, 8, 8.5, 9, 10, 10.5, 12, 13];
 
 export default function QianDaoPage() {
   // ======================== useState ========================
 
-  const [RangeTime, setRangeTime] = useState<Dayjs[]>([
-    dayjs().minute(0).second(0).millisecond(0),
-    dayjs().minute(0).second(0).millisecond(0),
-  ]);
-  const TimeDifference = useMemo(
-    () => RangeTime[1].diff(RangeTime[0], "hour", true),
-    [RangeTime],
-  ).toFixed(2);
-  // 避免20分钟这样的时间导致的0.3333333小时数溢出
-  // TODO 这样会导致在别的显示工时的地方出现很长的小数，是否需要处理？
-  // TODO 编写相应的测试
+  // 录入的工时(整数分钟)
+  const [minutes, setMinutes] = useState<number>(0);
   const [CheckDate, setCheckDate] = useState<Dayjs>(dayjs().minute(0).second(0).millisecond(0));
   const IsPast = useMemo(() => CheckDate.isBefore(dayjs(), "day"), [CheckDate]);
   const IsFuture = useMemo(() => CheckDate.isAfter(dayjs(), "day"), [CheckDate]);
@@ -63,6 +52,7 @@ export default function QianDaoPage() {
   const { mutate: CreateBatchRecord } = useCreateMany({
     resource: __AttendanceRecord_TableName,
   });
+  const { mutate: updateRecord } = useUpdate();
 
   const { selectProps: workTypeSelectProps } = useSelect({
     resource: __WorkTypes_TableName,
@@ -70,27 +60,22 @@ export default function QianDaoPage() {
     pagination: { mode: "off" },
   });
 
-  // ======================== 暂存 ========================
-  // helper: 格式化为后端所需字符串（去除毫秒）
-  const formatForDB = useCallback((d?: Dayjs) => {
-    if (!d) return "";
-    return d.millisecond(0).toISOString().replace("T", " ");
-  }, []);
+  // ======================== 计算衍生数据 ========================
 
-  // 当作为date filter传给useTable时，先用useMemo生成固定的字符串（避免每次渲染都变）
-  const dateRangeFilter = useMemo(() => {
-    const start = CheckDate.startOf("day");
-    const end = CheckDate.endOf("day");
-    return {
-      gte: formatForDB(start),
-      lte: formatForDB(end),
-    };
-  }, [CheckDate, formatForDB]);
-
-  const formatDateTime = useCallback(
-    (date?: string) => (date ? dayjs(date).format("YYYY-MM-DD HH:mm:ss") : "--"),
+  const adjustMinutes = useCallback(
+    (delta: number) => setMinutes((m) => Math.min(24 * 60, Math.max(0, m + delta))),
     [],
   );
+  const setHoursValue = useCallback((hours: number) => setMinutes(hoursToMinutes(hours)), []);
+
+  // 当作为date filter传给useTable时，生成固定的字符串（避免每次渲染都变）
+  const dateRangeFilter = useMemo(
+    () => ({
+      work_date: CheckDate.format("YYYY-MM-DD"),
+    }),
+    [CheckDate],
+  );
+
   // ======================== 获取数据 ========================
   const {
     tableProps,
@@ -105,32 +90,14 @@ export default function QianDaoPage() {
       mode: "off",
     },
     sorters: {
-      permanent: [
-        {
-          field: "created",
-          order: "desc",
-        },
-        // check_out排序时候，空的条目会按照创建时间从早到晚排序
-        // 添加多个sort可以符合排序
-        // 后签到的显示在前面，符合期望
-      ],
+      permanent: [{ field: "created", order: "desc" }],
     },
     filters: {
       permanent: [
         {
-          operator: "and",
-          value: [
-            {
-              field: "check_in",
-              operator: "gte",
-              value: dateRangeFilter.gte,
-            },
-            {
-              field: "check_in",
-              operator: "lte",
-              value: dateRangeFilter.lte,
-            },
-          ],
+          field: "work_date",
+          operator: "eq",
+          value: dateRangeFilter.work_date,
         },
       ],
     },
@@ -138,87 +105,32 @@ export default function QianDaoPage() {
       expand: ["work", "worker_id"],
     },
   });
+
+  // 表格内编辑行时,把"小时"换算成整数分钟存库
   const handleOnFinish = useCallback(
     (values: any) => {
-      const hours = values.workTime;
-      const check_in = CheckDate.set("hour", 7)
-        .set("minute", 0)
-        .set("second", 0)
-        .set("millisecond", 0);
-      const check_out = check_in.add(hours, "hour");
-      const rest: any = {
-        ...values,
-        check_in: formatForDB(check_in),
-        check_out: formatForDB(check_out),
-      };
+      const rest: any = { ...values };
+      if (rest.workTime != null) {
+        rest.work_minutes = hoursToMinutes(rest.workTime);
+      }
       delete rest.workTime;
       if (formProps.onFinish) {
         formProps.onFinish(rest);
       }
     },
-    [CheckDate, formatForDB, formProps],
+    [formProps],
   );
-  const dataSourceWithWorkTime = useMemo(() => {
-    const ds = tableProps.dataSource ?? [];
-    return ds.map((item: any) => {
-      if (!item.check_out) return item;
-      const checkIn = dayjs(item.check_in);
-      const checkOut = dayjs(item.check_out);
-      return {
-        ...item,
-        workTime: checkOut.diff(checkIn, "hour", true),
-        statuss: "checked-out",
-      };
-    });
-  }, [tableProps.dataSource]);
 
-  // ======================== 计算衍生数据 ========================
-
-  // ======================== 表格定义 ========================
-
-  // ======================== 设置按钮和提示 ========================
-  const checkOverlap = useCallback(
-    (range2: any) => {
-      const [y, m, d] = [CheckDate.year(), CheckDate.month(), CheckDate.date()];
-      // 确保传入的是dayjs对象
-      // const [start1, end1] = RangeTime; //rangetime
-      // 设置start1, end1的年月日
-      const start1 = RangeTime[0].set("year", y).set("month", m).set("date", d);
-      const end1 = RangeTime[1].set("year", y).set("month", m).set("date", d);
-      // const [start2, end2] = range2.map((time) => dayjs(time));
-      const [start2, end2] = range2;
-
-      // 判断是否有重叠的逻辑
-      return (
-        // (start1.isBefore(end2) || start1.isSame(end2)) &&
-        // (end1.isAfter(start2) || end1.isSame(start2))
-        start1.isBefore(end2) && end1.isAfter(start2)
-      );
-    },
-    [CheckDate, RangeTime],
-  );
-  const recordsByWorkerId = useMemo(() => {
-    const map = new Map();
-    if (tableProps.dataSource) {
-      for (const record of tableProps.dataSource) {
-        if (record.worker_id) {
-          // 预先创建 dayjs 对象
-          const processedRecord = {
-            ...record,
-            recordCheckIn: dayjs(record.check_in),
-            recordCheckOut: dayjs(record.check_out),
-          };
-
-          if (map.has(record.worker_id)) {
-            map.get(record.worker_id).push(processedRecord);
-          } else {
-            map.set(record.worker_id, [processedRecord]);
-          }
-        }
+  // 当前页面(选定日期)内,同一工人+同一工种的已有记录,用于判断"同键合并"
+  const recordsByKey = useMemo(() => {
+    const map = new Map<string, any>();
+    for (const record of tableProps.dataSource ?? []) {
+      if (record.worker_id && record.work) {
+        map.set(`${record.worker_id}|${record.work}`, record);
       }
     }
     return map;
-  }, [tableProps.dataSource]); // 依赖项是 dataSource
+  }, [tableProps.dataSource]);
 
   const {
     luruDisabled,
@@ -226,7 +138,6 @@ export default function QianDaoPage() {
     alertType: AlertType,
     dataTestid,
   } = useMemo(() => {
-    // 默认
     if (!PiLiangNames || PiLiangNames.length === 0) {
       return {
         luruDisabled: true,
@@ -243,36 +154,26 @@ export default function QianDaoPage() {
         dataTestid: "no-work-alert",
       };
     }
-    const descs: React.ReactNode[] = [];
+    // 同人同天同工种 → 会在库里自动合并(工时叠加)
+    const mergeDescs: React.ReactNode[] = [];
     for (const name of PiLiangNames) {
-      // O(1) 查找所有历史记录
-      const allRecords = recordsByWorkerId.get(name.key);
-
-      if (allRecords && allRecords.length > 0) {
-        // 检查每条历史记录
-        for (const record of allRecords) {
-          // 直接使用预处理的 dayjs 对象
-          const { recordCheckIn, recordCheckOut } = record;
-
-          if (checkOverlap([recordCheckIn, recordCheckOut])) {
-            descs.push(
-              <div key={`${name.key}-${record.id}`}>
-                {name.label}，所选时间与历史签到时间
-                {recordCheckIn.format("YYYY-MM-DD HH:mm:ss")}至
-                {recordCheckOut.format("YYYY-MM-DD HH:mm:ss")}有重叠
-              </div>,
-            );
-          }
-        }
+      const existing = recordsByKey.get(`${name.key}|${work_type?.value}`);
+      if (existing) {
+        mergeDescs.push(
+          <div key={`${name.key}-${existing.id}`}>
+            {name.label}，当天已有{work_type?.label}记录（
+            {formatMinutes(existing.work_minutes)}小时），录入后自动合并为
+            {formatMinutes((existing.work_minutes ?? 0) + minutes)}小时
+          </div>,
+        );
       }
     }
-
-    if (descs.length > 0) {
+    if (mergeDescs.length > 0) {
       return {
-        luruDisabled: true,
-        alertDescription: descs,
-        alertType: "error" as const,
-        dataTestid: "overlap-alert",
+        luruDisabled: false,
+        alertDescription: mergeDescs,
+        alertType: "info" as const,
+        dataTestid: "merge-alert",
       };
     }
     return {
@@ -281,40 +182,41 @@ export default function QianDaoPage() {
       alertType: "success" as const,
       dataTestid: "can-input-alert",
     };
-  }, [PiLiangNames, checkOverlap, recordsByWorkerId, work_type]);
+  }, [PiLiangNames, recordsByKey, work_type, minutes]);
 
-  // ======================== 批量上下班 ========================
+  // ======================== 批量录入 ========================
 
   const handleQiandao_PILIANG = () => {
-    const [y, m, d] = [CheckDate.year(), CheckDate.month(), CheckDate.date()];
-    const CheckIn = RangeTime[0]
-      .set("year", y)
-      .set("month", m)
-      .set("date", d)
-      .set("millisecond", 0);
-    const CheckOut = RangeTime[1]
-      .set("year", y)
-      .set("month", m)
-      .set("date", d)
-      .set("millisecond", 0);
-
-    const checkInStr = formatForDB(CheckIn);
-    const checkOutStr = formatForDB(CheckOut);
-    // 不设置millisecond为0的话会有一个随机值，这是dayjs的行为；这会导致出现看起来一个时间但是出现早于上班时间的错误，不过只有在同一个时间才会这样，正常使用中不会触发bug
-    const records = PiLiangNames.map((name) => {
-      return {
-        worker_id: name.key,
-        check_in: checkInStr,
-        check_out: checkOutStr,
-        // @ts-expect-error,111
-        work: work_type.value,
-      };
-    });
-    CreateBatchRecord({
-      values: records,
-    });
+    if (!work_type) {
+      return; // 按钮已禁用，这里只是防御。（注意：不要用 `!` 非空断言，react-compiler 会把读取提升到渲染期）
+    }
+    const workDate = CheckDate.format("YYYY-MM-DD");
+    const workId = work_type.value;
+    const creates: any[] = [];
+    for (const name of PiLiangNames) {
+      const existing = recordsByKey.get(`${name.key}|${workId}`);
+      if (existing) {
+        // 同人同天同工种：在原记录上叠加工时
+        updateRecord({
+          resource: __AttendanceRecord_TableName,
+          id: existing.id,
+          values: { work_minutes: (existing.work_minutes ?? 0) + minutes },
+        });
+      } else {
+        creates.push({
+          worker_id: name.key,
+          work_date: workDate,
+          work_minutes: minutes,
+          work: workId,
+        });
+      }
+    }
+    if (creates.length) {
+      CreateBatchRecord({ values: creates });
+    }
   };
-  // ======================== 暂存 ========================
+
+  // ======================== 批量删除 ========================
   const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
   const { mutate: deleteMany } = useDeleteMany();
   const handleBatchDelete = useCallback(() => {
@@ -337,47 +239,7 @@ export default function QianDaoPage() {
     }),
     [selectedRowKeys],
   );
-  const setRangeForHour = useCallback(
-    (hour: number) => {
-      const base = CheckDate.set("hour", 7).set("minute", 0).set("second", 0).set("millisecond", 0);
-      const end = base.add(hour, "hour");
-      setRangeTime([base, end]);
-    },
-    [CheckDate],
-  );
-  // +30 / -30 按钮的安全实现（使用函数式 setState，并且基于 prev 保持不变性）
-  const addThirty = useCallback(() => {
-    setRangeTime((prev) => {
-      const nextEnd = prev[1].add(30, "minute");
-      // 超出当天结束则不变
-      const dayEnd = prev[0].set("hour", 23).set("minute", 59).set("second", 59);
-      if (nextEnd.isAfter(dayEnd)) return prev;
-      return [prev[0], nextEnd];
-    });
-  }, []);
-  const subThirty = useCallback(() => {
-    setRangeTime((prev) => {
-      const nextEnd = prev[1].subtract(30, "minute");
-      if (nextEnd.isSameOrBefore(prev[0])) return prev;
-      return [prev[0], nextEnd];
-    });
-  }, []);
-  const addTen = useCallback(() => {
-    setRangeTime((prev) => {
-      const nextEnd = prev[1].add(10, "minute");
-      // 超出当天结束则不变
-      const dayEnd = prev[0].set("hour", 23).set("minute", 59).set("second", 59);
-      if (nextEnd.isAfter(dayEnd)) return prev;
-      return [prev[0], nextEnd];
-    });
-  }, []);
-  const subTen = useCallback(() => {
-    setRangeTime((prev) => {
-      const nextEnd = prev[1].subtract(10, "minute");
-      if (nextEnd.isSameOrBefore(prev[0])) return prev;
-      return [prev[0], nextEnd];
-    });
-  }, []);
+
   // ======================== UI ========================
 
   return (
@@ -386,7 +248,7 @@ export default function QianDaoPage() {
         <div className="max-w-6xl mx-auto">
           <div className="mb-6">
             <AntdTitle level={3} className="mb-6! text-center">
-              签到录入系统
+              工时录入系统
             </AntdTitle>
             <>
               <div className="flex flex-col sm:flex-row gap-4 justify-between items-end mb-6 mt-2">
@@ -424,62 +286,56 @@ export default function QianDaoPage() {
                 </Space>
                 <Space direction="vertical">
                   <Space direction="vertical">
-                    <Tooltip title="从7:00开始">
+                    <Tooltip title="工时可以精确到分钟">
                       <div data-testid="hour-tooltip" className="flex flex-row items-center gap-2">
                         快速选择工时：
                         <IconHelp size={16} />
                       </div>
                     </Tooltip>
                     <Space wrap>
-                      {hours.map((hour) => (
+                      {hourChips.map((hour) => (
                         <Button
                           data-testid={`hour-button-${hour}`}
                           color="blue"
                           variant="filled"
                           key={hour}
                           size="small"
-                          onClick={() => setRangeForHour(hour)}
+                          onClick={() => setHoursValue(hour)}
                         >
                           {hour}
                         </Button>
                       ))}
                     </Space>
                     <Space>
-                      <Button color="blue" variant="dashed" size="small" onClick={addThirty}>
+                      <Button color="blue" variant="dashed" size="small" onClick={() => adjustMinutes(30)}>
                         +30min
                       </Button>
-                      <Button color="blue" variant="dashed" size="small" onClick={subThirty}>
+                      <Button color="blue" variant="dashed" size="small" onClick={() => adjustMinutes(-30)}>
                         -30min
                       </Button>
-                      <Button color="blue" variant="dashed" size="small" onClick={addTen}>
+                      <Button color="blue" variant="dashed" size="small" onClick={() => adjustMinutes(10)}>
                         +10min
                       </Button>
-                      <Button color="blue" variant="dashed" size="small" onClick={subTen}>
+                      <Button color="blue" variant="dashed" size="small" onClick={() => adjustMinutes(-10)}>
                         -10min
                       </Button>
                     </Space>
                   </Space>
                   <Space>
-                    <TimePicker.RangePicker
-                      style={{ width: 240 }}
-                      allowClear={false}
-                      // @ts-expect-error,111
-                      value={RangeTime}
-                      // @ts-expect-error,111
-                      onChange={(time: Dayjs) => {
-                        // @ts-expect-error,111
-                        setRangeTime(time); //这个dayjs仍然有年月日的部分
-                      }}
-                      format="HH:mm"
+                    <InputNumber
+                      data-testid="hours-input"
+                      min={0}
+                      max={24}
+                      step={0.5}
+                      value={minutesToHours(minutes)}
+                      onChange={(v) => v != null && setHoursValue(v)}
+                      formatter={(v) => `${v}小时`}
+                      parser={(v) => Math.round(Number(String(v).replace(/[^0-9.]/g, "")) * 100) / 100}
+                      style={{ width: 110 }}
                     />
-                    <Space direction="vertical" size={1}>
-                      {/* <Tag color="blue" style={{ width: 60 }}>
-                        {TimeDifference}小时
-                      </Tag> */}
-                      <Tag data-testid="time-difference" color="blue" style={{ width: 60 }}>
-                        {TimeDifference}小时
-                      </Tag>
-                    </Space>
+                    <Tag data-testid="time-difference" color="blue" style={{ width: 90 }}>
+                      {minutes}分钟
+                    </Tag>
                   </Space>
 
                   <Space>
@@ -543,7 +399,7 @@ export default function QianDaoPage() {
               <Alert
                 data-testid="edit-alert"
                 type="info"
-                message="在表格中修改工时会使得签到时间变为7:00,如有其他需求可以删除记录然后手动选择时间录入"
+                message="同一人同一天的相同工作不会产生第二条记录，而是自动叠加为一个总工时"
                 showIcon
               />
               <Popconfirm
@@ -574,9 +430,7 @@ export default function QianDaoPage() {
               data-testid="table"
               {...tableProps}
               className="mt-2"
-              dataSource={dataSourceWithWorkTime}
               rowKey="id"
-              rowClassName={(record) => (record.check_out === "" ? "bg-blue-50" : "")}
               // @ts-expect-error,111
               rowSelection={rowSelection}
             >
@@ -588,32 +442,6 @@ export default function QianDaoPage() {
                 onCell={(record: any, rowIndex: any) => ({ "data-testid": `row-name-${rowIndex}` })}
               />
               <Table.Column
-                dataIndex="statuss"
-                title="状态"
-                render={(value) => {
-                  const current = statusMap[value];
-                  return <Badge status={current.color as any} text={current.text} />;
-                }}
-                // @ts-expect-error,111
-                onCell={(record: any, rowIndex: any) => ({
-                  "data-testid": `row-status-${rowIndex}`,
-                })}
-              />
-              <Table.Column
-                dataIndex="check_in"
-                title="上班时间"
-                render={(value: string) => formatDateTime(value)}
-                // @ts-expect-error,111
-                onCell={(record: any, rowIndex: any) => ({ "data-testid": `row-in-${rowIndex}` })}
-              />
-              <Table.Column
-                dataIndex="check_out"
-                title="下班时间"
-                render={(value: string) => formatDateTime(value)}
-                // @ts-expect-error,111
-                onCell={(record: any, rowIndex: any) => ({ "data-testid": `row-out-${rowIndex}` })}
-              />
-              <Table.Column
                 dataIndex="workTime"
                 title="工时"
                 // @ts-expect-error,111
@@ -621,12 +449,12 @@ export default function QianDaoPage() {
                 render={(value, record) => {
                   if (isEditing(record.id)) {
                     return (
-                      <Form.Item name="workTime" style={{ margin: 0 }} initialValue={value}>
-                        <InputNumber min={0} max={16.5} step={0.5} changeOnWheel />
+                      <Form.Item name="workTime" style={{ margin: 0 }} initialValue={minutesToHours(record.work_minutes)}>
+                        <InputNumber min={0} max={24} step={0.5} changeOnWheel />
                       </Form.Item>
                     );
                   }
-                  return <TextField value={value} />;
+                  return <TextField value={formatMinutes(record.work_minutes)} />;
                 }}
               />
               <Table.Column

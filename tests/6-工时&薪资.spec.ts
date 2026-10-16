@@ -77,7 +77,7 @@ test("筛选测试", async ({ page }) => {
   await test.step("筛选持久化", async () => {
     // 通过检查考勤页面的数据是不是9-10月来判断
     await page.getByRole("link", { name: "人员签到" }).click();
-    await expect(page.getByRole("heading", { name: "签到录入系统" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "工时录入系统" })).toBeVisible();
     await page.getByRole("link", { name: "考勤记录" }).click();
     await expect(page.getByTestId("row-id-0")).toContainText("6cs1o88n514ic1b");
     await expect(page.getByRole("textbox", { name: "开始月份" })).toHaveValue("2025-09");
@@ -90,18 +90,29 @@ test("数值测试", async ({ page }) => {
   await page.getByRole("textbox", { name: "开始月份" }).fill("2025-10");
   await page.getByRole("textbox", { name: "结束月份" }).fill("2025-11");
   await page.getByRole("button", { name: "应 用" }).click();
+  // 月份行展开
   await page.getByTestId("row-id-0").click();
   await page.getByTestId("row-month-张孝刚-0").click();
+  await page.getByTestId("row-month-张孝刚-1").click();
+  // 10月份的两天的记录展开
   await page.getByTestId("row-day-张孝刚-0").click();
   await page.getByTestId("row-day-张孝刚-1").click();
-  await page.getByTestId("row-month-张孝刚-1").click();
+  await expect(page.getByTestId("row-d3-2025-10-30-0")).toContainText("张孝刚司机10200");
+  await expect(page.getByTestId("row-d3-2025-10-31-0")).toContainText("张孝刚司机10200");
+  // 11月份的记录展开（第二个月份表里的行需要nth(1)绕开第一个月份表同名元素）
   await page.getByTestId("row-day-张孝刚-0").nth(1).click();
   await page.getByTestId("row-day-张孝刚-1").nth(1).click();
   await page.getByTestId("row-day-张孝刚-2").click();
   await page.getByTestId("row-day-张孝刚-3").click();
   await page.getByTestId("row-day-张孝刚-4").click();
   await page.getByTestId("row-day-张孝刚-5").click();
-  await expect(page.locator(".ant-table-cell > div > div > div").first()).toContainText(
-    "月份工人总工时薪资2025-10张孝刚20400日期工人总工时薪资2025-10-30张孝刚10200工人签到时间签退时间工作类型总工时薪资张孝刚2025-10-30 07:002025-10-30 17:00司机102002025-10-31张孝刚10200工人签到时间签退时间工作类型总工时薪资张孝刚2025-10-31 07:002025-10-31 17:00司机10200110 条/页2025-11张孝刚551100日期工人总工时薪资2025-11-01张孝刚10200工人签到时间签退时间工作类型总工时薪资张孝刚2025-11-01 07:002025-11-01 17:00司机102002025-11-02张孝刚10200工人签到时间签退时间工作类型总工时薪资张孝刚2025-11-02 07:002025-11-02 17:00司机102002025-11-03张孝刚10200工人签到时间签退时间工作类型总工时薪资张孝刚2025-11-03 07:002025-11-03 17:00司机102002025-11-04张孝刚10200工人签到时间签退时间工作类型总工时薪资张孝刚2025-11-04 07:002025-11-04 17:00司机102002025-11-07张孝刚5100工人签到时间签退时间工作类型总工时薪资张孝刚2025-11-07 07:002025-11-07 12:00司机51002025-11-08张孝刚10200工人签到时间签退时间工作类型总工时薪资张孝刚2025-11-08 07:002025-11-08 17:00司机10200110 条/页1",
-  );
+  await expect(page.getByTestId("row-d3-2025-11-01-0")).toContainText("张孝刚司机10200");
+  await expect(page.getByTestId("row-d3-2025-11-02-0")).toContainText("张孝刚司机10200");
+  await expect(page.getByTestId("row-d3-2025-11-03-0")).toContainText("张孝刚司机10200");
+  await expect(page.getByTestId("row-d3-2025-11-04-0")).toContainText("张孝刚司机10200");
+  await expect(page.getByTestId("row-d3-2025-11-07-0")).toContainText("张孝刚司机5100");
+  await expect(page.getByTestId("row-d3-2025-11-08-0")).toContainText("张孝刚司机10200");
+  // 月份合计
+  await expect(page.getByTestId("row-month-hours-张孝刚-0")).toContainText("20");
+  await expect(page.getByTestId("row-month-hours-张孝刚-1")).toContainText("55");
 });

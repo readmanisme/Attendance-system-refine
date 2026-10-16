@@ -114,32 +114,35 @@ test.describe("一条龙", () => {
     });
     const ids = records.map((record) => record.id);
     if (ids.length === 0) return; //空数据发batch也会报错
-    const batch = pb.createBatch();
-    for (const id of ids) {
-      batch.collection(AttendanceRecord_TableName).delete(id);
+    // PB 单个batch请求最多999条，分块发送
+    for (let i = 0; i < ids.length; i += 250) {
+      const batch = pb.createBatch();
+      for (const id of ids.slice(i, i + 250)) {
+        batch.collection(AttendanceRecord_TableName).delete(id);
+      }
+      const result = await batch.send();
+      expect(result.every((r) => r.status === 204)).toBe(true); //body是null
     }
-    const result = await batch.send();
-    expect(result.every((r) => r.status === 204)).toBe(true); //body是null
   });
-  // 创建测试数据
+  // 创建测试数据（2025-11-08 三条，工时分别是 5/4/3 小时）
   test.beforeEach(async () => {
     const batch = pb.createBatch();
     batch.collection(AttendanceRecord_TableName).create({
       worker_id: "7532s7t15y9r3c5",
-      check_in: "2025-11-08 10:00:00.123Z", // +8小时就是本地时区
-      check_out: "2025-11-08 15:00:00.123Z",
+      work_date: "2025-11-08",
+      work_minutes: 300,
       work: "1tds1872f8v6866",
     });
     batch.collection(AttendanceRecord_TableName).create({
       worker_id: "q44da53d6838651",
-      check_in: "2025-11-08 11:00:00.123Z",
-      check_out: "2025-11-08 15:00:00.123Z",
+      work_date: "2025-11-08",
+      work_minutes: 240,
       work: "1tds1872f8v6866",
     });
     batch.collection(AttendanceRecord_TableName).create({
       worker_id: "85yb02ib29u40up",
-      check_in: "2025-11-08 12:00:00.123Z",
-      check_out: "2025-11-08 15:00:00.123Z",
+      work_date: "2025-11-08",
+      work_minutes: 180,
       work: "1tds1872f8v6866",
     });
     const result = await batch.send();
@@ -165,37 +168,16 @@ test.describe("一条龙", () => {
       // 编辑数据
       await page.getByTestId("edit-button-1").click();
       await expect(page.getByTestId("worker-name")).toContainText("张着萍");
-      await expect(page.getByTestId("work-time")).toHaveValue("4.0");
+      await expect(page.getByTestId("work-time")).toHaveValue("4");
       await expect(page.getByText("基础")).toBeVisible();
-      //   原时间19-23点，修改开始到18:00，工时变成5.0
-      await page.getByTestId("check-in-time").click();
-      await page.getByTestId("check-in-time").fill("2025-11-08 18:00");
-      await page.getByRole("button", { name: "确 定" }).click();
-      await expect(page.getByTestId("work-time")).toHaveValue("5.0");
-      // 修改结束时间到17:00，早于开始时间，会自动调整，工时变成1.0
-      await page.getByTestId("check-out-time").click();
-      await page.getByTestId("check-out-time").fill("2025-11-08 17:00");
-      await page.getByRole("button", { name: "确 定" }).nth(1).click();
-      await expect(page.getByText("签出时间必须晚于签到时间，已自动调整。")).toBeVisible();
-      await expect(page.getByTestId("check-out-time")).toHaveValue("2025-11-08 19:00");
-      await expect(page.getByTestId("work-time")).toHaveValue("1.0");
-      // 修改开始时间到20:00，晚于结束时间，会自动调整
-      await page.getByTestId("check-in-time").click();
-      await page.getByTestId("check-in-time").fill("2025-11-08 20:00");
-      await page.getByRole("button", { name: "确 定" }).nth(0).click(); //out的选择页虽然看不见，但是元素还存在，所以需要这么做避免错误
-      await expect(page.getByText("签出时间必须晚于签到时间，已自动调整。").nth(1)).toBeVisible(); //上一个提示还没有消失？
-      await expect(page.getByTestId("check-out-time")).toHaveValue("2025-11-08 21:00");
-      await expect(page.getByTestId("work-time")).toHaveValue("1.0");
-      // 修改开始时间的日期，结束时间也应该发生变化
-      await page.getByTestId("check-in-time").click();
-      await page.getByTestId("check-in-time").fill("2025-11-09 20:00");
+      // 修改工时 4 -> 4.5
+      await page.locator("#work_minutes").hover();
+      await page.getByRole("button", { name: "Increase Value" }).click();
+      await expect(page.getByTestId("work-time")).toHaveValue("4.5");
+      // 修改日期
+      await page.getByTestId("work-date").click();
+      await page.getByTestId("work-date").fill("2025-11-09");
       await page.getByRole("button", { name: "确 定" }).nth(0).click();
-      await expect(page.getByTestId("check-out-time")).toHaveValue("2025-11-09 21:00");
-      // 修改结束时间的日期，和开始时间不同，应该被禁用。
-      // 因为不方便确认日期有没有被禁用，所以用这种方式
-      await page.getByTestId("check-out-time").click();
-      await page.getByTestId("check-out-time").fill("2025-11-10 17:00");
-      await expect(page.getByRole("button", { name: "确 定" }).nth(0)).toBeDisabled(); //这会又是0了？？？
       // 修改工作
       await page.getByTestId("work-type").click();
       await page.getByTitle("三轮车司机").click();
@@ -212,27 +194,20 @@ test.describe("一条龙", () => {
       // 成功提示
       await expect(page.getByText("成功编辑")).toBeVisible();
       // 判断修改是否生效
-      await expect(page.getByTestId("row-in-0")).toContainText("2025-11-08 20:00:00");
-      await expect(page.getByTestId("row-out-0")).toContainText("2025-11-09 21:00:00");
-      await expect(page.getByTestId("row-num-0")).toContainText("1");
-      await expect(page.getByTestId("row-work-0")).toContainText("三轮车司机");
-      //   修改之后上班时间是最早的，随意变成第一个呢
+      await expect(page.getByTestId("row-date-1")).toContainText("2025-11-09");
+      await expect(page.getByTestId("row-num-1")).toContainText("4.5");
+      await expect(page.getByTestId("row-work-1")).toContainText("三轮车司机");
     });
     // 测试删除键
     await test.step("删除", async () => {
       await page.getByTestId("delete-button-0").click();
       await page.getByRole("button", { name: "删 除" }).click();
-      // 成功提示
-      // await expect(page.getByText('成功删除')).toBeVisible();
-      //   await expect(page.getByText("尤响林")).not.toBeVisible();
-      //   await expect(page.getByText("张着萍")).not.toBeVisible(); //上面改了之后变了
-      await expect(page.getByTestId("row-name-0")).toContainText("尤响林"); //张着萍下面还有记录所以上面那个会报错
+      await expect(page.getByTestId("row-name-0")).toContainText("张着萍"); //尤响林删除后张着萍变第一行
     });
     // 测试批量删除
     await test.step("批量删除", async () => {
       // 未选择之前批量删除按钮禁用
       await expect(page.getByTestId("batch-delete-button")).toBeDisabled();
-      // await page.getByTestId("row-checkbox-0").check();
       await page.getByTestId("row-checkbox-0").locator("label").check();
       await page.getByTestId("row-checkbox-1").locator("label").check();
       // 进行批量删除的时候删除键不能用
@@ -240,8 +215,6 @@ test.describe("一条龙", () => {
       await expect(page.getByTestId("batch-delete-button")).toContainText("删除选中 (2)");
       await page.getByTestId("batch-delete-button").click();
       await page.getByRole("button", { name: "确 定" }).click();
-      // 成功提示
-      // await expect(page.getByText('成功删除')).toBeVisible();
       await expect(page.getByTestId("row-id-0")).toContainText("059h96g3r5so341");
     });
   });

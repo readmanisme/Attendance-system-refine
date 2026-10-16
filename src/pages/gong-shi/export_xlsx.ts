@@ -1,9 +1,10 @@
-import dayjs from "dayjs";
+import type { Dayjs } from "dayjs";
 import Decimal from "decimal.js";
+import { minutesToHoursDecimal } from "@/utils/workTime";
 import { getPb } from "@/utils/pocketbase";
 
 const exportExcel = async (
-  export_range: dayjs.Dayjs[],
+  export_range: Dayjs[],
   exportPerson: string,
   SalaryDict: Record<string, number>,
   __BACKEND_API_URL__: string,
@@ -20,9 +21,7 @@ const exportExcel = async (
     日工时: __WorkHours_Day_ViewName,
   };
 
-  // ✅ 日期计算复用
-  const start = export_range[0].toISOString().replace("T", " ");
-  const end = export_range[1].endOf("month").toISOString().replace("T", " ");
+  // ✅ 日期计算复用(work_date 是 "YYYY-MM-DD" 文本)
   const start_day = export_range[0].format("YYYY-MM-DD");
   const end_day = export_range[1].endOf("month").format("YYYY-MM-DD");
   const start_month = export_range[0].format("YYYY-MM");
@@ -32,7 +31,7 @@ const exportExcel = async (
   const [attendanceRecords, workers, workTypes, workHoursMonth, workHoursDay] = await Promise.all([
     pb.collection(集合.考勤记录).getFullList({
       filter:
-        `check_in != null && check_out != null && check_in >= '${start}' && check_in <= '${end}'` +
+        `work_minutes != null && work_date >= '${start_day}' && work_date <= '${end_day}'` +
         (exportPerson ? ` && worker_id == '${exportPerson}'` : ""),
     }),
     pb.collection(集合.工人).getFullList({
@@ -59,7 +58,7 @@ const exportExcel = async (
   const attendanceSheetData = attendanceRecords.map((record: any) => {
     const worker_name = workerMap.get(record.worker_id)!;
     const work_name = workTypeMap.get(record.work)!;
-    const duration = new Decimal(dayjs(record.check_out).diff(dayjs(record.check_in)) / 3600000); // ms→hour
+    const duration = minutesToHoursDecimal(record.work_minutes);
 
     const salaryKey =
       `${worker_name}_${work_name}` in SalaryDict
@@ -76,13 +75,11 @@ const exportExcel = async (
     return {
       序号: record.id,
       工人: worker_name,
-      签到时间: dayjs(record.check_in).format("YYYY/MM/DD HH:mm"),
-      签退时间: dayjs(record.check_out).format("YYYY/MM/DD HH:mm"),
       工作类型: work_name,
       总工时: duration.toNumber(),
       薪资: totalSalary.toNumber(),
       依据: `${salaryKey}:${salary}`,
-      日期: dayjs(record.check_in).format("YYYY-MM-DD"), // ✅ 新增字段用于后续索引
+      日期: record.work_date, // ✅ "YYYY-MM-DD"文本，用于后续索引
     };
   });
 

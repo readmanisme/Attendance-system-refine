@@ -78,131 +78,15 @@ function TestPage() {
       for (const day of validDates) {
         const that_day_workers: any = _.sampleSize(workers_2, 80);
         for (const worker of that_day_workers) {
-          // const work = _.sample(workType_2).id
           const worker_id = worker.id;
-          const work_segments = _.sample([1, 2, 3]);
-          if (work_segments === 1) {
-            const start_time = dayjs(day).set("hour", 8).toISOString();
-            const check_in_time = dayjs(day).set("hour", 8).set("minute", 30).toISOString();
-            const end_time = dayjs(day).set("hour", 18).toISOString();
-            const check_out_time = dayjs(day).set("hour", 18).set("minute", 30).toISOString();
-            const check_in = faker.date.between({
-              from: start_time,
-              to: check_in_time,
-            });
-            const check_out = faker.date.between({
-              // from: check_out_time,
-              // to: end_time,
-              from: end_time,
-              to: check_out_time,
-            });
+          // 每人随机1~3个工时段，每段随机分钟数(10分钟步进,最长10小时)
+          const work_segments = _.sample([1, 2, 3])!;
+          for (let i = 0; i < work_segments; i++) {
             attendance_records.push({
               worker_id: worker_id,
+              work_date: day,
+              work_minutes: Math.round(_.random(4, 10, true) * 6) * 10,
               work: _.sample(workType_2)?.id,
-              check_in: check_in,
-              check_out: check_out,
-            });
-          } else if (work_segments === 2) {
-            const start_time_1 = dayjs(day).set("hour", 8).toISOString();
-            const check_in_time_1 = dayjs(day).set("hour", 8).set("minute", 30).toISOString();
-            const end_time_1 = dayjs(day).set("hour", 12).toISOString();
-            const check_out_time_1 = dayjs(day).set("hour", 12).set("minute", 30).toISOString();
-            const start_time_2 = dayjs(day).set("hour", 13).toISOString();
-            const check_in_time_2 = dayjs(day).set("hour", 13).set("minute", 30).toISOString();
-            const end_time_2 = dayjs(day).set("hour", 18).toISOString();
-            const check_out_time_2 = dayjs(day).set("hour", 18).set("minute", 30).toISOString();
-            const check_in_1 = faker.date.between({
-              from: start_time_1,
-              to: check_in_time_1,
-            });
-            const check_out_1 = faker.date.between({
-              // from: check_out_time_1,
-              // to: end_time_1,
-              from: end_time_1,
-              to: check_out_time_1,
-            });
-            const check_in_2 = faker.date.between({
-              from: start_time_2,
-              to: check_in_time_2,
-            });
-            const check_out_2 = faker.date.between({
-              // from: check_out_time_2,
-              // to: end_time_2,
-              from: end_time_2,
-              to: check_out_time_2,
-            });
-            attendance_records.push({
-              worker_id: worker_id,
-              work: _.sample(workType_2)?.id,
-              check_in: check_in_1,
-              check_out: check_out_1,
-            });
-            attendance_records.push({
-              worker_id: worker_id,
-              work: _.sample(workType_2)?.id,
-              check_in: check_in_2,
-              check_out: check_out_2,
-            });
-          } else if (work_segments === 3) {
-            const start_time_1 = dayjs(day).set("hour", 8).toISOString();
-            const check_in_time_1 = dayjs(day).set("hour", 8).set("minute", 30).toISOString();
-            const end_time_1 = dayjs(day).set("hour", 12).toISOString();
-            const check_out_time_1 = dayjs(day).set("hour", 12).set("minute", 30).toISOString();
-            const start_time_2 = dayjs(day).set("hour", 13).toISOString();
-            const check_in_time_2 = dayjs(day).set("hour", 13).set("minute", 30).toISOString();
-            const end_time_2 = dayjs(day).set("hour", 16).toISOString();
-            const check_out_time_2 = dayjs(day).set("hour", 16).set("minute", 30).toISOString();
-            const start_time_3 = dayjs(day).set("hour", 18).toISOString();
-            const check_in_time_3 = dayjs(day).set("hour", 18).set("minute", 30).toISOString();
-            const end_time_3 = dayjs(day).set("hour", 22).toISOString();
-            const check_out_time_3 = dayjs(day).set("hour", 22).set("minute", 30).toISOString();
-            const check_in_1 = faker.date.between({
-              from: start_time_1,
-              to: check_in_time_1,
-            });
-            const check_out_1 = faker.date.between({
-              // from: check_out_time_1,
-              // to: end_time_1,
-              from: end_time_1,
-              to: check_out_time_1,
-            });
-            const check_in_2 = faker.date.between({
-              from: start_time_2,
-              to: check_in_time_2,
-            });
-            const check_out_2 = faker.date.between({
-              // from: check_out_time_2,
-              // to: end_time_2,
-              from: end_time_2,
-              to: check_out_time_2,
-            });
-            const check_in_3 = faker.date.between({
-              from: start_time_3,
-              to: check_in_time_3,
-            });
-            const check_out_3 = faker.date.between({
-              // from: check_out_time_3,
-              // to: end_time_3,
-              from: end_time_3,
-              to: check_out_time_3,
-            });
-            attendance_records.push({
-              worker_id: worker_id,
-              work: _.sample(workType_2)?.id,
-              check_in: check_in_1,
-              check_out: check_out_1,
-            });
-            attendance_records.push({
-              worker_id: worker_id,
-              work: _.sample(workType_2)?.id,
-              check_in: check_in_2,
-              check_out: check_out_2,
-            });
-            attendance_records.push({
-              worker_id: worker_id,
-              work: _.sample(workType_2)?.id,
-              check_in: check_in_3,
-              check_out: check_out_3,
             });
           }
         }
