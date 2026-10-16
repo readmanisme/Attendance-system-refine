@@ -33,9 +33,9 @@ export const Header: React.FC<RefineThemedLayoutHeaderProps> = ({ sticky = true 
   const { token } = useToken();
   const invalidate = useInvalidate();
 
-  const { helpOpen, setHelpOpen, __BACKEND_API_URL__, set__BACKEND_API_URL__ } = useSomeStore();
+  const { setHelpOpen, __BACKEND_API_URL__, set__BACKEND_API_URL__ } = useSomeStore();
 
-  const { settings, loading, error } = useFetchSettings(__BACKEND_API_URL__);
+  const { settings } = useFetchSettings(__BACKEND_API_URL__);
   const batch = settings?.batch;
   console.log("batch", batch, "settings", settings);
   const BatchError = batch ? batch?.enabled === true && batch?.maxRequests === 999 : true;

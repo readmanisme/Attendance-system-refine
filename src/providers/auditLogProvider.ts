@@ -1,7 +1,7 @@
 import { AuditLogProvider } from "@refinedev/core";
 
 export const auditLogProvider: AuditLogProvider = {
-  get: async (params) => {
+  get: async () => {
     // const { resource, meta, action, author, metaData } = params;
     // const response = await fetch(
     //   `https://example.com/api/audit-logs/${resource}/${meta.id}`,
@@ -32,7 +32,7 @@ export const auditLogProvider: AuditLogProvider = {
 
     return { success: true };
   },
-  update: async (params) => {
+  update: async () => {
     // const { id, name, ...rest } = params;
     // console.log(id); // "1"
     // console.log(name); // "Created Product 1"

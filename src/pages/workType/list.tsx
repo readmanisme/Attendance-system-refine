@@ -63,7 +63,7 @@ const ListWorkType = () => {
                   },
                   {
                     // onSuccess必须放在mutate里面而不是useCreate的里面，后者会导致refine默认行为被覆盖，导致通知和数据失效不起作用。
-                    onSuccess: (data, variables, context) => {
+                    onSuccess: () => {
                       // 如果把mutate2和mutate放在一起，因为是异步的原因可能导致顺序错乱从而创建失败。
                       mutate2({
                         values: {

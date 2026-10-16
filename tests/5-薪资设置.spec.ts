@@ -319,7 +319,7 @@ test("编辑校验", async ({ page }) => {
 });
 test.describe("添加编辑删除", () => {
   // 数据清理
-  test.afterEach(async ({ page }) => {
+  test.afterEach(async () => {
     const records = await pb.collection(SalaryType_TableName).getFullList({
       filter: 'created > "2025-11-10"',
     });

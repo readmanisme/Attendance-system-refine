@@ -1,5 +1,5 @@
 import { test } from "@playwright/test";
 
-test("test", async ({ page }) => {
+test("test", async () => {
   // Recording...
 });

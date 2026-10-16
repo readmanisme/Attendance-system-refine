@@ -23,7 +23,7 @@ const CreateWorkType = () => {
     mutate(
       { values: parseValues() },
       {
-        onSuccess: (response) => {
+        onSuccess: () => {
           go({
             // @ts-expect-error,111
             to: { resource: resource?.name, action: "list" },

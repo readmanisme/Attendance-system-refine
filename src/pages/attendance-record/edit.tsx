@@ -54,7 +54,7 @@ const AttendanceRecordEdit = () => {
     <Edit
       saveButtonProps={saveButtonProps}
       isLoading={formLoading}
-      headerButtons={({ refreshButtonProps, listButtonProps }) => (
+      headerButtons={({ listButtonProps }) => (
         <>{listButtonProps && <ListButton {...listButtonProps} meta={{ foo: "bar" }} />}</>
       )}
     >

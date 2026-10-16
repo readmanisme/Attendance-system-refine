@@ -67,7 +67,7 @@ export const useSomeStore = create<SomeState>()(
         partialize: (state) => {
           if (import.meta.env.PROD) {
             // 使用解构赋值，将 __BACKEND_API_URL__ 从要持久化的状态对象中排除
-            const { __BACKEND_API_URL__, set__BACKEND_API_URL__, ...persistedState } = state;
+            const { __BACKEND_API_URL__: _api, set__BACKEND_API_URL__: _setApi, ...persistedState } = state;
 
             return persistedState;
           }

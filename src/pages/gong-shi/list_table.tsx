@@ -11,8 +11,7 @@ import { useSomeStore } from "@/stores";
 import { SwitchDataRange } from "@/components/SwitchDataRange";
 export default function GongShiList() {
   // ======================== useState等 ========================
-  const [SalaryLoading, setSalaryLoading] = useState(true);
-  const { recordDateRange, setRecordDateRange } = useSomeStore();
+  const { recordDateRange } = useSomeStore();
   const [isExportLoading, setIsExportLoading] = useState(false);
   const [exportRange, setExportRange] = useState([dayjs().startOf("year"), dayjs().endOf("year")]);
   const [exportPerson, setExportPerson] = useState<string>("");
@@ -169,7 +168,7 @@ export default function GongShiList() {
 
   // ======================== 获取数据 ========================
 
-  const { result: month_view_data } = useList({
+  const { result: month_view_data, query: queryMonth } = useList({
     resource: __WorkHours_Month_ViewName,
     // queryOptions: {
     //   enabled: !tableProps.loading,
@@ -180,7 +179,7 @@ export default function GongShiList() {
     },
   });
 
-  const { result: day_view_data } = useList({
+  const { result: day_view_data, query: queryDay } = useList({
     resource: __WorkHours_Day_ViewName,
     // queryOptions: {
     //   enabled: !tableProps.loading,
@@ -191,7 +190,7 @@ export default function GongShiList() {
     },
   });
 
-  const { result: attendance_record_data } = useList({
+  const { result: attendance_record_data, query: queryAttendance } = useList({
     resource: __AttendanceRecord_TableName,
     // queryOptions: {
     //   enabled: !tableProps.loading,
@@ -226,6 +225,15 @@ export default function GongShiList() {
       expand: ["worker_name", "work_type"],
     },
   });
+  // 真 loading：render 期间直接派生，不用 useState+useEffect，避免 react(set-state-in-effect)。
+  // 薪资 Maps 是同步 useMemo，query 就绪的同一 commit 即算好，无需额外等待态。
+  const isDataLoading =
+    !!workerData.loading ||
+    queryMonth.isLoading ||
+    queryDay.isLoading ||
+    queryAttendance.isLoading ||
+    query.isLoading ||
+    querySalary.isLoading;
   // ======================== 衍生数据计算 ========================
 
   const useGroupByWorkerId = (data: any) => {
@@ -349,17 +357,8 @@ export default function GongShiList() {
     };
   }, [attendance_record_data?.data, SalaryDict, workerMap, workTypeMap]);
 
-  // useEffect(() => {
-  //   if (monthSalaryMap.size !== 0) {
-  //     setSalaryLoading(false);
-  //   }
-  // }, [monthSalaryMap.size]);
-  useEffect(() => {
-    // 只要这些计算结果存在，说明计算已完成
-    if (dayDuringSalaryMap && daySalaryMap && monthSalaryMap && matchSalaryMap) {
-      setSalaryLoading(false);
-    }
-  }, [dayDuringSalaryMap, daySalaryMap, monthSalaryMap, matchSalaryMap]);
+  // SalaryLoading 已删除，改用上面派生的 isDataLoading；
+  // 翻页只切工人表分页，薪资 Maps 依赖不变，无需手动置 loading。
 
   // ======================== 导出xlsx文件 ========================
   const { __BACKEND_API_URL__ } = useSomeStore();
@@ -628,7 +627,7 @@ export default function GongShiList() {
                     // @ts-expect-error,111
                     defaultValue={exportRange}
                     // @ts-expect-error,有个看不太懂的错误，不管了
-                    onChange={(date: [Dayjs, Dayjs], dateString: string) => {
+                    onChange={(date: [Dayjs, Dayjs]) => {
                       setExportRange(date);
                     }}
                   />
@@ -698,11 +697,10 @@ export default function GongShiList() {
           ...workerData.pagination,
           showSizeChanger: true,
           onChange: (page, pageSize) => {
-            setSalaryLoading(true);
-            // console.log("page", page, "pageSize", pageSize);
+            workerData.pagination?.onChange?.(page, pageSize);
           },
         }}
-        loading={SalaryLoading}
+        loading={isDataLoading}
         // loading={listProps.loading}
         // 在这里判断salary那些字段是不是空的没有作用，因为换页的时候它们都不是空的
         // 判断tableProps.loading作用不大，因为他加载完后工资计算还没完

@@ -108,7 +108,7 @@ test("月份筛选测试", async ({ page }) => {
 });
 test.describe("一条龙", () => {
   // 数据清理
-  test.afterEach(async ({ page }) => {
+  test.afterEach(async () => {
     const records = await pb.collection(AttendanceRecord_TableName).getFullList({
       filter: 'created > "2025-11-10"',
     });
@@ -122,7 +122,7 @@ test.describe("一条龙", () => {
     expect(result.every((r) => r.status === 204)).toBe(true); //body是null
   });
   // 创建测试数据
-  test.beforeEach(async ({ page }) => {
+  test.beforeEach(async () => {
     const batch = pb.createBatch();
     batch.collection(AttendanceRecord_TableName).create({
       worker_id: "7532s7t15y9r3c5",

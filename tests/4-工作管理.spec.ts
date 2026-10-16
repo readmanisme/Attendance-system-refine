@@ -29,7 +29,7 @@ test.describe("工作 列表", () => {
   // test("搜索测试", async ({ page }) => {}); //因为工作很少所以没有搜索
 });
 test.describe("无基础工作提示", () => {
-  test.afterEach(async ({ page }) => {
+  test.afterEach(async () => {
     // 创建操作涉及到两张表，所以都要处理
     const tables = [WorkTypes_TableName, SalaryType_TableName];
     for (const table of tables) {
@@ -306,7 +306,7 @@ test.describe("工作 编辑", () => {
 });
 test.describe("工作 创建删除编辑", () => {
   // 数据清理
-  test.afterEach(async ({ page }) => {
+  test.afterEach(async () => {
     const records = await pb.collection(WorkTypes_TableName).getFullList({
       filter: 'created > "2025-11-10"',
     });

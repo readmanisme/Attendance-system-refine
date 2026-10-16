@@ -6,10 +6,8 @@ import dayjs from "dayjs";
 import { useSomeStore } from "@/stores";
 
 import {
-  useCreate,
   useCreateMany,
   useDeleteMany,
-  useMany,
   useUpdateMany,
 } from "@refinedev/core";
 import { getPb } from "@/utils/pocketbase";
@@ -23,16 +21,7 @@ function TestPage() {
     工作类型: __WorkTypes_TableName,
   };
   const [status_2, set_status] = useState("未进行");
-  const start_time = Date.now();
   // you can also fetch all records at once via getFullList
-  const records_time_test = async () => {
-    // console.log("Fetching records...");
-    const records = await pb.collection(__AttendanceRecord_TableName).getFullList({});
-    // const end_time = Date.now();
-    // console.log(`${records.length} records fetched in ${(end_time - start_time)/1000}s`);
-    // 43925 records fetched in 2.597s
-  };
-  // records_time_test()
   const gen_and_push_fake_data = async () => {
     const { fakerZH_CN: faker } = await import("@faker-js/faker");
     faker.seed(666);
@@ -51,7 +40,7 @@ function TestPage() {
     // 可以擦除集合，https://pocketbase.io/docs/api-collections/#truncate-collection
     // 不过我这里就手动操作一下好了
     for (const worker of workers_test_data()) {
-      const record = await pb.collection(集合["工人"]).create(worker);
+      await pb.collection(集合["工人"]).create(worker);
     }
     const workers_2 = await pb.collection(集合["工人"]).getFullList();
     set_status("开始插入工作类型数据");
@@ -62,7 +51,7 @@ function TestPage() {
       return workTypes_new;
     };
     for (const workType of workType_test_data()) {
-      const record = await pb.collection(集合["工作类型"]).create(workType);
+      await pb.collection(集合["工作类型"]).create(workType);
     }
     const workType_2 = await pb.collection(集合["工作类型"]).getFullList();
     set_status("开始插入考勤记录数据");
@@ -221,7 +210,7 @@ function TestPage() {
       return attendance_records;
     };
     for (const attendance_record of attendance_record_test_data()) {
-      const record = await pb.collection(集合["考勤记录"]).create(attendance_record);
+      await pb.collection(集合["考勤记录"]).create(attendance_record);
     }
     set_status("数据插入完成");
   };
@@ -232,18 +221,9 @@ function TestPage() {
   const { mutate: UpdateBatchRecord } = useUpdateMany({
     resource: __WorkTypes_TableName,
   });
-  const { mutate } = useCreate({
-    resource: "workers",
-    // mutationOptions: {
-    //   onSuccess: () => {
-    //     console.log("创建成功");
-    //   },
-    // },
-  });
   // const { result } = useList({
   //   resource: "workers",
   // });
-  const [ids, setIds] = useState();
 
   // const {
   //   result,

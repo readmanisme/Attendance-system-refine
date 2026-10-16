@@ -13,7 +13,6 @@ test("日期检测检查", async ({ page }) => {
    */
   await page.goto(qiandao_url);
   // short时间用于选择
-  const today_short = dayjs().format("-MM-DD");
   const yesterday_short = "-11-07";
   const tomorrow_short = dayjs().add(1, "day").format("-MM-DD");
   // 完整时间用于判断
@@ -198,7 +197,7 @@ test.describe("一条龙", async () => {
    */
   const today = dayjs().format("YYYY-MM-DD");
   // 用于在意外失败和其他的情况下清除产生的多余的数据，避免污染数据库
-  test.afterEach(async ({ page }) => {
+  test.afterEach(async () => {
     const records = await pb.collection(AttendanceRecord_TableName).getFullList({
       filter: 'created > "2025-11-10"',
     });

@@ -260,7 +260,7 @@ test.describe("人员 编辑", () => {
 });
 test.describe("人员 创建删除编辑", () => {
   // 数据清理
-  test.afterEach(async ({ page }) => {
+  test.afterEach(async () => {
     const records = await pb.collection(Workers_TableName).getFullList({
       filter: 'created > "2025-11-10"',
     });

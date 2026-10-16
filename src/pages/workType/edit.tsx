@@ -21,7 +21,7 @@ const EditWorkType: React.FC = () => {
   return (
     <Edit
       saveButtonProps={saveButtonProps}
-      headerButtons={({ refreshButtonProps, listButtonProps }) => (
+      headerButtons={({ listButtonProps }) => (
         <>{listButtonProps && <ListButton {...listButtonProps} meta={{ foo: "bar" }} />}</>
       )}
       footerButtons={({ saveButtonProps }) => (

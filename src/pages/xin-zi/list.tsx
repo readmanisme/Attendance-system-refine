@@ -16,7 +16,7 @@ const SalaryTypeList = () => {
       expand: ["worker_name", "work_type"],
     },
   });
-  const { result, query } = useList({
+  const { result } = useList({
     resource: __WorkTypes_TableName,
     pagination: { mode: "off" },
   });

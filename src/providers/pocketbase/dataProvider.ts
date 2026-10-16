@@ -202,14 +202,14 @@ export const dataProvider = (pb: PocketBase): DataProvider => ({
     }
   },
 
-  deleteMany: async ({ resource, ids, variables, meta }) => {
+  deleteMany: async ({ resource, ids, meta }) => {
     // 2025年11月9日。测试的时候报错了，那是因为pb实例不是管理员级别，而你设置了基础工作类型不能删除，所以会报错
     try {
       const batch = pb.createBatch();
       ids.forEach((id) => {
         batch.collection(resource).delete(id as string, { requestKey: meta?.requestKey ?? null });
       });
-      const results = await batch.send(); //{"body": null,"status": 204}
+      await batch.send(); //{"body": null,"status": 204}
       return { data: ids } as any; //报错那就一个都删不了，不用判断每个的状态
     } catch (e) {
       if (isClientResponseError(e)) {

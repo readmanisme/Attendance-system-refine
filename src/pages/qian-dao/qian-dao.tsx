@@ -96,11 +96,9 @@ export default function QianDaoPage() {
     tableProps,
     formProps,
     isEditing,
-    setId: setEditId,
     saveButtonProps,
     cancelButtonProps,
     editButtonProps,
-    result,
   } = useEditableTable({
     resource: __AttendanceRecord_TableName,
     pagination: {
@@ -148,12 +146,12 @@ export default function QianDaoPage() {
         .set("second", 0)
         .set("millisecond", 0);
       const check_out = check_in.add(hours, "hour");
-      const r = {
+      const rest: any = {
         ...values,
         check_in: formatForDB(check_in),
         check_out: formatForDB(check_out),
       };
-      const { workTime, ...rest } = r;
+      delete rest.workTime;
       if (formProps.onFinish) {
         formProps.onFinish(rest);
       }
@@ -468,7 +466,7 @@ export default function QianDaoPage() {
                       // @ts-expect-error,111
                       value={RangeTime}
                       // @ts-expect-error,111
-                      onChange={(time: Dayjs, timeString: string) => {
+                      onChange={(time: Dayjs) => {
                         // @ts-expect-error,111
                         setRangeTime(time); //这个dayjs仍然有年月日的部分
                       }}
@@ -489,7 +487,7 @@ export default function QianDaoPage() {
                       style={{ width: 120 }}
                       allowClear={false}
                       value={CheckDate}
-                      onChange={(value, dateString) => {
+                      onChange={(value) => {
                         setCheckDate(value);
                       }}
                     />

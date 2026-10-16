@@ -8,7 +8,6 @@ import tailwindcss from "@tailwindcss/vite";
 import { electronSimple } from "vite-plugin-electron/multi-env";
 
 export default defineConfig(({ command, mode }) => {
-  const isServe = command === "serve";
   const isBuild = command === "build";
   const sourcemap = true;
   // 只有显式执行 `vite build --mode analyze` 时才生成打包分析报告。
