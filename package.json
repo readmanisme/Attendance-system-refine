@@ -19,8 +19,7 @@
     "refine": "refine",
     "scan": "npx react-scan localhost:5173",
     "format": "npx prettier --write src/",
-    "eslint": "npx eslint --ext .ts,.tsx src/",
-    "cyopen": "cypress open"
+    "eslint:check": "pnpm eslint --ext .ts,.tsx src/"
   },
   "dependencies": {
     "@ant-design/icons": "^6.3.4",
@@ -61,7 +60,6 @@
     "@types/tape": "^5.8.1",
     "@typescript-eslint/parser": "^8.71.2",
     "@vitejs/plugin-react": "^6.1.2",
-    "babel-plugin-react-compiler": "1.0.0",
     "electron": "^44.7.2",
     "eslint": "^10.12.0",
     "eslint-plugin-react-hooks": "7.1.1",

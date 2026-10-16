@@ -19,15 +19,10 @@ export default defineConfig(
         ...globals.browser,
       },
     },
-    plugins: {
-      // "react-hooks": reactHooks,
-      // "react-refresh": reactRefresh,
-    },
     rules: {
       // "react-refresh/only-export-components": "warn",
       "@typescript-eslint/no-unused-vars": "off",
       "@typescript-eslint/no-explicit-any": "off",
-      // "react-hooks/react-compiler": "error",
     },
   }
 );
