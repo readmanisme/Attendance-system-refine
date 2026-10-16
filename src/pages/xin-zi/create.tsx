@@ -1,7 +1,7 @@
 import { Create, SaveButton, useForm, useSelect } from "@refinedev/antd";
 import { useList } from "@refinedev/core";
 import { Form, Select, InputNumber, Alert } from "antd";
-import { useState, useEffect, useMemo } from "react";
+import { useState, useMemo } from "react";
 
 const SalaryTypeCreate = () => {
   const { formProps, saveButtonProps } = useForm({

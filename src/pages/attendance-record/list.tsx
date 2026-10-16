@@ -1,15 +1,13 @@
 import {
-  CreateButton,
   DeleteButton,
   EditButton,
   List,
-  ShowButton,
   useTable,
 } from "@refinedev/antd";
-import { CrudFilter, useDeleteMany, BaseRecord, useList } from "@refinedev/core";
-import { Space, Table, Switch, Button, Popconfirm, Alert, Tooltip } from "antd";
+import { CrudFilter, useDeleteMany, BaseRecord } from "@refinedev/core";
+import { Space, Table, Button, Popconfirm, Alert, Tooltip } from "antd";
 import dayjs from "dayjs";
-import { useMemo, useCallback, useState, useEffect } from "react";
+import { useMemo, useCallback, useState } from "react";
 import { SwitchDataRange } from "@/components/SwitchDataRange";
 import { useGetDatePickerFilter } from "@/utils/get_data_picker_filter";
 import PySearchSelect from "@/components/PySearchSelect";

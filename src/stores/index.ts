@@ -2,7 +2,7 @@
 import { create } from "zustand";
 import { devtools, persist } from "zustand/middleware";
 import type {} from "@redux-devtools/extension";
-import dayjs, { Dayjs } from "dayjs";
+import dayjs from "dayjs";
 
 interface SomeState {
   recordDateRange: string[];

@@ -15,7 +15,7 @@ import routerBindings, {
   UnsavedChangesNotifier,
 } from "@refinedev/react-router";
 import { App as AntdApp, Avatar, Space, Spin, Typography } from "antd";
-import { BrowserRouter, Outlet, Route, Routes, HashRouter } from "react-router";
+import { Outlet, Route, Routes, HashRouter } from "react-router";
 import { Header } from "./components/header";
 import { ColorModeContextProvider } from "./contexts/color-mode";
 import TestPage from "./pages/test-page/test-page";
@@ -29,7 +29,6 @@ import {
   IconCoinYen,
   IconReport,
   IconBriefcase,
-  IconCode,
 } from "@tabler/icons-react";
 import { GlobalHelp } from "./components/GlobalHelp";
 import { useTranslation } from "react-i18next";

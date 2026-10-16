@@ -3,7 +3,6 @@ import {
   useTable,
   List,
   EditButton,
-  ShowButton,
   DeleteButton,
   CreateButton,
 } from "@refinedev/antd";

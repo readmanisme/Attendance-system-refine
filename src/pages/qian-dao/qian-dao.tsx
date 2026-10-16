@@ -20,7 +20,7 @@ import { IconHelp } from "@tabler/icons-react";
 import { useState, useCallback, useMemo } from "react";
 import dayjs, { Dayjs } from "dayjs";
 import { BaseRecord, useCreateMany, useDeleteMany } from "@refinedev/core";
-import { ClockCircleOutlined, CloseCircleOutlined, DeleteOutlined } from "@ant-design/icons";
+import { CloseCircleOutlined, DeleteOutlined } from "@ant-design/icons";
 import {
   DeleteButton,
   EditButton,
@@ -29,7 +29,6 @@ import {
   TextField,
   useEditableTable,
   useSelect,
-  useTable,
 } from "@refinedev/antd";
 import PySearchSelect from "@/components/PySearchSelect";
 const { Title: AntdTitle } = Typography;

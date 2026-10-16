@@ -1,7 +1,7 @@
 import { FrownOutlined } from "@ant-design/icons";
 import { Button, Result } from "antd";
-import { ComponentType, ErrorInfo } from "react";
-import { ErrorBoundary, FallbackProps } from "react-error-boundary";
+import { ErrorInfo } from "react";
+import { ErrorBoundary } from "react-error-boundary";
 export const CustomErrorBoundary = ({ children }: { children: React.ReactNode }) => {
   const handleError = (error: Error, info: ErrorInfo) => {
     // 可以在此记录错误，发送到后端等

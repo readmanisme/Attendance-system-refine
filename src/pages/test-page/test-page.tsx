@@ -9,7 +9,6 @@ import {
   useCreate,
   useCreateMany,
   useDeleteMany,
-  useList,
   useMany,
   useUpdateMany,
 } from "@refinedev/core";
