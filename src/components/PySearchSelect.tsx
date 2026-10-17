@@ -88,19 +88,19 @@ export default function PySearchSelect({
     return false;
   }, []);
 
-  /** 高亮渲染:把命中的字符/词染成蓝色 */
+  /** 高亮渲染:把命中的字符/词染成蓝色。
+   * 注意:不能用带 g 标志的同一 regex 连续 test(会因 lastIndex 残留跳过部分匹配)。
+   * split 的捕获组返回的就是命中子串,直接做集合判断即可。 */
   const renderOptionLabel = useCallback(
     (option: DefaultOptionType) => {
       const label = option.label as string;
       if (!highlightWords.size) return <span>{label}</span>;
 
-      const highlightArray = Array.from(highlightWords);
-      const regex = new RegExp(`(${highlightArray.join("|")})`, "gi");
-      const parts = label.split(regex);
+      const parts = label.split(new RegExp(`(${[...highlightWords].join("|")})`));
       return (
         <span>
           {parts.map((part, idx) =>
-            regex.test(part) ? (
+            highlightWords.has(part) ? (
               <span key={idx} style={{ color: "#4169E1" }}>
                 {part}
               </span>

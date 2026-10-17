@@ -1,7 +1,7 @@
 import { BaseRecord, useCreate, useList } from "@refinedev/core";
 import { useTable, List, EditButton, DeleteButton, CreateButton } from "@refinedev/antd";
 import { Table, Space, Alert, Button, Result } from "antd";
-import { useMemo } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { useInvalidate } from "@refinedev/core";
 import { cellTestId } from "@/utils/tableHelpers";
 import { BASE_WORK_TYPE_NAME } from "@/constants";
@@ -40,6 +40,40 @@ const ListWorkType = () => {
     tableProps.dataSource?.some((item: any) => item.name == BASE_WORK_TYPE_NAME) ?? true;
   const { result } = useList({ resource: __WorkRecordNum_TableName, pagination: { mode: "off" } });
   const WorkRecordNum = new Map(result.data.map((item: any) => [item.work_id, item.record_count]));
+  // 添加基础工作期间禁用按钮,防止双击重复提交
+  const [addingBase, setAddingBase] = useState(false);
+  const handleAddBaseWork = useCallback(() => {
+    if (addingBase) return;
+    setAddingBase(true);
+    mutate(
+      {
+        values: {
+          id: "basebasebasebas", //必须刚好15位
+          name: BASE_WORK_TYPE_NAME,
+        },
+      },
+      {
+        // onSuccess必须放在mutate里面而不是useCreate的里面，后者会导致refine默认行为被覆盖，导致通知和数据失效不起作用。
+        onSuccess: () => {
+          // 如果把mutate2和mutate放在一起，因为是异步的原因可能导致顺序错乱从而创建失败。
+          mutate2({
+            values: {
+              id: "basebasebaseba1",
+              work_type: "basebasebasebas",
+              SalaryNum: 10,
+            },
+          });
+          invalidate({
+            //需要手动刷新数据
+            resource: __WorkRecordNum_TableName,
+            invalidates: ["list"],
+          });
+        },
+        onError: () => setAddingBase(false),
+        onSettled: () => setAddingBase(false),
+      },
+    );
+  }, [addingBase, mutate, mutate2, invalidate]);
   if (!HaveBaseWork) {
     return (
       <List headerButtons={<CreateButton data-testid="create-button">添加工作</CreateButton>}>
@@ -50,34 +84,8 @@ const ListWorkType = () => {
             <Button
               data-testid="add-base-work-button"
               type="primary"
-              onClick={() => {
-                mutate(
-                  {
-                    values: {
-                      id: "basebasebasebas", //必须刚好15位
-                      name: BASE_WORK_TYPE_NAME,
-                    },
-                  },
-                  {
-                    // onSuccess必须放在mutate里面而不是useCreate的里面，后者会导致refine默认行为被覆盖，导致通知和数据失效不起作用。
-                    onSuccess: () => {
-                      // 如果把mutate2和mutate放在一起，因为是异步的原因可能导致顺序错乱从而创建失败。
-                      mutate2({
-                        values: {
-                          id: "basebasebaseba1",
-                          work_type: "basebasebasebas",
-                          SalaryNum: 10,
-                        },
-                      });
-                      invalidate({
-                        //需要手动刷新数据
-                        resource: __WorkRecordNum_TableName,
-                        invalidates: ["list"],
-                      });
-                    },
-                  },
-                );
-              }}
+              loading={addingBase}
+              onClick={handleAddBaseWork}
             >
               添加 “基础” 工作及其时薪
             </Button>

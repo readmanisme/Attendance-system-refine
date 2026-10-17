@@ -2,12 +2,11 @@ import { Edit, ListButton, SaveButton, useForm, useSelect } from "@refinedev/ant
 import { Form, Input, Select, InputNumber, Alert } from "antd";
 
 const SalaryTypeEdit = () => {
-  const { formProps, saveButtonProps, form } = useForm({
+  const { formProps, saveButtonProps } = useForm({
     meta: {
       expand: ["worker_name", "work_type"],
     },
   });
-  const salaryNum_init = formProps.initialValues?.SalaryNum;
   const { selectProps: nameSelectProps } = useSelect({
     resource: __Workers_TableName,
     optionLabel: "name",
@@ -20,8 +19,8 @@ const SalaryTypeEdit = () => {
     pagination: { mode: "off" },
   });
 
-  const salaryNum = Form.useWatch("SalaryNum", form);
-  const isError = salaryNum === salaryNum_init;
+  // 时薪未修改时直接保存也无害(等于原值的更新),不再禁用按钮/弹出警告,
+  // 避免用户一打开编辑页就看到"时薪未修改"的错误观感。
   return (
     <Edit
       saveButtonProps={saveButtonProps}
@@ -29,7 +28,7 @@ const SalaryTypeEdit = () => {
         <>{listButtonProps && <ListButton {...listButtonProps} meta={{ foo: "bar" }} />}</>
       )}
       footerButtons={({ saveButtonProps }) => (
-        <SaveButton data-testid="save-button" {...saveButtonProps} disabled={isError} />
+        <SaveButton data-testid="save-button" {...saveButtonProps} />
       )}
     >
       <Form {...formProps} layout="vertical">
@@ -60,14 +59,6 @@ const SalaryTypeEdit = () => {
         <Form.Item label="时薪" name={["SalaryNum"]} rules={[{ required: true }]}>
           <InputNumber min={0} changeOnWheel data-testid="salary-input" />
         </Form.Item>
-        {isError && (
-          <Alert
-            data-testid="no-change-alert"
-            message="时薪未修改，不想修改可以返回"
-            type="warning"
-            showIcon
-          />
-        )}
         <Alert
           data-testid="warning-alert"
           className="mt-2!"

@@ -84,6 +84,8 @@ export const ExportPopover = ({ salaryDict }: { salaryDict: Record<string, numbe
       onConfirm={handleExport}
       okText="进行导出"
       cancelText="取消操作"
+      // 确认按钮显示导出进行中的 loading(原来只给弹层外的触发按钮,确认后无反馈)
+      okButtonProps={{ loading: isExportLoading }}
     >
       <Button loading={isExportLoading}>导出考勤记录到Excel</Button>
     </Popconfirm>

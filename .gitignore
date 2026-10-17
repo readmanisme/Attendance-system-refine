@@ -46,3 +46,4 @@ electron-v39.2.7-win32-x64/
 electron-app/
 scripts/migrate-hours/report-2026-10-16T09-36-41-458Z.json
 scripts/migrate-hours/wage-compare-2026-10-16T10-02-44-114Z.json
+pocketbase-for-playwright-test/

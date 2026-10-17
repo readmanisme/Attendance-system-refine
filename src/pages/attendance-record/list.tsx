@@ -30,18 +30,23 @@ const AttendanceRecordList = () => {
     },
   });
 
-  const { mutate: deleteMany } = useDeleteMany();
+  const { mutateAsync: deleteManyAsync } = useDeleteMany();
 
   const { selectedRowKeys, clearSelection } = selection;
-  const handleBatchDelete = useCallback(() => {
+  const resourceName = resource?.name;
+  const handleBatchDelete = useCallback(async () => {
     if (!selectedRowKeys.length) return;
-    deleteMany({
-      // @ts-expect-error,111
-      resource: resource?.name,
-      ids: selectedRowKeys as number[],
-    });
-    clearSelection();
-  }, [deleteMany, resource?.name, selectedRowKeys, clearSelection]);
+    try {
+      await deleteManyAsync({
+        // @ts-expect-error,111
+        resource: resourceName,
+        ids: selectedRowKeys as number[],
+      });
+      clearSelection();
+    } catch {
+      // 删除失败:refine 已弹出错误通知,保留选中让用户直接重试
+    }
+  }, [deleteManyAsync, resourceName, selectedRowKeys, clearSelection]);
 
   return (
     <List

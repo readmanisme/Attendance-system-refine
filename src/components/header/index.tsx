@@ -1,13 +1,12 @@
 import { QuestionCircleOutlined } from "@ant-design/icons";
 import type { RefineThemedLayoutHeaderProps } from "@refinedev/antd";
 import { Layout as AntdLayout, Button, Radio, Space, Tag, theme, Tooltip } from "antd";
-import React, { useMemo, useCallback } from "react";
-import { useInvalidate } from "@refinedev/core";
+import React, { useMemo, useCallback, useState } from "react";
 import { useUiStore, useConfigStore } from "@/stores";
 import GradientButton from "../GradientButton";
 const { useToken } = theme;
 import { getPbAdmin } from "@/utils/pocketbase_admin";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 
 /** 后端设置的批量接口配置(refine 的 QueryClientProvider 提供缓存,60s 内不重复请求) */
 const useFetchSettings = (backendApiUrl: string) =>
@@ -22,7 +21,6 @@ const useFetchSettings = (backendApiUrl: string) =>
 
 export const Header: React.FC<RefineThemedLayoutHeaderProps> = ({ sticky = true }) => {
   const { token } = useToken();
-  const invalidate = useInvalidate();
 
   const { setHelpOpen } = useUiStore();
   const { __BACKEND_API_URL__, set__BACKEND_API_URL__ } = useConfigStore();
@@ -60,12 +58,22 @@ export const Header: React.FC<RefineThemedLayoutHeaderProps> = ({ sticky = true 
   );
 
   // --- ✅ 刷新逻辑优化：修正条件判断错误 ---
-  const handleRefresh = useCallback(() => {
-    invalidate({
-      // dataProviderName: "default",
-      invalidates: ["all"],
-    });
-  }, [invalidate]);
+  // 按钮在刷新期间显示 loading,让用户知道"点击生效了"而不是没反应
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const queryClient = useQueryClient();
+  const handleRefresh = useCallback(async () => {
+    if (isRefreshing) return;
+    setIsRefreshing(true);
+    try {
+      // 尽量打造可感知的 loading:至少转 400ms 再结束
+      await Promise.all([
+        queryClient.invalidateQueries(),
+        new Promise((resolve) => setTimeout(resolve, 400)),
+      ]);
+    } finally {
+      setIsRefreshing(false);
+    }
+  }, [queryClient, isRefreshing]);
 
   // --- ✅ API切换逻辑 memo 化 ---
   const handlePortChange = useCallback(
@@ -85,7 +93,12 @@ export const Header: React.FC<RefineThemedLayoutHeaderProps> = ({ sticky = true 
             Batch设置有问题
           </Tag>
         )}
-        <GradientButton data-testid="refresh-button" title="刷新数据" onClick={handleRefresh} />
+        <GradientButton
+          data-testid="refresh-button"
+          title="刷新数据"
+          loading={isRefreshing}
+          onClick={handleRefresh}
+        />
         {ports.length > 0 && (
           <Radio.Group
             options={radioOptions}

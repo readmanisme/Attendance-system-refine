@@ -2,7 +2,7 @@ import { List as LList, useTable } from "@refinedev/antd";
 import { CrudFilter, useList } from "@refinedev/core";
 import { Alert, Space, Table } from "antd";
 import PySearchSelect from "@/components/PySearchSelect";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, type Key } from "react";
 import { buildEqOrFilter, cellTestId } from "@/utils/tableHelpers";
 import {
   buildSalaryDict,
@@ -45,32 +45,26 @@ export default function GongShiList() {
 
   const selectedIds = useMemo(() => SelectedPerson.map((p) => p.value), [SelectedPerson]);
 
-  // 未选人时取全部工人,选了人就只查所选
-  // 注意这是给考勤记录用的,字段是 worker_id(工人表的筛选才用 id)
-  const idFilters = useMemo(
-    () => buildEqOrFilter("worker_id", selectedIds.length ? selectedIds : [...workerMap.keys()]),
-    [selectedIds, workerMap],
-  );
-
+  // 工人表只显示所选(未选人 = 全部工人)
   useEffect(() => {
     setFilters(buildEqOrFilter("id", selectedIds));
   }, [selectedIds, setFilters]);
 
-  // 月范围 → work_date 起止边界,再叠加工人的 or 筛选
+  // 月范围 → work_date 起止边界,选了人就只查所选,未选人直接查整个范围
   const attendanceFilter = useMemo(() => {
     const { gte, lte } = getWorkDateRange(recordMonthRange);
     const andValue: any[] = [
       { field: "work_date", operator: "gte", value: gte },
       { field: "work_date", operator: "lte", value: lte },
     ];
-    if (idFilters.length) {
-      andValue.unshift(idFilters[0]); // idFilters[0] 即 or 连接的工人筛选
+    if (selectedIds.length) {
+      andValue.unshift({ field: "worker_id", operator: "in", value: selectedIds });
     }
     return {
       operator: "and",
       value: andValue,
     };
-  }, [recordMonthRange, idFilters]);
+  }, [recordMonthRange, selectedIds]);
 
   const { result: attendance_record_data, query: queryAttendance } = useList({
     resource: __AttendanceRecord_TableName,
@@ -180,7 +174,10 @@ export default function GongShiList() {
     );
   }
 
-  // 展开表:某工人的 月→日→明细 层级
+  // 展开表:某工人的 月→日→明细 层级。
+
+  // 切换月份会强制重挂载 Table(key={gongShiKey}),用受控展开键把已展开的行保住
+  const [expandedRowKeys, setExpandedRowKeys] = useState<readonly Key[]>([]);
   const expandedRowRender = (record: any) => (
     <WorkerExpandTables
       workerId={String(record.id)}
@@ -242,6 +239,8 @@ export default function GongShiList() {
         size="small"
         expandable={{
           expandedRowRender,
+          expandedRowKeys,
+          onExpandedRowsChange: (keys: readonly Key[]) => setExpandedRowKeys([...keys]),
           expandRowByClick: true,
         }}
       >

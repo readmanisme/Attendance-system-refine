@@ -9,7 +9,6 @@ import {
   DatePicker,
   Flex,
   InputNumber,
-  Popconfirm,
   Select,
   Space,
   Tag,
@@ -44,6 +43,7 @@ export function BatchEntryPanel({ batch, workTypeSelectProps }: BatchEntryPanelP
     batchWorkers,
     setBatchWorkers,
     luruDisabled,
+    isSubmitting,
     alertDescription,
     alertType,
     dataTestid,
@@ -158,17 +158,15 @@ export function BatchEntryPanel({ batch, workTypeSelectProps }: BatchEntryPanelP
               onChange={setWorkType}
             />
 
-            <Popconfirm
-              title="确认要录入吗？"
-              description="请确保信息准确"
-              okText="确认"
-              cancelText="取消"
-              onConfirm={submitBatch}
+            <Button
+              data-testid="submit-button"
+              type="primary"
+              disabled={luruDisabled}
+              loading={isSubmitting}
+              onClick={submitBatch}
             >
-              <Button data-testid="submit-button" type="primary" disabled={luruDisabled}>
-                录入
-              </Button>
-            </Popconfirm>
+              录入
+            </Button>
           </Space>
         </Space>
       </div>

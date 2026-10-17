@@ -26,11 +26,12 @@ const useStyle = createStyles(({ prefixCls, css }) => ({
   `,
 }));
 
-const GradientButton: React.FC<{ "data-testid": string; title: string; onClick?: () => void }> = ({
-  "data-testid": dataTestId,
-  title,
-  onClick,
-}) => {
+const GradientButton: React.FC<{
+  "data-testid": string;
+  title: string;
+  onClick?: () => void;
+  loading?: boolean;
+}> = ({ "data-testid": dataTestId, title, onClick, loading }) => {
   const { styles } = useStyle();
 
   return (
@@ -40,7 +41,7 @@ const GradientButton: React.FC<{ "data-testid": string; title: string; onClick?:
       }}
     >
       <Space>
-        <Button type="primary" onClick={onClick} data-testid={dataTestId}>
+        <Button type="primary" onClick={onClick} loading={loading} data-testid={dataTestId}>
           {title}
         </Button>
       </Space>

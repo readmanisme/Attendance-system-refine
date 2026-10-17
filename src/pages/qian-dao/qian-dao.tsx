@@ -23,7 +23,8 @@ import { BaseRecord, useDeleteMany } from "@refinedev/core";
 import { useCallback, useState } from "react";
 import { formatHoursExact } from "@/utils/workTime";
 import WorkMinutesInput from "@/components/WorkMinutesInput";
-import { cellTestId } from "@/utils/tableHelpers";
+import PySearchSelect from "@/components/PySearchSelect";
+import { cellTestId, buildEqOrFilter } from "@/utils/tableHelpers";
 import { useBatchRowSelection } from "../useBatchRowSelection";
 import { BatchEntryPanel } from "./BatchEntryPanel";
 import { useBatchEntry } from "./useBatchEntry";
@@ -42,7 +43,7 @@ export default function QianDaoPage() {
   });
 
   // ======================== 当天记录表 ========================
-  const { tableProps, formProps, isEditing, saveButtonProps, cancelButtonProps, editButtonProps } =
+  const { tableProps, formProps, setFilters, isEditing, saveButtonProps, cancelButtonProps, editButtonProps } =
     useEditableTable({
       resource: __AttendanceRecord_TableName,
       pagination: {
@@ -72,18 +73,22 @@ export default function QianDaoPage() {
     existingRecords: tableProps.dataSource,
   });
 
-  // ======================== 批量删除 ========================
+  // 批量删除(同一模式类似):等删除成功再清空选择,失败保留选中便于重试
   const selection = useBatchRowSelection();
-  const { mutate: deleteMany } = useDeleteMany();
+  const { mutateAsync: deleteManyAsync } = useDeleteMany();
   const { selectedRowKeys, clearSelection } = selection;
-  const handleBatchDelete = useCallback(() => {
+  const handleBatchDelete = useCallback(async () => {
     if (!selectedRowKeys.length) return;
-    deleteMany({
-      resource: __AttendanceRecord_TableName,
-      ids: selectedRowKeys as number[],
-    });
-    clearSelection();
-  }, [deleteMany, selectedRowKeys, clearSelection]);
+    try {
+      await deleteManyAsync({
+        resource: __AttendanceRecord_TableName,
+        ids: selectedRowKeys as number[],
+      });
+      clearSelection();
+    } catch {
+      // 删除失败:refine 已弹出错误通知,保留选中让用户直接重试
+    }
+  }, [deleteManyAsync, selectedRowKeys, clearSelection]);
 
   // 表格内编辑行的工时组件 value 就是整数分钟,直接写 work_minutes
   const handleOnFinish = useCallback(
@@ -139,8 +144,20 @@ export default function QianDaoPage() {
             <Alert
               data-testid="search-alert"
               type="info"
-              message="要确定某人是否已经记录，可以使用Ctrl+F搜索"
+              message="可在下方搜索框中筛选人员，快速确认某人当天是否已记录"
               showIcon
+            />
+            <PySearchSelect
+              onChangeFn={(values) => {
+                const ids = (Array.isArray(values) ? values : [values]).map((v) => v.value);
+                setFilters(buildEqOrFilter("worker_id", ids), "replace");
+              }}
+              placeholder="按人员筛选当天记录,支持拼音"
+              mode="multiple"
+              labelPlaceholder=""
+              width="100%"
+              onClearFn={() => setFilters([], "replace")}
+              type="qiandao"
             />
           </Space>
           <Form {...formProps} onFinish={handleOnFinish}>
@@ -211,7 +228,7 @@ export default function QianDaoPage() {
                           {...cancelButtonProps}
                           size="small"
                         >
-                          Cancel
+                          取消
                         </Button>
                       </Space>
                     );

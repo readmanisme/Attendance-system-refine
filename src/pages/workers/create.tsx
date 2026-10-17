@@ -1,7 +1,7 @@
 import { Create, SaveButton } from "@refinedev/antd";
 import { useCreateMany, useGo, useList, useResourceParams } from "@refinedev/core";
 import { Alert, Input } from "antd";
-import React, { useCallback } from "react";
+import React, { useCallback, useState } from "react";
 import { useBatchCreateForm } from "../useBatchCreateForm";
 
 const WorkersCreate: React.FC = () => {
@@ -10,9 +10,13 @@ const WorkersCreate: React.FC = () => {
 
   const { result: namelist } = useList({ pagination: { mode: "off" } });
 
-  const { mutate } = useCreateMany({
+  const { mutateAsync } = useCreateMany({
     resource: resource?.name,
   });
+
+  // 是否正在提交:防止保存中重复点击/双击
+  const [isSaving, setIsSaving] = useState(false);
+  const resourceName = resource?.name;
 
   // 使用抽离的 Hook，label="姓名"
   const { inputValue, setInputValue, status, parseValues, alertProps } = useBatchCreateForm(
@@ -20,25 +24,33 @@ const WorkersCreate: React.FC = () => {
     "姓名",
   );
 
-  const handleSave = useCallback(() => {
-    mutate(
-      { values: parseValues() },
-      {
-        onSuccess: () => {
-          go({
-            // @ts-expect-error,111
-            to: { resource: resource?.name, action: "list" },
-            type: "push",
-          });
-        },
-      },
-    );
-  }, [mutate, parseValues, go, resource?.name]);
+  const handleSave = useCallback(async () => {
+    const values = parseValues();
+    if (!values.length || isSaving) return;
+    setIsSaving(true);
+    try {
+      await mutateAsync({ values });
+      go({
+        // @ts-expect-error,111
+        to: { resource: resourceName, action: "list" },
+        type: "push",
+      });
+    } catch {
+      // 失败:refine 已弹出错误通知,输入保留在页面上,用户可直接重试
+    } finally {
+      setIsSaving(false);
+    }
+  }, [mutateAsync, parseValues, go, resourceName, isSaving]);
 
   return (
     <Create
       footerButtons={() => (
-        <SaveButton data-testid="save-button" onClick={handleSave} disabled={status !== "success"}>
+        <SaveButton
+          data-testid="save-button"
+          onClick={handleSave}
+          disabled={status !== "success" || isSaving}
+          loading={isSaving}
+        >
           保存
         </SaveButton>
       )}
