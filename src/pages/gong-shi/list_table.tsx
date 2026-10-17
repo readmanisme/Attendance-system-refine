@@ -46,8 +46,9 @@ export default function GongShiList() {
   const selectedIds = useMemo(() => SelectedPerson.map((p) => p.value), [SelectedPerson]);
 
   // 未选人时取全部工人,选了人就只查所选
+  // 注意这是给考勤记录用的,字段是 worker_id(工人表的筛选才用 id)
   const idFilters = useMemo(
-    () => buildEqOrFilter("id", selectedIds.length ? selectedIds : [...workerMap.keys()]),
+    () => buildEqOrFilter("worker_id", selectedIds.length ? selectedIds : [...workerMap.keys()]),
     [selectedIds, workerMap],
   );
 
@@ -234,6 +235,7 @@ export default function GongShiList() {
         pagination={{
           ...workerData.pagination,
           showSizeChanger: true,
+          size: "default",
         }}
         loading={isDataLoading}
         rowKey="id"

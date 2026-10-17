@@ -2,7 +2,7 @@
  * "工时&薪资"页:导出 Excel 的确认弹窗(时间范围 + 可选单人)。
  * xlsx 库体积大,只在点击导出后动态加载(见 export_xlsx.ts)。
  */
-import { Button, DatePicker, Popconfirm, Select, Space, Tooltip } from "antd";
+import { App, Button, DatePicker, Popconfirm, Select, Space, Tooltip } from "antd";
 import dayjs, { Dayjs } from "dayjs";
 import { useCallback, useState } from "react";
 import { useSelect } from "@refinedev/antd";
@@ -12,6 +12,7 @@ import { useConfigStore } from "@/stores";
 const { RangePicker } = DatePicker;
 
 export const ExportPopover = ({ salaryDict }: { salaryDict: Record<string, number> }) => {
+  const { message } = App.useApp();
   const [isExportLoading, setIsExportLoading] = useState(false);
   const [exportRange, setExportRange] = useState<[Dayjs, Dayjs]>([
     dayjs().startOf("year"),
@@ -32,10 +33,13 @@ export const ExportPopover = ({ salaryDict }: { salaryDict: Record<string, numbe
       // 懒加载 xlsx 与导出逻辑
       const { default: exportExcel } = await import("./export_xlsx");
       await exportExcel(exportRange, exportPerson, salaryDict, __BACKEND_API_URL__);
+    } catch (error) {
+      console.error("导出考勤记录失败:", error);
+      message.error("导出失败，请检查时间范围或后端连接后重试");
     } finally {
       setIsExportLoading(false);
     }
-  }, [exportRange, exportPerson, salaryDict, __BACKEND_API_URL__]);
+  }, [exportRange, exportPerson, salaryDict, __BACKEND_API_URL__, message]);
 
   return (
     <Popconfirm

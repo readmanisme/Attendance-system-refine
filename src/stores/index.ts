@@ -32,7 +32,8 @@ interface ConfigState {
   set__BACKEND_API_URL__: (url: string) => void;
 }
 
-const NEW_MAJOR_VERSION = 1;
+/** 当前持久化版本:升级时在 migrate 里按版本号逐级迁移 */
+const NEW_MAJOR_VERSION = 2;
 
 export const useConfigStore = create<ConfigState>()(
   devtools(
@@ -78,11 +79,20 @@ export const useConfigStore = create<ConfigState>()(
         },
 
         migrate: (persistedState, version) => {
-          if (version < NEW_MAJOR_VERSION) {
+          if (version < 1) {
             console.warn(`检测到旧版 Store (v${version})，已执行状态重置。`);
             return {};
           }
-          return persistedState;
+          // v1 -> v2:月份区间字段由 recordDateRange 改名为 recordMonthRange,迁移时沿用用户原有选择
+          const oldState = (persistedState ?? {}) as Record<string, unknown>;
+          if (version < 2) {
+            // 仅在新字段缺失时才用旧字段回填,避免覆盖用户在新版里已经改过的范围
+            if (!oldState.recordMonthRange && oldState.recordDateRange) {
+              oldState.recordMonthRange = oldState.recordDateRange;
+            }
+            delete oldState.recordDateRange;
+          }
+          return persistedState as ConfigState;
         },
       },
     ),

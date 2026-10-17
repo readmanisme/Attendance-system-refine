@@ -23,7 +23,7 @@ const AttendanceRecordEdit = () => {
         <>{listButtonProps && <ListButton {...listButtonProps} meta={{ foo: "bar" }} />}</>
       )}
     >
-      <Form {...formProps} layout="vertical" form={form}>
+      <Form {...formProps} layout="vertical">
         <Form.Item label="人员姓名" name={["expand", "worker_id", "name"]}>
           {/* @ts-expect-error,111 */}
           <TextField data-testid="worker-name" />

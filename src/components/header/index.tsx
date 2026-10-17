@@ -29,8 +29,11 @@ export const Header: React.FC<RefineThemedLayoutHeaderProps> = ({ sticky = true 
 
   const { data: settings } = useFetchSettings(__BACKEND_API_URL__);
   const batch = settings?.batch;
-  // Batch 是否配置错误:未取到设置 / 未开启 / maxRequests 是 999 都视为有问题
-  const isBatchMisconfigured = batch ? !(batch.enabled && batch.maxRequests === 999) : true;
+  // Batch 是否配置错误:未开启 / maxRequests 不是 999 都视为有问题
+  // 设置还没取到时保持 false,避免刚进页面就误报
+  const isBatchMisconfigured = batch
+    ? !(batch.enabled === true && batch.maxRequests === 999)
+    : false;
   // --- ✅ 样式 useMemo 化，避免每次渲染都重新创建对象 ---
   const headerStyles = useMemo<React.CSSProperties>(
     () => ({
@@ -77,7 +80,7 @@ export const Header: React.FC<RefineThemedLayoutHeaderProps> = ({ sticky = true 
   return (
     <AntdLayout.Header style={headerStyles}>
       <Space>
-        {!isBatchMisconfigured && (
+        {isBatchMisconfigured && (
           <Tag color="red" data-testid="batch-error-tag">
             Batch设置有问题
           </Tag>

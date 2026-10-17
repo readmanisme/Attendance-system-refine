@@ -25,12 +25,13 @@ const exportExcel = async (
   // 并行加载所有数据(月/日工时由考勤记录在引擎中聚合,不读视图)
   const [attendanceRecords, workers, workTypes] = await Promise.all([
     pb.collection(__AttendanceRecord_TableName).getFullList({
+      // 注意:PocketBase 过滤语法是单个 "=",不能写 "=="
       filter:
         `work_minutes != null && work_date >= '${start_day}' && work_date <= '${end_day}'` +
-        (exportPerson ? ` && worker_id == '${exportPerson}'` : ""),
+        (exportPerson ? ` && worker_id = '${exportPerson}'` : ""),
     }),
     pb.collection(__Workers_TableName).getFullList({
-      filter: exportPerson ? `id == '${exportPerson}'` : "",
+      filter: exportPerson ? `id = '${exportPerson}'` : "",
     }),
     pb.collection(__WorkTypes_TableName).getFullList(),
   ]);
