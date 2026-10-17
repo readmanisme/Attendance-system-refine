@@ -1,24 +1,28 @@
 /**
  * "工时&薪资"页的三级展开表:某工人 月 → 日 → 当天明细。
- * 数据全部来自 computeSalaryStats 的聚合结果(与 Excel 导出同一口径)。
+ * 记录按需查询:展开某工人时才请求该人在当前月范围内的考勤记录,
+ * 再用与 Excel 导出同一口径的 computeSalaryStats 就地聚合。
  * testid 形态与 playwright 用例约定保持一致,不要改动:
  *   row-month-{工人名}-{行序号} / row-day-{工人名}-{行序号} / row-d3-{日期}-{行序号}
  */
 import { Table, Tooltip } from "antd";
 import { IconHelp } from "@tabler/icons-react";
 import Decimal from "decimal.js";
+import { useMemo } from "react";
+import { useList, type CrudFilter } from "@refinedev/core";
 import { formatHoursExact } from "@/utils/workTime";
 import { cellTestId } from "@/utils/tableHelpers";
 import { UNKNOWN_NAME } from "@/constants";
-import type { SalaryStats } from "@/utils/salary";
+import { useConfigStore } from "@/stores";
+import { getWorkDateRange } from "@/utils/get_data_picker_filter";
+import { computeSalaryStats, type SalaryStats } from "@/utils/salary";
 
 interface WorkerExpandTablesProps {
   workerId: string;
   workerMap: Map<string, string>;
   workTypeMap: Map<string, string>;
-  stats: SalaryStats;
-  /** 该工人的考勤记录 */
-  records: any[];
+  /** buildSalaryDict 的产物(与页面/导出共用同一份) */
+  salaryDict: Record<string, number>;
 }
 
 /** 月表列(第一级展开) */
@@ -84,9 +88,38 @@ export function WorkerExpandTables({
   workerId,
   workerMap,
   workTypeMap,
-  stats,
-  records,
+  salaryDict,
 }: WorkerExpandTablesProps) {
+  const { recordMonthRange } = useConfigStore();
+
+  // 按需查询:该工人 + 当前月范围内的记录(不展开不发请求)
+  const filter = useMemo<CrudFilter>(() => {
+    const { gte, lte } = getWorkDateRange(recordMonthRange);
+    return {
+      operator: "and",
+      value: [
+        { field: "worker_id", operator: "eq", value: workerId },
+        { field: "work_date", operator: "gte", value: gte },
+        { field: "work_date", operator: "lte", value: lte },
+      ],
+    };
+  }, [recordMonthRange, workerId]);
+
+  const { result, query } = useList({
+    resource: __AttendanceRecord_TableName,
+    filters: [filter],
+    pagination: {
+      mode: "off",
+    },
+  });
+  const records = result?.data;
+
+  // 就地聚合:与页面/导出同一口径
+  const stats: SalaryStats = useMemo(
+    () => computeSalaryStats(records, { workerMap, workTypeMap, salaryDict }),
+    [records, workerMap, workTypeMap, salaryDict],
+  );
+
   const workerName = workerMap.get(workerId) || UNKNOWN_NAME;
   const monthEntries = [...(stats.monthMinutesMap.get(workerId) ?? new Map())].sort((a, b) =>
     a[0] < b[0] ? -1 : 1,
@@ -98,7 +131,7 @@ export function WorkerExpandTables({
   // 第三级:某天明细(一条考勤记录一行)
   const renderDetailTable = (d2Record: any) => {
     const workDate = d2Record.date as string;
-    const recs = records.filter((r: any) => r.work_date === workDate);
+    const recs = (records ?? []).filter((r: any) => r.work_date === workDate);
     const dataSource = recs.map((r: any) => {
       const dbID = String(r.id);
       return {
@@ -162,6 +195,7 @@ export function WorkerExpandTables({
       // 每月记录
       columns={columnsMonth}
       dataSource={monthDataSource}
+      loading={query.isLoading}
       size="small"
       expandable={{
         expandedRowRender: (d1Record: any) => renderDayTable(d1Record.month),

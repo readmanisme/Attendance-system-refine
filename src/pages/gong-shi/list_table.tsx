@@ -1,26 +1,20 @@
 import { List as LList, useTable } from "@refinedev/antd";
-import { CrudFilter, useList } from "@refinedev/core";
+import { useList } from "@refinedev/core";
 import { Alert, Space, Table } from "antd";
 import PySearchSelect from "@/components/PySearchSelect";
 import { useEffect, useMemo, useState, type Key } from "react";
 import { buildEqOrFilter, cellTestId } from "@/utils/tableHelpers";
-import {
-  buildSalaryDict,
-  computeSalaryStats,
-  groupByWorkerId,
-  type SalaryStats,
-} from "@/utils/salary";
-import { useConfigStore } from "@/stores";
+import { buildSalaryDict } from "@/utils/salary";
 import { SwitchDataRange } from "@/components/SwitchDataRange";
-import { getWorkDateRange } from "@/utils/get_data_picker_filter";
 import { BASE_WORK_TYPE_NAME } from "@/constants";
 import { WorkerExpandTables } from "./ExpandTables";
 import { ExportPopover } from "./ExportPopover";
 
 export default function GongShiList() {
   // ======================== useState等 ========================
-  const { recordMonthRange } = useConfigStore();
   const [SelectedPerson, setSelectedPerson] = useState<{ value: string; label: string }[]>([]);
+  // 受控展开键:切换筛选翻页时保住已展开的行
+  const [expandedRowKeys, setExpandedRowKeys] = useState<readonly Key[]>([]);
 
   // ======================== 获取数据 ========================
   const {
@@ -50,30 +44,6 @@ export default function GongShiList() {
     setFilters(buildEqOrFilter("id", selectedIds));
   }, [selectedIds, setFilters]);
 
-  // 月范围 → work_date 起止边界,选了人就只查所选,未选人直接查整个范围
-  const attendanceFilter = useMemo(() => {
-    const { gte, lte } = getWorkDateRange(recordMonthRange);
-    const andValue: any[] = [
-      { field: "work_date", operator: "gte", value: gte },
-      { field: "work_date", operator: "lte", value: lte },
-    ];
-    if (selectedIds.length) {
-      andValue.unshift({ field: "worker_id", operator: "in", value: selectedIds });
-    }
-    return {
-      operator: "and",
-      value: andValue,
-    };
-  }, [recordMonthRange, selectedIds]);
-
-  const { result: attendance_record_data, query: queryAttendance } = useList({
-    resource: __AttendanceRecord_TableName,
-    filters: [attendanceFilter as CrudFilter],
-    pagination: {
-      mode: "off",
-    },
-  });
-
   const { result: workTypeList, query } = useList({
     resource: __WorkTypes_TableName,
     pagination: {
@@ -96,8 +66,8 @@ export default function GongShiList() {
     },
   });
   // 真 loading：render 期间直接派生，避免 useState+useEffect。
-  const isDataLoading =
-    !!workerData.loading || queryAttendance.isLoading || query.isLoading || querySalary.isLoading;
+  // (考勤记录已下沉到展开行按需查询,不再参与页面级 loading)
+  const isDataLoading = !!workerData.loading || query.isLoading || querySalary.isLoading;
 
   // ======================== 衍生数据计算 ========================
 
@@ -117,22 +87,6 @@ export default function GongShiList() {
 
   const salaryDict = useMemo(() => buildSalaryDict(result?.data), [result?.data]);
 
-  // 页面与导出共用的同一套薪资/工时聚合引擎
-  const stats: SalaryStats = useMemo(
-    () =>
-      computeSalaryStats(attendance_record_data?.data, {
-        workerMap,
-        workTypeMap,
-        salaryDict,
-      }),
-    [attendance_record_data?.data, workerMap, workTypeMap, salaryDict],
-  );
-
-  const recordsByWorker = useMemo(
-    () => groupByWorkerId(attendance_record_data?.data),
-    [attendance_record_data?.data],
-  );
-
   const get_un_salary_work = useMemo(() => {
     const work_types = [...workTypeMap.values()];
     const un_salary_work_types = work_types.filter((item) => !(item in salaryDict));
@@ -142,15 +96,6 @@ export default function GongShiList() {
       ",",
     )}，请设置其对应的工资,否则按照基础工资计算。`;
   }, [workTypeMap, salaryDict]);
-
-  // 使用稳定的 key 来避免强制全表重渲染时的取值时机问题（GongShiData 由 store 提供，取 valueOf）
-  const gongShiKey = useMemo(() => {
-    try {
-      return `${recordMonthRange?.[0]?.valueOf?.() ?? ""}-${recordMonthRange?.[1]?.valueOf?.() ?? ""}`;
-    } catch {
-      return "gs-default";
-    }
-  }, [recordMonthRange]);
 
   // ======================== 基础记录校验 ========================
   if (!hasBaseWorkType) {
@@ -175,16 +120,13 @@ export default function GongShiList() {
   }
 
   // 展开表:某工人的 月→日→明细 层级。
-
-  // 切换月份会强制重挂载 Table(key={gongShiKey}),用受控展开键把已展开的行保住
-  const [expandedRowKeys, setExpandedRowKeys] = useState<readonly Key[]>([]);
+  // 考勤记录不整页预取,由 WorkerExpandTables 在展开时按"工人+月范围"自行查询并就地聚合。
   const expandedRowRender = (record: any) => (
     <WorkerExpandTables
       workerId={String(record.id)}
       workerMap={workerMap}
       workTypeMap={workTypeMap}
-      stats={stats}
-      records={recordsByWorker.get(record.id) ?? []}
+      salaryDict={salaryDict}
     />
   );
 
@@ -226,8 +168,6 @@ export default function GongShiList() {
         <SwitchDataRange />
       </div>
       <Table
-        key={gongShiKey}
-        // !!!通过强制重渲染避免在还未计算完成的时候取值导致错误
         {...workerData}
         pagination={{
           ...workerData.pagination,
