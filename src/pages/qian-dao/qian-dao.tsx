@@ -6,7 +6,6 @@ import {
   Button,
   Space,
   Form,
-  InputNumber,
   Select,
   Popconfirm,
 } from "antd";
@@ -22,7 +21,8 @@ import {
 } from "@refinedev/antd";
 import { BaseRecord, useDeleteMany } from "@refinedev/core";
 import { useCallback, useState } from "react";
-import { formatHoursExact, hoursToMinutes, minutesToHours } from "@/utils/workTime";
+import { formatHoursExact } from "@/utils/workTime";
+import WorkMinutesInput from "@/components/WorkMinutesInput";
 import { cellTestId } from "@/utils/tableHelpers";
 import { useBatchRowSelection } from "../useBatchRowSelection";
 import { BatchEntryPanel } from "./BatchEntryPanel";
@@ -85,12 +85,12 @@ export default function QianDaoPage() {
     clearSelection();
   }, [deleteMany, selectedRowKeys, clearSelection]);
 
-  // 表格内编辑行时,把"小时"换算成整数分钟存库
+  // 表格内编辑行的工时组件 value 就是整数分钟,直接写 work_minutes
   const handleOnFinish = useCallback(
     (values: any) => {
       const rest: any = { ...values };
       if (rest.workTime != null) {
-        rest.work_minutes = hoursToMinutes(rest.workTime);
+        rest.work_minutes = rest.workTime;
       }
       delete rest.workTime;
       if (formProps.onFinish) {
@@ -167,9 +167,9 @@ export default function QianDaoPage() {
                       <Form.Item
                         name="workTime"
                         style={{ margin: 0 }}
-                        initialValue={minutesToHours(record.work_minutes)}
+                        initialValue={record.work_minutes}
                       >
-                        <InputNumber min={0} max={24} step={0.5} changeOnWheel />
+                        <WorkMinutesInput showHint={false} />
                       </Form.Item>
                     );
                   }

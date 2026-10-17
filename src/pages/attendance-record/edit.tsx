@@ -1,6 +1,7 @@
 import { Edit, ListButton, TextField, useForm, useSelect } from "@refinedev/antd";
-import { DatePicker, Form, InputNumber, Select } from "antd";
+import { DatePicker, Form, Select } from "antd";
 import dayjs from "dayjs";
+import WorkMinutesInput from "@/components/WorkMinutesInput";
 
 const AttendanceRecordEdit = () => {
   const { formProps, saveButtonProps, formLoading } = useForm({
@@ -14,7 +15,7 @@ const AttendanceRecordEdit = () => {
   });
 
   // work_date 在库里是 "YYYY-MM-DD" 文本，用 getValueProps/normalize 转换
-  // work_minutes 在库里是整数分钟，界面上按小时编辑（可精确到分钟，如1/3小时）
+  // work_minutes 在库里就是整数分钟，直接用小时+分钟双框编辑（20 分钟填 0 时 20 分即可）
   return (
     <Edit
       saveButtonProps={saveButtonProps}
@@ -48,14 +49,10 @@ const AttendanceRecordEdit = () => {
         </Form.Item>
 
         <Form.Item
-          label="工时(小时，可精确到分钟如0.3333)"
+          label="工时(小时 + 分钟)"
           name="work_minutes"
-          getValueProps={(value: any) => ({
-            value: value == null ? undefined : value / 60,
-          })}
-          normalize={(value: any) => (value == null ? undefined : Math.round(value * 60))}
         >
-          <InputNumber min={0} max={24} step={0.5} />
+          <WorkMinutesInput />
         </Form.Item>
       </Form>
     </Edit>
