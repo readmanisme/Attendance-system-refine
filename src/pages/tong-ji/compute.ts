@@ -78,6 +78,14 @@ export interface Overview {
   workTypeTable: { name: string; recordCount: number; hours: number; salary: string }[];
   /** 未单独定价(兜底到"基础"价)的工种及其体量 */
   unPriced: { names: string[]; records: number; minutes: number };
+  /** 工人支出合计 Top(钱花在谁身上) */
+  salaryTop: { name: string; salary: number; days: number; hours: number }[];
+  /** 每月首次出勤人数与累计出勤人数(按筛选范围口径) */
+  growth: { month: string; newWorkers: number; totalWorkers: number }[];
+  /** 星期几出勤分布(范围整体):人天 + 总工时 */
+  weekday: { key: string; personDays: number; hours: number }[];
+  /** 出勤 Top15 每人的单日工时五数概括(箱线图:[min,Q1,中位,Q3,max]) */
+  boxData: { name: string; box: [number, number, number, number, number]; count: number }[];
 }
 
 export interface MonthPoint {
@@ -134,6 +142,10 @@ export const buildOverview = (records: any[] | undefined, salaryRecords?: any[])
   const dayMinutes = new Map<string, number>();
   const workerDays = new Map<string, Set<string>>();
   const workerMinutes = new Map<string, number>();
+  /** 工人支出合计(与 recordMap 同口径累加) */
+  const workerSalary = new Map<string, Decimal>();
+  /** 工人首次出勤月("YYYY-MM"),统计每月新增/累计人数 */
+  const workerFirstMonth = new Map<string, string>();
   const workerWorkMinutes = new Map<string, Map<string, number>>();
   /** "workerId|day" → 当日该人所有工种合计分钟(班制分类用) */
   const shiftTotals = new Map<string, number>();
@@ -174,6 +186,11 @@ export const buildOverview = (records: any[] | undefined, salaryRecords?: any[])
     if (!workerDays.has(workerId)) workerDays.set(workerId, new Set());
     workerDays.get(workerId)!.add(day);
     workerMinutes.set(workerId, (workerMinutes.get(workerId) ?? 0) + minutes);
+    if (!workerSalary.has(workerId)) workerSalary.set(workerId, new Decimal(0));
+    workerSalary.set(workerId, workerSalary.get(workerId)!.plus(salary));
+    // 首次出勤月取最小月(记录顺序不定,直接比较)
+    const prevFirst = workerFirstMonth.get(workerId);
+    if (!prevFirst || month < prevFirst) workerFirstMonth.set(workerId, month);
     if (!workerWorkMinutes.has(workerId)) workerWorkMinutes.set(workerId, new Map());
     const wm = workerWorkMinutes.get(workerId)!;
     wm.set(workName, (wm.get(workName) ?? 0) + minutes);
@@ -329,6 +346,63 @@ export const buildOverview = (records: any[] | undefined, salaryRecords?: any[])
   let personDays = 0;
   for (const [, set] of dayWorkerSet) personDays += set.size;
 
+  // ---- 工人支出 Top(钱花在谁身上) ----
+  const salaryTop = [...workerSalary.entries()]
+    .map(([id, s]) => ({
+      name: workerMap.get(id) ?? UNKNOWN_NAME,
+      salary: s.toDecimalPlaces(2).toNumber(),
+      days: workerDays.get(id)?.size ?? 0,
+      hours: minutesToHours(workerMinutes.get(id) ?? 0),
+    }))
+    .sort((a, b) => b.salary - a.salary)
+    .slice(0, 10);
+
+  // ---- 队伍增长:每月新增(首次出勤)与累计出勤人数 ----
+  const firstMonthCount = new Map<string, number>();
+  for (const fm of workerFirstMonth.values())
+    firstMonthCount.set(fm, (firstMonthCount.get(fm) ?? 0) + 1);
+  let runningWorkers = 0;
+  const growth = monthList.map((month) => {
+    const newWorkers = firstMonthCount.get(month) ?? 0;
+    runningWorkers += newWorkers;
+    return { month, newWorkers, totalWorkers: runningWorkers };
+  });
+
+  // ---- 星期几出勤分布(范围整体;周一=0 … 周日=6) ----
+  const weekdayAgg = Array.from({ length: 7 }, () => ({ personDays: 0, minutes: 0 }));
+  for (const [day, set] of dayWorkerSet) {
+    const wd = new Date(`${day}T00:00:00`).getDay(); // 0=周日
+    const idx = wd === 0 ? 6 : wd - 1;
+    weekdayAgg[idx].personDays += set.size;
+    weekdayAgg[idx].minutes += dayMinutes.get(day) ?? 0;
+  }
+  const weekday = weekdayAgg.map((w, i) => ({
+    key: WEEKDAY_KEYS[i],
+    personDays: w.personDays,
+    hours: minutesToHours(w.minutes),
+  }));
+
+  // ---- 出勤 Top15 的单日工时箱线(样本=该人当日各工种合计) ----
+  const top15Ids = new Set(top15.map((w) => w.id));
+  const boxSamples = new Map<string, number[]>();
+  for (const [key, minutes] of shiftTotals) {
+    const [id] = key.split("|");
+    if (!top15Ids.has(id)) continue;
+    if (!boxSamples.has(id)) boxSamples.set(id, []);
+    boxSamples.get(id)!.push(Math.round((minutes / 60) * 100) / 100);
+  }
+  const boxData = top15
+    .filter((w) => (boxSamples.get(w.id)?.length ?? 0) > 0)
+    .map((w) => {
+      const sorted = boxSamples.get(w.id)!.sort((a, b) => a - b);
+      const q = (p: number) => quantileOf(sorted, p);
+      return {
+        name: w.name,
+        count: sorted.length,
+        box: [q(0), q(0.25), q(0.5), q(0.75), q(1)] as [number, number, number, number, number],
+      };
+    });
+
   const unPricedList = [...unPriced.entries()];
   const unPricedRecords = unPricedList.reduce((s, [, v]) => s + v.records, 0);
   const unPricedMinutes = unPricedList.reduce((s, [, v]) => s + v.minutes, 0);
@@ -355,7 +429,23 @@ export const buildOverview = (records: any[] | undefined, salaryRecords?: any[])
       records: unPricedRecords,
       minutes: unPricedMinutes,
     },
+    salaryTop,
+    growth,
+    weekday,
+    boxData,
   };
+};
+
+/** 星期几展示序(周一=0 … 周日=6),与 weekday 聚合轴一致 */
+export const WEEKDAY_KEYS = ["周一", "周二", "周三", "周四", "周五", "周六", "周日"];
+
+/** 有序数组的分位数(线性插值,q=0 即最小值,q=1 即最大值) */
+const quantileOf = (sorted: number[], q: number): number => {
+  const pos = (sorted.length - 1) * q;
+  const lo = Math.floor(pos);
+  const hi = Math.ceil(pos);
+  const v = lo === hi ? sorted[lo] : sorted[lo] + (sorted[hi] - sorted[lo]) * (pos - lo);
+  return Math.round(v * 100) / 100;
 };
 
 /** 日期序列补齐(逐天,含首尾) */
@@ -377,14 +467,21 @@ export interface Relation {
   /** 热力图矩阵(出勤 Top20) */
   matrixNames: string[];
   coMatrix: number[][];
-  /** 搭档网络:节点=出勤较多的人,边=共现天数 */
+  /** 搭档网络:节点=出勤 ≥ GRAPH_MIN_NODE_DAYS 天的人,边=共现天数(候选,展示时按阈值过滤) */
   graph: {
     nodes: { name: string; days: number; size: number }[];
     links: { source: string; target: string; value: number }[];
   };
-  /** 稳定性散点:y = 共现天数 / 两人出勤天的较小值 */
+  /** 稳定性散点:y = 共现天数 / 两人出勤天的较小值(候选,展示时按阈值过滤) */
   stable: { a: string; b: string; coDays: number; ratio: number }[];
+  /** 每人的搭档对(全量,按共现降序)→ 个人分析 Tab */
+  partnerPairs: Map<string, { id: string; name: string; co: number }[]>;
 }
+
+/** 关系图节点最低出勤天数(与卡片口径提示一致) */
+export const GRAPH_MIN_NODE_DAYS = 5;
+/** 进入边/散点候选的最低共现天数(更高的用户阈值在 options 层过滤,min 不得低于此) */
+export const MIN_PAIR_CO = 2;
 
 /** 共现口径:两人当天各有 ≥1 条记录即共现一天(人天去重,与报告一致) */
 export const buildRelation = (records: any[] | undefined): Relation => {
@@ -429,14 +526,16 @@ export const buildRelation = (records: any[] | undefined): Relation => {
   const matrixNames = topIds.map((id) => workerMap.get(id) ?? UNKNOWN_NAME);
   const coMatrix = topIds.map((a) => topIds.map((b) => (a === b ? 0 : coOf(a, b))));
 
-  // 网络:出勤 ≥5 天为节点,共现 ≥10 天为边
-  const graphNodes = [...workerDays.entries()].map(([id, days]) => ({
-    name: workerMap.get(id) ?? UNKNOWN_NAME,
-    days: days.size,
-    size: Math.min(6 + days.size / 8, 40),
-  }));
+  // 网络:节点=出勤 ≥ GRAPH_MIN_NODE_DAYS 天(与卡片口径一致);边候选=共现 ≥ MIN_PAIR_CO
+  const graphNodes = [...workerDays.entries()]
+    .filter(([, days]) => days.size >= GRAPH_MIN_NODE_DAYS)
+    .map(([id, days]) => ({
+      name: workerMap.get(id) ?? UNKNOWN_NAME,
+      days: days.size,
+      size: Math.min(6 + days.size / 8, 40),
+    }));
   const graphLinks = [...pairCount.entries()]
-    .filter(([, co]) => co >= 10)
+    .filter(([, co]) => co >= MIN_PAIR_CO)
     .map(([key, co]) => {
       const [a, b] = key.split("|");
       return {
@@ -446,9 +545,9 @@ export const buildRelation = (records: any[] | undefined): Relation => {
       };
     });
 
-  // 稳定性散点:共现 ≥10 天的搭档对
+  // 稳定性散点候选:共现 ≥ MIN_PAIR_CO 的搭档对
   const stable = [...pairCount.entries()]
-    .filter(([, co]) => co >= 10)
+    .filter(([, co]) => co >= MIN_PAIR_CO)
     .map(([key, co]) => {
       const [a, b] = key.split("|");
       const daysA = workerDays.get(a)?.size ?? 0;
@@ -462,5 +561,244 @@ export const buildRelation = (records: any[] | undefined): Relation => {
       };
     });
 
-  return { matrixNames, coMatrix, graph: { nodes: graphNodes, links: graphLinks }, stable };
+  // 每人的搭档对(全量含共现 1 天,按共现降序)→ 个人分析
+  const partnerPairs = new Map<string, { id: string; name: string; co: number }[]>();
+  for (const [key, co] of pairCount) {
+    const [a, b] = key.split("|");
+    if (!partnerPairs.has(a)) partnerPairs.set(a, []);
+    if (!partnerPairs.has(b)) partnerPairs.set(b, []);
+    partnerPairs.get(a)!.push({ id: b, name: workerMap.get(b) ?? UNKNOWN_NAME, co });
+    partnerPairs.get(b)!.push({ id: a, name: workerMap.get(a) ?? UNKNOWN_NAME, co });
+  }
+  for (const arr of partnerPairs.values()) arr.sort((x, y) => y.co - x.co);
+
+  return { matrixNames, coMatrix, graph: { nodes: graphNodes, links: graphLinks }, stable, partnerPairs };
+};
+
+// ======================== 结构与个人视角 ========================
+
+export interface SankeyData {
+  /** 节点:TopN 工人(左列) + 全部工种(右列) */
+  nodes: { name: string; hours: number; isWorker: boolean }[];
+  /** 人 → 工种 的工时流向 */
+  links: { source: string; target: string; hours: number }[];
+  /** 参与的人取总工时 TopN */
+  topN: number;
+}
+
+/** 人→工种 工时流向(桑基图);人取总工时 TopN(默认 20),工种取这些人触达过的全部 */
+export const buildSankey = (records: any[] | undefined, topN = 20): SankeyData => {
+  const list = records ?? [];
+
+  const workerMap = new Map<string, string>();
+  const workTypeMap = new Map<string, string>();
+  for (const r of list) {
+    const workerId = r?.worker_id as string | undefined;
+    const workId = r?.work as string | undefined;
+    if (workerId) workerMap.set(workerId, r?.expand?.worker_id?.name ?? UNKNOWN_NAME);
+    if (workId) workTypeMap.set(workId, r?.expand?.work?.name ?? UNKNOWN_NAME);
+  }
+
+  const workerMinutes = new Map<string, number>();
+  const workerWorkMinutes = new Map<string, Map<string, number>>();
+  const workMinutesAll = new Map<string, number>();
+  for (const r of list) {
+    const workerId = r?.worker_id as string;
+    const workId = r?.work as string;
+    const minutes = Number(r?.work_minutes) || 0;
+    if (!workerId || !workId) continue;
+    workerMinutes.set(workerId, (workerMinutes.get(workerId) ?? 0) + minutes);
+    const workName = workTypeMap.get(workId) ?? UNKNOWN_NAME;
+    workMinutesAll.set(workName, (workMinutesAll.get(workName) ?? 0) + minutes);
+    if (!workerWorkMinutes.has(workerId)) workerWorkMinutes.set(workerId, new Map());
+    const wm = workerWorkMinutes.get(workerId)!;
+    wm.set(workName, (wm.get(workName) ?? 0) + minutes);
+  }
+
+  const topIds = [...workerMinutes.entries()]
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, topN)
+    .map(([id]) => id);
+
+  const nodes: SankeyData["nodes"] = topIds.map((id) => ({
+    name: workerMap.get(id) ?? UNKNOWN_NAME,
+    hours: minutesToHours(workerMinutes.get(id) ?? 0),
+    isWorker: true,
+  }));
+  const links: SankeyData["links"] = [];
+  const usedWorks = new Set<string>();
+  for (const id of topIds) {
+    const wm = workerWorkMinutes.get(id);
+    if (!wm) continue;
+    for (const [workName, minutes] of [...wm.entries()].sort((a, b) => b[1] - a[1])) {
+      if (minutes <= 0) continue;
+      usedWorks.add(workName);
+      links.push({
+        source: workerMap.get(id) ?? UNKNOWN_NAME,
+        target: workName,
+        hours: minutesToHours(minutes),
+      });
+    }
+  }
+  for (const workName of usedWorks)
+    nodes.push({ name: workName, hours: minutesToHours(workMinutesAll.get(workName) ?? 0), isWorker: false });
+
+  return { nodes, links, topN };
+};
+
+export interface WorkerProfile {
+  id: string;
+  name: string;
+  /** 出勤天数(人天) */
+  days: number;
+  /** 总工时(h) */
+  hours: number;
+  /** 估算总支出(字符串,同页面其它金额口径) */
+  salary: string;
+  /** 平均单日工时(h) */
+  avgDayHours: number;
+  /** 主工种(工时最多) */
+  topWork: string;
+  /** 涉及工种数(工种广度) */
+  workCount: number;
+  /** 首次出勤日("YYYY-MM-DD") */
+  firstDay: string;
+}
+
+export interface Profiles {
+  /** 全部工人画像,按出勤天降序(Select 数据源与雷达 TopN 用) */
+  list: WorkerProfile[];
+  /** id → 画像 */
+  byId: Map<string, WorkerProfile>;
+  /** id → 月度序列(月份补齐):出勤天/工时/收入 */
+  monthSeries: Map<string, { month: string; days: number; hours: number; salary: number }[]>;
+  /** id → 工种构成(工时降序) */
+  workTypeMinutes: Map<string, { name: string; hours: number }[]>;
+}
+
+/**
+ * 个人画像层:一次遍历算出选人所需的一切(出勤/工时/收入/工种构成/月度序列)。
+ * 支出与概览共用 computeSalaryStats,口径一致。
+ */
+export const buildProfiles = (records: any[] | undefined, salaryRecords?: any[]): Profiles => {
+  const list = records ?? [];
+
+  // 名称映射(与 buildOverview 同逻辑)
+  const workerMap = new Map<string, string>();
+  const workTypeMap = new Map<string, string>();
+  for (const r of list) {
+    const workerId = r?.worker_id as string | undefined;
+    const workId = r?.work as string | undefined;
+    if (workerId) workerMap.set(workerId, r?.expand?.worker_id?.name ?? UNKNOWN_NAME);
+    if (workId) workTypeMap.set(workId, r?.expand?.work?.name ?? UNKNOWN_NAME);
+  }
+  const salaryDict = buildSalaryDict(salaryRecords);
+  const { recordMap } = computeSalaryStats(list, { workerMap, workTypeMap, salaryDict });
+
+  const aggs = new Map<
+    string,
+    {
+      days: Set<string>;
+      minutes: number;
+      salary: Decimal;
+      work: Map<string, number>;
+      monthDay: Map<string, { days: number; minutes: number }>;
+      monthSalary: Map<string, Decimal>;
+    }
+  >();
+
+  for (const r of list) {
+    const workerId = r?.worker_id as string;
+    const workId = r?.work as string;
+    const day = r?.work_date as string | undefined;
+    const minutes = Number(r?.work_minutes) || 0;
+    if (!workerId || !workId || !day) continue;
+    const month = day.slice(0, 7);
+    const salary = recordMap.get(String(r.id))?.salary ?? new Decimal(0);
+
+    if (!aggs.has(workerId))
+      aggs.set(workerId, {
+        days: new Set(),
+        minutes: 0,
+        salary: new Decimal(0),
+        work: new Map(),
+        monthDay: new Map(),
+        monthSalary: new Map(),
+      });
+    const agg = aggs.get(workerId)!;
+    agg.days.add(day);
+    agg.minutes += minutes;
+    agg.salary = agg.salary.plus(salary);
+    const workName = workTypeMap.get(workId) ?? UNKNOWN_NAME;
+    agg.work.set(workName, (agg.work.get(workName) ?? 0) + minutes);
+    if (!agg.monthDay.has(month)) agg.monthDay.set(month, { days: 0, minutes: 0 });
+    const md = agg.monthDay.get(month)!;
+    md.days++;
+    md.minutes += minutes;
+    agg.monthSalary.set(month, (agg.monthSalary.get(month) ?? new Decimal(0)).plus(salary));
+  }
+
+  const zeroSalary = new Decimal(0);
+
+  const ordered = [...aggs.entries()]
+    .map(([id, agg]) => {
+      const workSorted = [...agg.work.entries()].sort((a, b) => b[1] - a[1]);
+      const firstDay = [...agg.days].sort()[0] ?? "";
+      return {
+        id,
+        name: workerMap.get(id) ?? UNKNOWN_NAME,
+        days: agg.days.size,
+        hours: minutesToHours(agg.minutes),
+        salary: agg.salary.toDecimalPlaces(2).toString(),
+        avgDayHours: minutesToHours(Math.round(agg.minutes / Math.max(1, agg.days.size))),
+        topWork: workSorted[0]?.[0] ?? UNKNOWN_NAME,
+        workCount: agg.work.size,
+        firstDay,
+        workSorted,
+        monthDay: agg.monthDay,
+        monthSalary: agg.monthSalary,
+      };
+    })
+    .sort((a, b) => b.days - a.days);
+
+  const listProfiles: WorkerProfile[] = ordered.map(({ id, name, days, hours, salary, avgDayHours, topWork, workCount, firstDay }) => ({
+    id,
+    name,
+    days,
+    hours,
+    salary,
+    avgDayHours,
+    topWork,
+    workCount,
+    firstDay,
+  }));
+
+  const byId = new Map(listProfiles.map((p) => [p.id, p]));
+
+  // 月度序列(该人首次出现月至末次出现月之间断档月补 0)
+  const monthSeries = new Map<string, { month: string; days: number; hours: number; salary: number }[]>();
+  const workTypeMinutes = new Map<string, { name: string; hours: number }[]>();
+  for (const item of ordered) {
+    const months = [...item.monthDay.keys()].sort();
+    if (months.length) {
+      monthSeries.set(
+        item.id,
+        fillMonths(months[0], months[months.length - 1]).map((month) => {
+          const md = item.monthDay.get(month);
+          const ms = item.monthSalary.get(month) ?? zeroSalary;
+          return {
+            month,
+            days: md?.days ?? 0,
+            hours: minutesToHours(md?.minutes ?? 0),
+            salary: ms.toDecimalPlaces(2).toNumber(),
+          };
+        }),
+      );
+    } else {
+      monthSeries.set(item.id, []);
+    }
+    workTypeMinutes.set(item.id, item.workSorted.map(([name, m]) => ({ name, hours: minutesToHours(m) })));
+  }
+
+  return { list: listProfiles, byId, monthSeries, workTypeMinutes };
 };

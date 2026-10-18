@@ -1,7 +1,9 @@
 /**
- * 统计图表页。
- * - 概览:顶部卡片 + 出勤趋势/Top/分布/班制/工种结构/月度总览
- * - 关系分析:共现热力、搭档网络、搭档稳定性散点
+ * 统计图表页(4 个 Tab)。
+ * - 概览:顶部卡片 + 出勤趋势/Top/分布/班制/工种结构/月度总览/累计曲线/支出 Top
+ * - 时间模式:出勤日历热力、月度班制堆叠、星期几分布、队伍增长、工种主题河流
+ * - 关系分析:共现热力、搭档网络(阈值可调)、搭档稳定性散点、人×工种桑基
+ * - 个人分析:选人 → 画像四联卡/月度趋势/工种构成/搭档排名/Top5 雷达/各人工时箱线
  * 数据:考勤记录全量(useList 分页关闭,expand 工种/人员),薪资设置全量;
  * 聚合复用"工时&薪资"页同一份支出引擎(computeSalaryStats),口径永远一致。
  * 时间范围:本页局部状态,月份粒度,默认全部历史(不写全局 store,不影响其他页面)。
@@ -14,7 +16,10 @@ import {
   Col,
   DatePicker,
   Empty,
+  InputNumber,
   Row,
+  Select,
+  Space,
   Spin,
   Statistic,
   Table,
@@ -24,8 +29,18 @@ import {
 } from "antd";
 import { IconInfoCircle } from "@tabler/icons-react";
 import dayjs from "dayjs";
+import { useState } from "react";
 import { useConfigStore } from "@/stores";
-import { buildOverview, buildRelation, filterRecordsByMonth, minutesToHours } from "./compute";
+import {
+  buildOverview,
+  buildProfiles,
+  buildRelation,
+  buildSankey,
+  filterRecordsByMonth,
+  MIN_PAIR_CO,
+  minutesToHours,
+} from "./compute";
+import type { SankeyData } from "./compute";
 import { EChart } from "./EChart";
 import * as opts from "./options";
 
@@ -43,6 +58,11 @@ const cardTitle = (title: string, tip?: string) => (
 export default function TongJiPage() {
   // 月份范围持久化在 config store(本页专用字段),与记录页/工时页的范围互不影响
   const { tongjiMonthRange: monthRange, setTongjiMonthRange: setMonthRange } = useConfigStore();
+
+  // 关系分析:共现阈值(默认 10 天,可调,作用于网络图边与稳定性散点)
+  const [coThreshold, setCoThreshold] = useState(10);
+  // 个人分析:选中工人 id(默认取榜单第一位)
+  const [selectedWorkerId, setSelectedWorkerId] = useState<string | undefined>();
 
   // ======================== 数据 ========================
   const { result: recordResult, query: recordQuery } = useList({
@@ -64,8 +84,21 @@ export default function TongJiPage() {
   const filtered = filterRecordsByMonth(records, monthRange);
   const overview = buildOverview(filtered, salaryRecords);
   const relation = buildRelation(filtered);
+  const profiles = buildProfiles(filtered, salaryRecords);
+  const sankey: SankeyData = buildSankey(filtered);
 
   const hasData = overview.recordCount > 0;
+
+  // ======================== 个人分析局部 ========================
+  const selectedId = selectedWorkerId ?? profiles.list[0]?.id;
+  const selected = selectedId ? profiles.byId.get(selectedId) : undefined;
+  const selectedMonthly = selectedId ? (profiles.monthSeries.get(selectedId) ?? []) : [];
+  const selectedWorkPie = selectedId ? (profiles.workTypeMinutes.get(selectedId) ?? []) : [];
+  const selectedPartners = selectedId
+    ? (relation.partnerPairs.get(selectedId) ?? []).slice(0, 10)
+    : [];
+  // 日历热力高度 = 年数 × 单年高度 + 边距
+  const calendarHeight = Math.max(200, opts.calendarYears(overview.daily).length * 170 + 20);
 
   // ======================== 局部时间范围选择器 ========================
   const rangeButtons = (
@@ -216,6 +249,62 @@ export default function TongJiPage() {
       <Card size="small" title={cardTitle("月度总览", "人天/工时左轴,支出右轴;断档月如实为 0")}>
         <EChart option={opts.monthlyOverviewOption(overview.monthly)} height={420} />
       </Card>
+
+      <Card
+        size="small"
+        title={cardTitle("累计工时 & 累计支出", "自范围首月起逐月累加;断档月按 0 累计")}
+      >
+        <EChart option={opts.cumulativeOption(overview.monthly)} height={380} />
+      </Card>
+
+      <Card size="small" title={cardTitle("支出 Top10", "估算支出排序;悬浮显示总工时/出勤天")}>
+        <EChart option={opts.salaryTopOption(overview.salaryTop)} height={360} />
+      </Card>
+    </div>
+  );
+
+  // ======================== 时间模式 Tab 内容 ========================
+  const timeTab = (
+    <div className="flex flex-col gap-2">
+      <Card
+        size="small"
+        title={cardTitle("出勤日历热力", "GitHub 风格:每年一行,颜色=当日总工时;深色即忙碌日")}
+      >
+        <EChart option={opts.calendarHeatmapOption(overview.daily)} height={calendarHeight} />
+      </Card>
+      <Card
+        size="small"
+        title={cardTitle(
+          "月度班制结构",
+          "同班制口径:按人天计入全日(≥9h)/半日(3~7.5h)/其他;断档月为 0",
+        )}
+      >
+        <EChart option={opts.monthlyShiftOption(overview.monthly)} height={380} />
+      </Card>
+      <Card
+        size="small"
+        title={cardTitle(
+          "星期几出勤分布",
+          "范围整体按星期汇总;人均=总工时/人天,看典型的干法是否有周循环",
+        )}
+      >
+        <EChart option={opts.weekdayOption(overview.weekday)} height={340} />
+      </Card>
+      <Card
+        size="small"
+        title={cardTitle("队伍增长", "当月首次出勤=新增;累计=截至该月出现过的出勤人数")}
+      >
+        <EChart option={opts.workerGrowthOption(overview.growth)} height={340} />
+      </Card>
+      <Card
+        size="small"
+        title={cardTitle(
+          "工种工时河流",
+          "记录口径:主要工种(工时 Top7,其余并入'其他')的月度流量形态",
+        )}
+      >
+        <EChart option={opts.themeRiverOption(overview.workTypeMonthly)} height={460} />
+      </Card>
     </div>
   );
 
@@ -235,14 +324,145 @@ export default function TongJiPage() {
       </Card>
       <Card
         size="small"
-        title={cardTitle("搭档网络", "节点=出勤 ≥5 天的人,边=共现 ≥10 天;可拖拽/缩放")}
+        title={cardTitle(
+          "搭档网络",
+          "节点=出勤 ≥5 天的人;阈值同时作用于下方的搭档稳定性散点",
+        )}
+        extra={
+          <Space size={4}>
+            <Typography.Text type="secondary" style={{ fontSize: 12 }}>
+              共现阈值(天)
+            </Typography.Text>
+            <InputNumber
+              size="small"
+              min={MIN_PAIR_CO}
+              max={999}
+              precision={0}
+              value={coThreshold}
+              onChange={(v) => setCoThreshold(v ?? MIN_PAIR_CO)}
+            />
+          </Space>
+        }
       >
-        <EChart option={opts.graphOption(relation)} height={560} />
+        <EChart option={opts.graphOption(relation, coThreshold)} height={560} />
       </Card>
-      <Card size="small" title={cardTitle("搭档稳定性散点", "右上角组合 = 又活跃又固定的核心搭档")}>
-        <EChart option={opts.stableScatterOption(relation.stable)} height={420} />
+      <Card
+        size="small"
+        title={cardTitle(
+          "搭档稳定性散点",
+          `共现 ≥${coThreshold} 天(在"搭档网络"卡片可调);右上角组合 = 又活跃又固定的核心搭档`,
+        )}
+      >
+        <EChart option={opts.stableScatterOption(relation.stable, coThreshold)} height={420} />
+      </Card>
+      <Card
+        size="small"
+        title={cardTitle(
+          "人×工种 桑基",
+          "总工时 Top20 的人流向工种;单线者=单一工种,多线者=常常混岗",
+        )}
+      >
+        <EChart option={opts.sankeyOption(sankey)} height={620} />
       </Card>
     </div>
+  );
+
+  // ======================== 个人分析 Tab 内容 ========================
+  const personalTab = selected ? (
+    <div className="flex flex-col gap-2">
+      <Row gutter={[8, 8]} className="items-center">
+        <Col xs={24} md={6}>
+          <Select
+            showSearch
+            placeholder="选择工人"
+            value={selected.id}
+            onChange={setSelectedWorkerId}
+            style={{ width: "100%" }}
+            optionFilterProp="label"
+            options={profiles.list.map((w) => ({
+              value: w.id,
+              label: `${w.name}(出勤 ${w.days} 天)`,
+            }))}
+          />
+        </Col>
+        <Col xs={8} md={4}>
+          <Statistic title="出勤天数" value={selected.days} suffix="天" />
+        </Col>
+        <Col xs={8} md={4}>
+          <Statistic title="总工时" value={selected.hours} suffix="h" precision={1} />
+        </Col>
+        <Col xs={8} md={4}>
+          <Statistic title="收入(估算)" value={selected.salary} suffix="元" />
+        </Col>
+        <Col xs={12} md={3}>
+          <Statistic title="日均工时" value={selected.avgDayHours} suffix="h" precision={1} />
+        </Col>
+        <Col xs={12} md={3}>
+          <Statistic
+            title="主工种/广度"
+            value={selected.topWork}
+            suffix={selected.workCount > 1 ? ` +${selected.workCount - 1}` : ""}
+          />
+        </Col>
+      </Row>
+      <Alert
+        type="info"
+        showIcon
+        message={`首日 ${selected.firstDay || "—"};收入与"概览/工时&薪资"同口径(工时×时薪估算)。`}
+      />
+
+      <Row gutter={[8, 8]}>
+        <Col xs={24} lg={14}>
+          <Card
+            size="small"
+            title={cardTitle("个人月度趋势", "出勤天/工时左轴,收入右轴;不出的月份补 0")}
+          >
+            <EChart option={opts.personalMonthlyOption(selectedMonthly)} height={380} />
+          </Card>
+        </Col>
+        <Col xs={24} lg={10}>
+          <Card size="small" title={cardTitle("个人工种构成", "记录口径;按工时排序")}>
+            <EChart option={opts.workTypePieOption(selectedWorkPie)} height={340} />
+          </Card>
+        </Col>
+      </Row>
+
+      <Row gutter={[8, 8]}>
+        <Col xs={24} md={12}>
+          <Card
+            size="small"
+            title={cardTitle("搭档排名 Top10", "共同出勤最多的人;共现 1 天也计入")}
+          >
+            <EChart
+              option={opts.personalPartnerOption(
+                selectedPartners.map((p) => ({ name: p.name, co: p.co })),
+              )}
+              height={420}
+            />
+          </Card>
+        </Col>
+        <Col xs={24} md={12}>
+          <Card
+            size="small"
+            title={cardTitle("Top5 工人画像雷达", "出勤/工时/工种广度/收入/日均工时;与选人无关")}
+          >
+            <EChart option={opts.radarOption(profiles.list)} height={420} />
+          </Card>
+        </Col>
+      </Row>
+
+      <Card
+        size="small"
+        title={cardTitle(
+          "各人单日工时箱线",
+          "出勤 Top15;盒须=单日合计工时的 min/Q1/Q2/Q3/max,看谁稳定谁浮动",
+        )}
+      >
+        <EChart option={opts.dayHoursBoxOption(overview.boxData)} height={420} />
+      </Card>
+    </div>
+  ) : (
+    <Empty description="所选范围内没有工人数据" />
   );
 
   // ======================== 页面 ========================
@@ -255,7 +475,9 @@ export default function TongJiPage() {
             destroyInactiveTabPane
             items={[
               { key: "overview", label: "概览", children: overviewTab },
+              { key: "time", label: "时间模式", children: timeTab },
               { key: "relation", label: "关系分析", children: relationTab },
+              { key: "personal", label: "个人分析", children: personalTab },
             ]}
           />
         ) : (
