@@ -42,7 +42,7 @@ test("Batch检查", async ({ page }) => {
     await expect(page.getByTestId("batch-error-tag")).not.toBeVisible();
   });
   await test.step("未开启", async () => {
-    page.route(SettingsUrl, async (route) => {
+    await page.route(SettingsUrl, async (route) => {
       const json = {
         batch: {
           enabled: false,
@@ -58,7 +58,7 @@ test("Batch检查", async ({ page }) => {
     await expect(page.getByTestId("batch-error-tag")).toBeVisible();
   });
   await test.step("限制太低", async () => {
-    page.route(SettingsUrl, async (route) => {
+    await page.route(SettingsUrl, async (route) => {
       const json = {
         batch: {
           enabled: true,

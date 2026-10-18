@@ -324,7 +324,7 @@ test.describe("一条龙", async () => {
       await page.getByTestId("batch-delete-button").click();
       await page.getByRole("button", { name: "确 定" }).click();
       // 批量删除之后，应该没有记录
-      await page.getByRole("img", { name: "暂无数据" }).click();
+      await expect(page.getByRole("img", { name: "暂无数据" })).toBeVisible();
     });
   });
 });

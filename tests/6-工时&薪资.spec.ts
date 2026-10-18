@@ -140,8 +140,8 @@ test("筛选测试", async ({ page }) => {
     // 上个月的月份行可以展开
     await page.getByTestId(`row-month-${worker.name}-0`).click();
     // 天升序排列: 20日在21日前面
-    await expect(page.getByTestId(`row-day-${worker.name}-0`)).toContainText(`20`);
-    await expect(page.getByTestId(`row-day-${worker.name}-1`)).toContainText(`21`);
+    await expect(page.getByTestId(`row-day-${worker.name}-${prevMonth}-20`)).toContainText(`20`);
+    await expect(page.getByTestId(`row-day-${worker.name}-${prevMonth}-21`)).toContainText(`21`);
   });
   await test.step(`筛选${prevMonth}`, async () => {
     await applyMonthRange(page, prevMonth, prevMonth);
@@ -169,18 +169,18 @@ test("数值测试", async ({ page }) => {
   // 月份块升序: 块0=上个月(20/21), 块1=当前月(01~05). 展开两个月份行
   await page.getByTestId(`row-month-${worker.name}-0`).click();
   await page.getByTestId(`row-month-${worker.name}-1`).click();
-  // row-day-{name}-N 在两个月份块里同名,.last()取当前月块的(且块内天数不足N时也只有它有)
-  await page.getByTestId(`row-day-${worker.name}-0`).last().click();
-  await page.getByTestId(`row-day-${worker.name}-1`).last().click();
-  await page.getByTestId(`row-day-${worker.name}-2`).click();
-  await page.getByTestId(`row-day-${worker.name}-3`).click();
-  await page.getByTestId(`row-day-${worker.name}-4`).click();
+  // row-day-{工人}-{日期} 精确到天,上月与本月不会互相干扰
+  await page.getByTestId(`row-day-${worker.name}-${curMonth}-01`).click();
+  await page.getByTestId(`row-day-${worker.name}-${curMonth}-02`).click();
+  await page.getByTestId(`row-day-${worker.name}-${curMonth}-03`).click();
+  await page.getByTestId(`row-day-${worker.name}-${curMonth}-04`).click();
+  await page.getByTestId(`row-day-${worker.name}-${curMonth}-05`).click();
   // 时薪20: 10小时=200, 5小时=100 (row-d3 的 testid 同时挂在 tr 和首个 td 上,取 .first())
   await expect(page.getByTestId(`row-d3-${curMonth}-01-0`).first()).toContainText(`${worker.name}测试司机10200`);
   await expect(page.getByTestId(`row-d3-${curMonth}-05-0`).first()).toContainText(`${worker.name}测试司机5100`);
-  // 上个月的天记录展开(row-day 在上月块里是第0~1个)
-  await page.getByTestId(`row-day-${worker.name}-0`).first().click();
-  await page.getByTestId(`row-day-${worker.name}-1`).first().click();
+  // 上个月的天记录展开
+  await page.getByTestId(`row-day-${worker.name}-${prevMonth}-20`).click();
+  await page.getByTestId(`row-day-${worker.name}-${prevMonth}-21`).click();
   await expect(page.getByTestId(`row-d3-${prevMonth}-20-0`).first()).toContainText(`${worker.name}测试司机10200`);
   await expect(page.getByTestId(`row-d3-${prevMonth}-21-0`).first()).toContainText(`${worker.name}测试司机5100`);
   // 月份合计(升序): 上个月15小时, 当前月45小时

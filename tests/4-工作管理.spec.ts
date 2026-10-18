@@ -1,6 +1,6 @@
 import { test, expect } from "@playwright/test";
-import { appUrl, workType_url } from "./constants";
-import { TestDB } from "./helpers/pb";
+import { appUrl, AttendanceRecord_TableName, workType_url } from "./constants";
+import { pb, TestDB } from "./helpers/pb";
 
 const db = new TestDB();
 
@@ -36,6 +36,11 @@ test.describe("工作 列表", () => {
   });
 });
 test.describe("无基础工作提示", () => {
+  test.beforeEach(async () => {
+    // 本用例的前提是空库(没有"基础"工种),必须显式建立前提,
+    // 不能依赖前一个用例 afterEach 恰好把库清空——单独运行或上次失败残留都会失效。
+    await db.resetAll();
+  });
   test("无基础工作提示", async ({ page }) => {
     /**
      * 测试库是空库(没有"基础"工种)，天然覆盖初始场景：
@@ -294,6 +299,18 @@ test.describe("工作 创建删除编辑", () => {
       await page.getByTestId("delete-button-2").click();
       await expect(page.getByText("删除工作将一并删除相关考勤记录！")).toBeVisible();
       await page.getByRole("button", { name: "取 消" }).click();
+      // 确认后真的删除,并核对关联考勤记录已被级联删除
+      await page.getByTestId("delete-button-2").click();
+      await page.getByRole("button", { name: "删 除" }).click();
+      await expect(page.getByTestId("row-name-2")).not.toBeVisible();
+      await expect
+        .poll(async () => {
+          const left = await pb.collection(AttendanceRecord_TableName).getFullList({
+            filter: `work = "${oldWork.id}"`,
+          });
+          return left.length;
+        })
+        .toBe(0);
     });
     await test.step("编辑", async () => {
       await page.getByTestId("edit-button-1").click();

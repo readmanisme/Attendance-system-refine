@@ -162,10 +162,16 @@ test("导出失败: 后端异常提示 + 恢复后可重试", async ({ page }) =
   await page.route(recordsApi, (route) => route.fulfill({ status: 500 }));
   await page.goto(appUrl("gongshi"));
   await page.getByRole("button", { name: "导出考勤记录到Excel" }).click();
+  // 失败时不应该触发下载(先触发下载再报错属于不可接受的行为)
+  let downloaded = false;
+  page.once("download", () => {
+    downloaded = true;
+  });
   await page.getByRole("button", { name: "进行导出" }).click();
   await expect(page.getByText("导出失败，请检查时间范围或后端连接后重试")).toBeVisible({
     timeout: 10_000,
   });
+  expect(downloaded, "导出失败时不应产生下载文件").toBe(false);
   // 解除拦截后重新打开弹窗导出,应正常产出文件
   await page.unroute(recordsApi);
   await page.getByRole("button", { name: "导出考勤记录到Excel" }).click();

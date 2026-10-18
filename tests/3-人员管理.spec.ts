@@ -1,6 +1,6 @@
 import { test, expect } from "@playwright/test";
-import { appUrl, workers_url } from "./constants";
-import { TestDB } from "./helpers/pb";
+import { appUrl, AttendanceRecord_TableName, workers_url } from "./constants";
+import { pb, TestDB } from "./helpers/pb";
 import { clearPySearchSelect, setPageSize } from "./helpers/ui";
 
 const db = new TestDB();
@@ -321,6 +321,27 @@ test.describe("人员 创建删除编辑", () => {
       await page.getByTestId("delete-button-1").click();
       await expect(page.getByText("删除此人将一并删除相关考勤记录！")).toBeVisible();
       await page.getByRole("button", { name: "取 消" }).click();
+      // 确认后真的删除,并核对关联考勤记录已被级联删除(不能只验提示文案)
+      await page.getByTestId("delete-button-1").click();
+      await page.getByRole("button", { name: "删 除" }).click();
+      await expect(page.getByTestId("row-name-1")).not.toBeVisible();
+      await expect
+        .poll(async () => {
+          const left = await pb.collection(AttendanceRecord_TableName).getFullList({
+            filter: `worker_id = "${oldWorker.id}"`,
+          });
+          return left.length;
+        })
+        .toBe(0);
+      // 删除成功的 notification 在右上角,会挡住后续要点的"返回列表"按钮;
+      // refine 的通知不会自动消失,这里主动逐个关闭
+      await expect(async () => {
+        const notices = page.locator(".ant-notification-notice");
+        if ((await notices.count()) > 0) {
+          await page.locator(".ant-notification-notice-close").first().click({ timeout: 3000 });
+        }
+        expect(await notices.count()).toBe(0);
+      }).toPass({ timeout: 10_000 });
     });
     await test.step("编辑", async () => {
       // 测试编辑功能

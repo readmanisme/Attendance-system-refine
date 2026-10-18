@@ -3,7 +3,7 @@
  * 记录按需查询:展开某工人时才请求该人在当前月范围内的考勤记录,
  * 再用与 Excel 导出同一口径的 computeSalaryStats 就地聚合。
  * testid 形态与 playwright 用例约定保持一致,不要改动:
- *   row-month-{工人名}-{行序号} / row-day-{工人名}-{行序号} / row-d3-{日期}-{行序号}
+ *   row-month-{工人名}-{行序号} / row-day-{工人名}-{日期} / row-d3-{日期}-{行序号}
  */
 import { Table, Tooltip } from "antd";
 import { IconHelp } from "@tabler/icons-react";
@@ -43,13 +43,13 @@ const columnsMonth = [
   { title: "薪资", dataIndex: "xinzi", key: "xinzi" },
 ];
 
-/** 日表列(第二级展开) */
+/** 日表列(第二级展开);testid 用"工人+日期",日期在同一张表内唯一,不依赖行号 */
 const columnsDay = [
   {
     title: "日期",
     dataIndex: "date",
     key: "date",
-    onCell: cellTestId((_i, r) => `row-day-${r.worker}-${_i}`),
+    onCell: cellTestId((_i, r) => `row-day-${r.worker}-${r.date}`),
   },
   { title: "工人", dataIndex: "worker", key: "worker" },
   {

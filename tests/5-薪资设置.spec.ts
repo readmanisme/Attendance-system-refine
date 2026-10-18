@@ -29,15 +29,19 @@ test("添加校验", async ({ page }) => {
   // 有人就可以保存
   await expect(page.getByTestId("error-alert")).not.toBeVisible();
   await expect(page.getByTestId("save-button")).not.toBeDisabled();
-  // 选工种
-  await page.locator(".anticon.anticon-close-circle > svg").nth(0).click();
+  // 选工种(先清掉已选工人:allowClear 图标必须限定在该选择器内)
+  const workerSelect = page.getByTestId("worker-select");
+  await workerSelect.hover();
+  await workerSelect.locator(".ant-select-clear").click();
   await page.getByTestId("work-type-select").click();
   await page.getByTitle("测试重工").click();
   // 有工种也就能保存
   await expect(page.getByTestId("error-alert")).not.toBeVisible();
   await expect(page.getByTestId("save-button")).not.toBeDisabled();
   // 清除工种，应该重新出现警告
-  await page.locator(".anticon.anticon-close-circle > svg").click();
+  const workSelect = page.getByTestId("work-type-select");
+  await workSelect.hover();
+  await workSelect.locator(".ant-select-clear").click();
   await expect(page.getByTestId("error-alert")).toContainText("工人和工种不能全为空");
   await expect(page.getByTestId("save-button")).toBeDisabled();
   // 检查工种重复判定: 数据库里已有"无工人/重工"之外的...先检查真实存在的重复组合
@@ -75,10 +79,9 @@ test("编辑校验-基础", async ({ page }) => {
   // 确定内容；不能提交
   await expect(page.getByTestId("id-input")).toHaveValue(salaryId);
   await expect(page.getByTestId("id-input")).toBeDisabled();
-  // 确认工人和工种被禁用: 人员下拉里看不到可选工人
-  await page.getByTestId("work-select").click();
-  await expect(page.getByTitle("测试张孝刚")).not.toBeVisible();
-  await page.getByTestId("work-select").click();
+  // 确认工人和工种都被禁用(antd Select 禁用时内部 input 带 disabled)
+  await expect(page.getByTestId("worker-select").locator("input")).toBeDisabled();
+  await expect(page.getByTestId("work-select").locator("input")).toBeDisabled();
   // 确认工种和时薪内容
   await expect(page.getByTestId("work-select")).toContainText("基础");
   await expect(page.getByTestId("salary-input")).toHaveValue("10");

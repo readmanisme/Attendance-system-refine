@@ -187,6 +187,23 @@ export class TestDB {
   // ======================== 清理 ========================
 
   /**
+   * 清空四张业务表,用于"缺少基础工作"这类要求空库的用例。
+   * 不依赖其它用例的 afterEach,单独运行本用例也能成立。
+   */
+  async resetAll() {
+    for (const table of [
+      AttendanceRecord_TableName,
+      SalaryType_TableName,
+      WorkTypes_TableName,
+      Workers_TableName,
+    ]) {
+      const all: any[] = await this.listAll(table);
+      if (all.length) await this.deleteByIds(table, all.map((r) => r.id));
+    }
+    this.tracked = [];
+  }
+
+  /**
    * 清理: 先删本文件注入的 id 数据，再按 created 时间范围兜底删 UI 创建的数据。
    * 表删除顺序: 考勤记录 → 薪资 → 工种 → 人员
    */
@@ -207,5 +224,3 @@ export class TestDB {
     this.startedAt = new Date(Date.now() - 5_000).toISOString().replace("T", " ");
   }
 }
-
-export const WORKER_PREFIX = "测试员";

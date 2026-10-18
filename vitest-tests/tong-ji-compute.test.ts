@@ -64,16 +64,6 @@ const nameB = "测试B";
 const nameBy = "工种by";
 const nameWt = "工种wt";
 
-const salariesFor = () =>
-  salaries.map((s) => ({
-    ...s,
-    expand: {
-      worker_name: s.expand.worker_name ? { ...s.expand.worker_name } : undefined,
-      work_type: { ...s.expand.work_type },
-    },
-  }));
-void salariesFor;
-
 describe("filterRecordsByMonth", () => {
   test("含首尾月边界,支持 null 不筛选", () => {
     expect(filterRecordsByMonth(records, [null, null])).toHaveLength(6);

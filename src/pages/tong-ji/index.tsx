@@ -351,6 +351,7 @@ export default function TongJiPage() {
       </Card>
       <Card
         size="small"
+        data-testid="tj-stable-card"
         title={cardTitle(
           "搭档稳定性散点",
           `共现 ≥${coThreshold} 天(在"搭档网络"卡片可调);右上角组合 = 又活跃又固定的核心搭档`,
@@ -377,6 +378,7 @@ export default function TongJiPage() {
         <Col xs={24} md={6}>
           <Select
             showSearch
+            data-testid="tj-person-select"
             placeholder="选择工人"
             value={selected.id}
             onChange={setSelectedWorkerId}

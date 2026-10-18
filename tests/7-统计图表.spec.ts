@@ -113,7 +113,7 @@ test("共现阈值联动", async ({ page }) => {
   await page.goto(appUrl("tongji"));
   await tab(page, "关系分析").click();
   // 默认阈值 10;阈值文案在散点卡标题的 tooltip 里,需要悬浮信息图标(tabler 渲染)
-  const scatter = page.locator(".ant-card", { hasText: "搭档稳定性散点" }).last();
+  const scatter = page.getByTestId("tj-stable-card");
   const info = scatter.locator(".tabler-icon-info-circle").first();
   await info.hover();
   await expect(page.getByRole("tooltip")).toContainText("共现 ≥10 天");
@@ -135,7 +135,7 @@ test("个人分析联动", async ({ page }) => {
     await expect(page.getByTestId("tj-p-top")).toContainText("测试挖土");
   });
   await test.step("切换到甲", async () => {
-    await page.locator(".ant-select").first().click();
+    await page.getByTestId("tj-person-select").click();
     await page.getByText("测试甲(出勤 2 天)").click();
     await expect(page.getByTestId("tj-p-days")).toContainText("2天");
     await expect(page.getByTestId("tj-p-hours")).toContainText("18.3h");
@@ -149,7 +149,6 @@ test("个人分析联动", async ({ page }) => {
 
 test("月份范围筛选与持久化、与其他页隔离", async ({ page }) => {
   const cur = dayjs().format("YYYY-MM");
-  const prev = dayjs().subtract(1, "month").format("YYYY-MM");
   await page.goto(appUrl("tongji"));
   await test.step(`范围限定${cur}`, async () => {
     await pickMonthRange(page, cur, cur, "起始月", "截止月");
