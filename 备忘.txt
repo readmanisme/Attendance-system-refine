@@ -1,7 +1,6 @@
 1、playwright测试
 首先build，然后在dist中运行pnx serve -s -p 4172 -L -u --no-port-switching
 然后在vsc中侧边栏中运行pw测试，或者pnpm playwright test --ui
-后端数据库用pocketbase-0.33.0-for-test。
 2、生成pw代码
 pnpm playwright codegen 127.0.0.1:4172 --viewport-size="1536,864"
 pnpm playwright codegen localhost:5173 --viewport-size="1536,864"

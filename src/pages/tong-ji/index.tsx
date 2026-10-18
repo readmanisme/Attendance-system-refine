@@ -130,7 +130,7 @@ export default function TongJiPage() {
       {/* 顶部统计卡片 */}
       <Row gutter={[8, 8]}>
         <Col xs={12} md={4}>
-          <Card size="small">
+          <Card size="small" data-testid="tj-total-hours">
             <Statistic
               title="总工时"
               value={minutesToHours(overview.totalMinutes)}
@@ -140,7 +140,7 @@ export default function TongJiPage() {
           </Card>
         </Col>
         <Col xs={12} md={4}>
-          <Card size="small">
+          <Card size="small" data-testid="tj-total-salary">
             <Statistic
               title="支出(估算)"
               value={overview.totalSalary.toDecimalPlaces(2).toString()}
@@ -149,17 +149,17 @@ export default function TongJiPage() {
           </Card>
         </Col>
         <Col xs={8} md={5}>
-          <Card size="small">
+          <Card size="small" data-testid="tj-person-days">
             <Statistic title="出勤人天" value={overview.personDays} suffix="人天" />
           </Card>
         </Col>
         <Col xs={8} md={5}>
-          <Card size="small">
+          <Card size="small" data-testid="tj-worker-count">
             <Statistic title="出勤人数" value={overview.workerCount} suffix="人" />
           </Card>
         </Col>
         <Col xs={8} md={6}>
-          <Card size="small">
+          <Card size="small" data-testid="tj-record-count">
             <Statistic title="记录条数" value={overview.recordCount} suffix="条" />
           </Card>
         </Col>
@@ -167,6 +167,7 @@ export default function TongJiPage() {
 
       {overview.unPriced.names.length > 0 && (
         <Alert
+          data-testid="tj-unpriced-alert"
           type="warning"
           showIcon
           message={`已按"工时&薪资"页同口径计算支出,其中未单独定价的工种兜底按"基础"时薪计: ${overview.unPriced.names.join(", ")}（${overview.unPriced.records} 条 / ${minutesToHours(overview.unPriced.minutes)}h）。请到"薪资设置"补价,补价后此处自动修正。`}
@@ -225,7 +226,7 @@ export default function TongJiPage() {
           </Card>
         </Col>
         <Col xs={24} md={12}>
-          <Card size="small" title="工种汇总">
+          <Card size="small" title="工种汇总" data-testid="tj-worktype-table">
             <Table
               size="small"
               pagination={false}
@@ -333,6 +334,7 @@ export default function TongJiPage() {
             <Typography.Text type="secondary" style={{ fontSize: 12 }}>
               共现阈值(天)
             </Typography.Text>
+            <div data-testid="tj-co-threshold" className="inline-flex items-center">
             <InputNumber
               size="small"
               min={MIN_PAIR_CO}
@@ -341,6 +343,7 @@ export default function TongJiPage() {
               value={coThreshold}
               onChange={(v) => setCoThreshold(v ?? MIN_PAIR_CO)}
             />
+            </div>
           </Space>
         }
       >
@@ -385,19 +388,19 @@ export default function TongJiPage() {
             }))}
           />
         </Col>
-        <Col xs={8} md={4}>
+        <Col xs={8} md={4} data-testid="tj-p-days">
           <Statistic title="出勤天数" value={selected.days} suffix="天" />
         </Col>
-        <Col xs={8} md={4}>
+        <Col xs={8} md={4} data-testid="tj-p-hours">
           <Statistic title="总工时" value={selected.hours} suffix="h" precision={1} />
         </Col>
-        <Col xs={8} md={4}>
+        <Col xs={8} md={4} data-testid="tj-p-salary">
           <Statistic title="收入(估算)" value={selected.salary} suffix="元" />
         </Col>
-        <Col xs={12} md={3}>
+        <Col xs={12} md={3} data-testid="tj-p-avg">
           <Statistic title="日均工时" value={selected.avgDayHours} suffix="h" precision={1} />
         </Col>
-        <Col xs={12} md={3}>
+        <Col xs={12} md={3} data-testid="tj-p-top">
           <Statistic
             title="主工种/广度"
             value={selected.topWork}

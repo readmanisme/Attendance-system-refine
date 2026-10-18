@@ -187,6 +187,49 @@ test("月份筛选测试", async ({ page }) => {
   });
 });
 
+test("跨年月份筛选测试", async ({ page }) => {
+  /**
+   * 考察 applyMonthRange 的翻年分支: 目标月份不在默认面板(当前年附近)时，
+   * helper 会用超级前/后按钮逐年导航。
+   * 注入"两年前的 12 月"和"今年的 1 月"两条记录，验证:
+   * 1. 跨年范围筛选(上年12月～今年1月)能同时命中两条
+   * 2. 单月筛选(上年12月)只有一条
+   */
+  await db.ensureBaseWork();
+  const workerA = await db.seedWorker("测试老跨");
+  const workA = await db.seedWorkType("测试挖沟");
+  // 两年前的 12 月: 距默认面板两格年份，必定触发翻年导航
+  const dec = dayjs().subtract(2, "year").month(11);
+  const decYM = dec.format("YYYY-MM");
+  const thisJan = dayjs().startOf("year"); // 今年的 1 月(跨年边界)
+  const janYM = thisJan.format("YYYY-MM");
+  await db.seedRecords([
+    {
+      worker_id: workerA.id,
+      work: workA.id,
+      work_date: dec.format("YYYY-MM-DD"),
+      work_minutes: 300,
+    },
+    {
+      worker_id: workerA.id,
+      work: workA.id,
+      work_date: thisJan.format("YYYY-MM-DD"),
+      work_minutes: 240,
+    },
+  ]);
+
+  await page.goto(appUrl(attendance_record_url));
+  await test.step(`跨年范围筛选${decYM}～${janYM}`, async () => {
+    await applyMonthRange(page, decYM, janYM);
+    await expect(page.locator('[data-testid^="row-name-"]')).toHaveCount(2);
+  });
+  await test.step(`单月筛选${decYM}`, async () => {
+    await applyMonthRange(page, decYM, decYM);
+    await expect(page.locator('[data-testid^="row-name-"]')).toHaveCount(1);
+    await expect(page.getByTestId("row-name-0")).toContainText("跨");
+  });
+});
+
 test("编辑与删除", async ({ page }) => {
   /**
    * 注入 3 人 3 条 3 天前的记录，测试编辑、未保存提醒、删除、批量删除
@@ -198,25 +241,18 @@ test("编辑与删除", async ({ page }) => {
   const threeDaysAgo = dayjs().subtract(3, "day");
   const recordDate = threeDaysAgo.format("YYYY-MM-DD");
   const recordMonth = threeDaysAgo.format("YYYY-MM");
-  // 逐条创建确保 created 时间递增(同批次创建时间相同,排序不稳定)
-  await db.seedRecord({
-    worker_id: workers[0].id,
-    work: workA.id,
-    work_date: recordDate,
-    work_minutes: 300,
-  });
-  await db.seedRecord({
-    worker_id: workers[1].id,
-    work: workA.id,
-    work_date: recordDate,
-    work_minutes: 240,
-  });
-  await db.seedRecord({
-    worker_id: workers[2].id,
-    work: workA.id,
-    work_date: recordDate,
-    work_minutes: 180,
-  });
+  // 逐条创建确保 created 时间递增(同批次创建时间相同,排序不稳定);
+  // created 精度是毫秒,但 localhost 上连续 create 也可能落进同一毫秒,
+  // 造成 -created 排序并列 → 顺序不确定 → 用例偶发失败,所以再垫 15ms 间隙。
+  for (const [i, minutes] of [300, 240, 180].entries()) {
+    if (i > 0) await new Promise((r) => setTimeout(r, 15));
+    await db.seedRecord({
+      worker_id: workers[i].id,
+      work: workA.id,
+      work_date: recordDate,
+      work_minutes: minutes,
+    });
+  }
 
   await page.goto(appUrl(attendance_record_url));
   // 选择记录所在月

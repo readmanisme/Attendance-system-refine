@@ -1,12 +1,14 @@
 import { spawn } from "node:child_process";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { PB_TEST_PORT } from "./constants";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const PB_DIR = path.resolve(__dirname, "../pocketbase-for-playwright-test");
 const PB_EXE = path.join(PB_DIR, "pocketbase.exe");
-/** 测试专用端口，避开开发用的 29401/29402/29403 */
-export const PB_TEST_PORT = 29410;
+/** 端口来源于 constants.ts(单一来源)。Node 侧健康检查用 127.0.0.1:
+ * PB 只绑定在 127.0.0.1 上,localhost 可能解析到 ::1 导致 fetch 失败;
+ * 前端请求和 page.route 匹配用的 Backend_URL(localhost) 在浏览器侧解析,无此问题。 */
 export const PB_TEST_URL = `http://127.0.0.1:${PB_TEST_PORT}`;
 
 let pbProcess: ReturnType<typeof spawn> | null = null;

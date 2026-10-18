@@ -1,4 +1,4 @@
-import type { Page } from "@playwright/test";
+import type { Locator, Page } from "@playwright/test";
 
 /**
  * 清空 py-search-select 的已选人(多选标签)。
@@ -46,12 +46,33 @@ export async function setPageSize(page: Page, size: "10 条/页" | "20 条/页" 
  */
 export async function applyMonthRange(page: Page, startYM: string, endYM: string) {
   const apply = page.getByRole("button", { name: "应 用" });
-  await page.getByRole("textbox", { name: "开始月份" }).click();
-  await clickMonthCell(page, startYM);
-  await page.getByRole("textbox", { name: "结束月份" }).click();
-  await clickMonthCell(page, endYM);
+  await pickMonthRange(page, startYM, endYM);
   await expectEnabled(page, apply);
   await apply.click();
+}
+
+/**
+ * 只点选月份范围、不点"应 用"(适用于 onChange 即时生效的 RangePicker:
+ * 统计图表页与导出弹窗)。startName/endName 定位输入框;
+ * scope 限定查找范围(如导出 Popconfirm 弹层,避免与页面自身筛选器重名)。
+ */
+export async function pickMonthRange(
+  page: Page,
+  startYM: string,
+  endYM: string | null,
+  startName = "开始月份",
+  endName = "结束月份",
+  scope?: Page | Locator,
+) {
+  const root = scope ?? page;
+  // 输入框按 scope 定位(弹层场景与页面自身筛选器重名);
+  // 但 Picker 面板是由 antd 单独 portal 渲染的,不在弹层元素里,必须全局找
+  await root.getByRole("textbox", { name: startName }).click();
+  await clickMonthCell(page, startYM);
+  if (endYM) {
+    await root.getByRole("textbox", { name: endName }).click();
+    await clickMonthCell(page, endYM);
+  }
 }
 
 async function expectEnabled(page: Page, apply: import("@playwright/test").Locator) {
@@ -82,9 +103,11 @@ async function clickMonthCell(page: Page, ym: string) {
     const targetYear = Number(ym.split("-")[0]);
     if (Number.isNaN(panelYear)) throw new Error(`读不到月份面板年份: ${view}`);
     if (panelYear < targetYear) {
-      await page.locator(".ant-picker-header-super-next-btn").first().click();
+      // 每个 header 里都有两个 super-next 按钮(一显一隐)，必须用 :visible 过滤，
+      // 否则 .first() 会抓到隐藏按钮导致 click 一直等待
+      await page.locator(".ant-picker-header-super-next-btn:visible").first().click();
     } else if (panelYear > targetYear) {
-      await page.locator(".ant-picker-header-super-prev-btn").first().click();
+      await page.locator(".ant-picker-header-super-prev-btn:visible").first().click();
     } else {
       throw new Error(`年份网格正确但找不到月份单元格: ${ym}`);
     }
