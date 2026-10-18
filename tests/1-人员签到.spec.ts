@@ -193,6 +193,68 @@ test("表格显示", async ({ page }) => {
   await page.getByRole("checkbox", { name: "Select all" }).click();
   await expect(page.getByTestId("batch-delete-button")).toContainText("删除选中 (11)");
 });
+test("当天统计", async ({ page }) => {
+  /**
+   * 录入面板下方的"当天汇总"卡片:
+   * 1、没有记录时显示空提示
+   * 2、录入后人数/条数/总工时/人均即时更新(同一人同工种合并后条数不变、工时叠加)
+   * 3、切换到没有记录的日期后回到空提示
+   */
+  const empty = dayjs().subtract(37, "day");
+  await page.goto(appUrl(qiandao_url));
+  await expect(page.getByTestId("day-stats-empty"), "当天还没有记录").toBeVisible();
+
+  await test.step("录入后统计更新", async () => {
+    await page.locator('[data-testid="py-search-select"]').first().click();
+    await page.keyboard.type("周伯通");
+    await page.getByTitle("测试周伯通").click();
+    await page.getByTestId("work-type-select").click();
+    await page.getByTitle("测试重工").click();
+    await page.getByTestId("hours-input").click();
+    await page.getByTestId("hours-input").fill("6");
+    await page.getByTestId("submit-button").click();
+    await expect(page.getByTestId("day-stats-workers")).toContainText("1人");
+    await expect(page.getByTestId("day-stats-records")).toContainText("1条");
+    await expect(page.getByTestId("day-stats-hours")).toContainText("6");
+    await expect(page.getByTestId("day-stats-avg")).toContainText("6");
+  });
+
+  await test.step("同人同工种合并:条数不变,工时叠加", async () => {
+    await page.locator('[data-testid="py-search-select"]').first().click();
+    await page.getByTitle("测试周伯通").click();
+    await page.getByTestId("work-type-select").click();
+    await page.getByTitle("测试重工").click();
+    await page.getByTestId("hour-button-2").click();
+    await page.getByTestId("submit-button").click();
+    await expect(page.getByTestId("day-stats-workers")).toContainText("1人");
+    await expect(page.getByTestId("day-stats-records")).toContainText("1条");
+    await expect(page.getByTestId("day-stats-hours")).toContainText("8");
+    await expect(page.getByTestId("day-stats-avg")).toContainText("8");
+  });
+
+  await test.step("再录一个人:人数与人均随之变化", async () => {
+    await page.locator('[data-testid="py-search-select"]').first().click();
+    await page.keyboard.type("李红红");
+    await page.getByTitle("测试李红红").click();
+    await page.getByTestId("work-type-select").click();
+    await page.getByTitle("测试重工").click();
+    await page.getByTestId("hour-button-5").click();
+    await page.getByTestId("submit-button").click();
+    await expect(page.getByTestId("day-stats-workers")).toContainText("2人");
+    await expect(page.getByTestId("day-stats-records")).toContainText("2条");
+    await expect(page.getByTestId("day-stats-hours")).toContainText("13");
+    // (8 + 5) / 2 = 6.5
+    await expect(page.getByTestId("day-stats-avg")).toContainText("6.5");
+  });
+
+  await test.step("切到没有记录的日期", async () => {
+    await page.getByRole("textbox", { name: "请选择日期" }).click();
+    await page.getByRole("textbox", { name: "请选择日期" }).fill(empty.format("YYYY-MM-DD"));
+    await page.getByTitle(empty.format("-MM-DD")).click();
+    await expect(page.getByTestId("day-stats-empty"), "该日期没有记录").toBeVisible();
+  });
+});
+
 test.describe("一条龙", async () => {
   /**
    * 录入、自动合并、编辑、删除人员考勤记录

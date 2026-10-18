@@ -3,6 +3,13 @@ import { app, BrowserWindow, shell, ipcMain } from "electron";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
 import os from "node:os";
+import {
+  getPocketBasePort,
+  isPocketBaseRunning,
+  shouldStartPocketBase,
+  startPocketBase,
+  stopPocketBase,
+} from "./pocketbase";
 
 // const require = createRequire(import.meta.url)
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -43,21 +50,28 @@ let win: BrowserWindow | null = null;
 const preload = path.join(__dirname, "../preload/index.mjs");
 const indexHtml = path.join(RENDERER_DIST, "index.html");
 
+/**
+ * 渲染进程读端口的方式：preload 把 additionalArguments 里的 --pb-port 挂到 window.process1.env.PORTTTT
+ * （与 src/stores/index.ts 的读取逻辑对应）。端口必须在创建窗口前定下来，所以 PB 先于窗口启动。
+ */
+function webPreferences(): Electron.WebPreferences {
+  const port = getPocketBasePort();
+  return {
+    preload,
+    // 关闭隔离才能让 preload 直接往 window 上挂 process1
+    contextIsolation: false,
+    sandbox: false,
+    additionalArguments: port === null ? [] : [`--pb-port=${port}`],
+  };
+}
+
 async function createWindow() {
   win = new BrowserWindow({
     title: "Main window",
     // fullscreen: true,
     // autoHideMenuBar: false,
     show: false,
-    webPreferences: {
-      preload,
-      // Warning: Enable nodeIntegration and disable contextIsolation is not secure in production
-      // nodeIntegration: true,
-
-      // Consider using contextBridge.exposeInMainWorld
-      // Read more on https://www.electronjs.org/docs/latest/tutorial/context-isolation
-      // contextIsolation: false,
-    },
+    webPreferences: webPreferences(),
   });
   // win.maximize()
 
@@ -87,7 +101,32 @@ async function createWindow() {
   });
 }
 
-app.whenReady().then(createWindow);
+let quitting = false;
+
+app.whenReady().then(async () => {
+  // 端口必须先定下来（渲染进程靠它连后端），所以 PB 先于窗口启动。
+  // PB 起不来时不阻塞：弹过错误框后照常开窗，前端会显示"后端无法连接"并自动重试。
+  if (shouldStartPocketBase()) {
+    await startPocketBase(process.env.APP_ROOT as string);
+  }
+  await createWindow();
+});
+
+// 退出前先关停 PocketBase：杀进程是异步的，先拦一次 quit，等它真的退出再放行
+app.on("before-quit", (event) => {
+  if (quitting) return;
+  if (!isPocketBaseRunning()) return;
+  event.preventDefault();
+  quitting = true;
+  void stopPocketBase().finally(() => app.quit());
+});
+
+// 控制台强退兜底（dev 下 Ctrl+C / 系统终止）
+for (const signal of ["SIGINT", "SIGTERM"] as const) {
+  process.on(signal, () => {
+    void stopPocketBase().finally(() => process.exit(0));
+  });
+}
 
 app.on("window-all-closed", () => {
   win = null;
@@ -115,7 +154,7 @@ app.on("activate", () => {
 ipcMain.handle("open-win", (_, arg) => {
   const childWindow = new BrowserWindow({
     webPreferences: {
-      preload,
+      ...webPreferences(),
       nodeIntegration: true,
       contextIsolation: false,
     },

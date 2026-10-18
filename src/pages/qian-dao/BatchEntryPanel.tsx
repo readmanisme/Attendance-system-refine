@@ -19,6 +19,7 @@ import { IconHelp } from "@tabler/icons-react";
 import { minutesToHours } from "@/utils/workTime";
 import PySearchSelect from "@/components/PySearchSelect";
 import type { WorkerOption, useBatchEntry } from "./useBatchEntry";
+import { DayStatsBar } from "./DayStatsBar";
 
 type BatchEntry = ReturnType<typeof useBatchEntry>;
 
@@ -172,6 +173,9 @@ export function BatchEntryPanel({ batch, workTypeSelectProps }: BatchEntryPanelP
       </div>
 
       <Alert data-testid={dataTestid} description={alertDescription} type={alertType} showIcon />
+
+      {/* 所选日期的简单统计(随日期切换实时更新) */}
+      <DayStatsBar checkDate={checkDate} />
     </>
   );
 }

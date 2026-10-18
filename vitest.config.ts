@@ -27,6 +27,7 @@ export default defineConfig({
         "src/pages/tong-ji/compute.ts",
         "src/pages/tong-ji/options.ts",
         "src/pages/qian-dao/batchState.ts",
+        "src/pages/qian-dao/dayStats.ts",
         "src/pages/gong-shi/exportSheets.ts",
         "src/pages/xin-zi/duplicateCheck.ts",
         "src/stores/index.ts",
