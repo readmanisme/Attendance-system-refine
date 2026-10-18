@@ -72,14 +72,19 @@ describe("filterRecordsByMonth 边界", () => {
   });
 
   test("只给结束月时,起始月不设限", () => {
-    expect(filterRecordsByMonth(records, [null, "2026-02"]).map((r) => r.id)).toEqual(["a", "b", "c"]);
+    expect(filterRecordsByMonth(records, [null, "2026-02"]).map((r) => r.id)).toEqual([
+      "a",
+      "b",
+      "c",
+    ]);
   });
 
   test("缺日期的记录被排除(不参与筛选)", () => {
     expect(
-      filterRecordsByMonth([{ id: "x", work_date: undefined }, ...records], ["2026-02", "2026-02"]).map(
-        (r) => r.id,
-      ),
+      filterRecordsByMonth(
+        [{ id: "x", work_date: undefined }, ...records],
+        ["2026-02", "2026-02"],
+      ).map((r) => r.id),
     ).toEqual(["b", "c"]);
   });
 
@@ -113,13 +118,11 @@ describe("buildOverview 跨年与分布桶", () => {
     expect(o.monthly[2]).toMatchObject({ minutes: 0, personDays: 0 });
   });
 
-  test("出勤分布: 20-39 桶与 200+ 桶", () => {
-    // 21 天 → 20-39 桶
+  test("出勤分布: 档宽按跨度自适应(≤30 天用 5 天档)与 200+ 桶", () => {
+    // 21 天 → 20-24 桶(档宽 5)
     const days21 = daysFrom("2026-03-01", 21);
-    const o21 = buildOverview(
-      days21.map((d, i) => rec(`a${i}`, "w1", "t1", d, 60, "甲", "搬运")),
-    );
-    expect(o21.attendDist).toEqual([{ bucket: "20-39", workers: 1 }]);
+    const o21 = buildOverview(days21.map((d, i) => rec(`a${i}`, "w1", "t1", d, 60, "甲", "搬运")));
+    expect(o21.attendDist).toEqual([{ bucket: "20-24", workers: 1 }]);
 
     // 200 天 → 200+ 桶(不再细分为 200-219)
     const days200 = daysFrom("2026-01-01", 200);
@@ -267,12 +270,12 @@ describe("buildSankey 边界", () => {
     expect(s.topN).toBe(20);
   });
 
-  test("0 分钟记录不产生链接", () => {
+  test("0 分钟记录不产生链接(节点/边用 id)", () => {
     const s = buildSankey([
       rec("g1", "w1", "t1", "2026-08-01", 0, "甲", "搬运"),
       rec("g2", "w1", "t2", "2026-08-02", 60, "甲", "挖土"),
     ]);
-    expect(s.links).toEqual([{ source: "甲", target: "挖土", hours: 1 }]);
+    expect(s.links).toEqual([{ source: "w1", target: "t2", hours: 1 }]);
     expect(s.nodes.map((n) => n.name)).toEqual(["甲", "挖土"]);
   });
 

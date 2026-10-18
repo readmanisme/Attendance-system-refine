@@ -97,13 +97,28 @@ describe("buildOverview", () => {
     expect(aug.personDays).toBe(4); // 甲2人天 + 乙2人天
     expect(aug.workers).toBe(2);
     expect(aug.salary).toBe(453.33); // 200+100+33.3333+40+80
-    // 班制: 甲08-01 10h全日, 甲08-02 8.33h其他, 乙08-01 4h半日, 乙08-03 8h其他
+    // 班制四档(首尾相接): 甲08-01 10h 全日 / 甲08-02 8.33h 近全日 /
+    // 乙08-01 4h 半日 / 乙08-03 8h 近全日
     expect(aug.fullDays).toBe(1);
+    expect(aug.nearFullDays).toBe(2);
     expect(aug.halfDays).toBe(1);
-    expect(aug.otherDays).toBe(2);
+    expect(aug.shortDays).toBe(0);
+    // 人均强度:8月 1820 分钟 / 2 人 = 15.17h;出勤率 4 人天 / (2 人 × 31 天)
+    expect(aug.avgHoursPerWorker).toBe(15.17);
+    expect(aug.attendanceRate).toBe(0.065);
+    // 超时:10h 不算(>10h 才计)
+    expect(aug.over10Days).toBe(0);
     const sep = o.monthly[1];
     expect(sep.minutes).toBe(90);
     expect(sep.salary).toBe(15);
+    // 9月只有 1.5h 的短时
+    expect(sep.shortDays).toBe(1);
+    // 环比:人天 1 vs 4 → -75%;工时 90 vs 1820
+    expect(sep.personDaysMom).toBe(-75);
+    expect(sep.hoursMom).toBe(-95.1);
+    expect(sep.salaryMom).toBe(-96.7);
+    // 首月没有环比
+    expect(aug.hoursMom).toBeNull();
   });
 
   test("个人 Top 按人天排序,主工种/工时", () => {
@@ -136,22 +151,61 @@ describe("buildOverview", () => {
   });
 
   test("班制占比/分布兜底结构", () => {
+    // 四档首尾相接:10h 全日 / 8.33h+8h 近全日 / 4h 半日 / 1.5h 短时
     expect(o.shiftPie).toEqual([
-      { name: "全日(≥9h)", value: 1 }, // 甲08-01 10h
-      { name: "半日(3~7.5h)", value: 1 }, // 乙08-01 4h
-      { name: "其他", value: 3 }, // 甲08-02 8.33h / 乙08-03 8h / 乙09-10 1.5h
+      { name: "全日(≥9h)", value: 1 },
+      { name: "近全日(8~9h)", value: 2 },
+      { name: "半日(3~8h)", value: 1 },
+      { name: "短时(<3h)", value: 1 },
     ]);
-    expect(o.attendDist).toEqual([{ bucket: "0-19", workers: 2 }]);
+    // 出勤天数最多 3 天 → 档宽 5
+    expect(o.attendDist).toEqual([{ bucket: "0-4", workers: 2 }]);
     expect(o.recordDist).toHaveLength(6);
+    // 未定价金额:兜底 4 条按基础 10 元 = 33.3333+80+40+15 = 168.33
+    expect(o.unPriced.salary).toBe("168.33");
+    expect(o.unPriced.share).toBeCloseTo(0.359, 2);
   });
 
-  test("支出 Top / 队伍增长", () => {
+  test("支出 Top / 队伍增长与流失", () => {
     expect(o.salaryTop[0]).toMatchObject({ name: nameA, salary: 333.33, days: 2 });
     expect(o.salaryTop[1]).toMatchObject({ name: nameB, salary: 135, days: 3 });
+    // 8 月两人都是首次出勤;9 月乙回归(非首次),甲沉默
     expect(o.growth).toEqual([
-      { month: "2026-08", newWorkers: 2, totalWorkers: 2 },
-      { month: "2026-09", newWorkers: 0, totalWorkers: 2 },
+      {
+        month: "2026-08",
+        newWorkers: 2,
+        activeWorkers: 2,
+        returningWorkers: 0,
+        silentWorkers: 0,
+        totalWorkers: 2,
+      },
+      {
+        month: "2026-09",
+        newWorkers: 0,
+        activeWorkers: 1,
+        returningWorkers: 1,
+        silentWorkers: 1,
+        totalWorkers: 2,
+      },
     ]);
+  });
+
+  test("整体人均强度", () => {
+    // 1910 分钟 / 2 人 / 2 个有出勤月 = 7.96h
+    expect(o.perCapita.avgHoursPerWorker).toBe(7.96);
+    // 5 人天 / (2 人 × 41 天:08-01~09-10)
+    expect(o.perCapita.spanDays).toBe(41);
+    expect(o.perCapita.attendanceRate).toBe(0.061);
+  });
+
+  test("异常日/人月热力/工种×星期", () => {
+    // 08-01 合计 840 分钟 = 14h > 12h
+    expect(o.anomalyDays).toEqual([{ day: "2026-08-01", hours: 14 }]);
+    expect(o.workerMonthHeat.months).toEqual(["2026-08", "2026-09"]);
+    expect(o.workerMonthHeat.names).toEqual([nameB, nameA]);
+    expect(o.workerMonthHeat.data).toContainEqual([0, 0, 2]); // 乙 8 月 2 天
+    expect(o.workWeekday.works).toEqual([nameBy, nameWt]);
+    expect(o.workWeekday.data.every(([, , v]) => v > 0)).toBe(true);
   });
 
   test("空数据不炸", () => {
@@ -187,9 +241,13 @@ describe("buildRelation", () => {
     ]);
   });
 
-  test("网络节点=出勤≥5天,边候选=共现≥2", () => {
-    expect(rel.graph.nodes).toEqual([{ name: "测试A", days: 5, size: expect.closeTo(6.625, 3) }]);
-    expect(rel.graph.links).toEqual([{ source: "测试A", target: "测试B", value: 3 }]);
+  test("网络节点=出勤≥5天,边候选=共现≥2(节点/边都用 id)", () => {
+    expect(rel.graph.nodes).toEqual([
+      { id: wA, name: "测试A", days: 5, size: expect.closeTo(6.625, 3) },
+    ]);
+    expect(rel.graph.links).toEqual([{ source: wA, target: wB, value: 3 }]);
+    // 展示名映射:重名不会互相覆盖
+    expect(rel.nameOf.get(wA)).toBe("测试A");
   });
 
   test("稳定性散点: ratio=co/min(双方出勤天)", () => {
@@ -221,11 +279,13 @@ describe("buildSankey", () => {
     expect(nodeHours["测试B"]).toBe(5);
     expect(nodeHours["工种by"]).toBe(15);
     expect(nodeHours["工种wt"]).toBeCloseTo(3.33, 2);
-    // 每人链接按工种工时降序
+    // 每人链接按工种工时降序;source/target 都是 id
     const links = data.links.map((l) => [l.source, l.target, l.hours]);
-    expect(links).toContainEqual(["测试A", "工种by", 10]);
-    expect(links).toContainEqual(["测试A", "工种wt", 3.33]);
-    expect(links).toContainEqual(["测试B", "工种by", 5]);
+    expect(links).toContainEqual([wA, tBy, 10]);
+    expect(links).toContainEqual([wA, tWt, 3.33]);
+    expect(links).toContainEqual([wB, tBy, 5]);
+    // 工种节点 id 用 workId,展示名仍是工种名
+    expect(data.nodes.find((n) => n.id === tBy)?.name).toBe("工种by");
   });
 
   test("topN=1 只保留最活跃的人", () => {
@@ -234,7 +294,7 @@ describe("buildSankey", () => {
       1,
     );
     expect(data.nodes.filter((n) => n.isWorker)).toHaveLength(1);
-    expect(data.links.every((l) => l.source !== "测试B")).toBe(true);
+    expect(data.links.every((l) => l.source !== wB)).toBe(true);
   });
 });
 
@@ -314,17 +374,36 @@ describe("buildProfiles", () => {
       { bucket: "8~9", days: 1 },
       { bucket: "10~11", days: 1 },
     ]);
-    // 8.33h 落在 7.5~9 之间 → 既非全日也非半日,归"其他"(与概览班制同口径)
+    // 10h 全日;8.33h 落在 8~9 → 近全日(不再掉进"其他")
     expect(p.shiftPie.get(wA)).toEqual([
       { name: "全日(≥9h)", value: 1 },
-      { name: "其他", value: 1 },
+      { name: "近全日(8~9h)", value: 1 },
     ]);
-    // 乙: 4h 半日 / 8h 其他 / 1.5h 其他
+    // 乙: 4h 半日 / 8h 近全日 / 1.5h 短时
     expect(p.shiftPie.get(wB)).toEqual([
-      { name: "半日(3~7.5h)", value: 1 },
-      { name: "其他", value: 2 },
+      { name: "近全日(8~9h)", value: 1 },
+      { name: "半日(3~8h)", value: 1 },
+      { name: "短时(<3h)", value: 1 },
     ]);
     expect(p.dayHoursDist.get(wB)?.map((b) => b.bucket)).toEqual(["1~2", "4~5", "8~9"]);
+  });
+
+  test("百分位/中位数/P95 与工种收入构成", () => {
+    // 出勤 3 天的乙是全员最高 → 100 分位;甲 2 天 → 50
+    expect(p.byId.get(wB)!.percentile.days).toBe(100);
+    expect(p.byId.get(wA)!.percentile.days).toBe(50);
+    // 出勤率 = 出勤天 / 首末跨度天数
+    expect(p.byId.get(wA)!.attendanceRate).toBe(1); // 08-01~08-02 两天都出勤
+    expect(p.byId.get(wB)!.attendanceRate).toBe(0.073); // 3 天 / 41 天
+    // 雷达基线用中位数,P95 作为归一化上限
+    expect(p.teamMedian.days).toBe(2.5);
+    expect(p.scaleMax.days).toBeCloseTo(2.95, 2);
+    expect(p.scaleMax.salary).toBeCloseTo(323.41, 1);
+    // 工种收入构成:甲的搬运 300(15h×20),挖土 33.33(兜底 10)
+    expect(p.workTypeSalary.get(wA)).toEqual([
+      { name: nameBy, salary: 300 },
+      { name: nameWt, salary: 33.33 },
+    ]);
   });
 
   test("团队人均 = 全员算术平均(个人雷达基线)", () => {

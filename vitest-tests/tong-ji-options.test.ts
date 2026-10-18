@@ -1,12 +1,19 @@
 /**
  * 图表配置构建器(options.ts)单测。
  * 这些函数是"数据 → ECharts option"的纯映射,页面只能靠 canvas 冒烟验证,
- * 一旦轴/系列映射写错,图照样画得出来,所以这里锁两类契约:
+ * 一旦轴/系列映射写错,图照样画得出来,所以这里锁三类契约:
  *  1) 所有函数对空数据不抛错(空状态是真实场景);
- *  2) 阈值过滤、TopN 截断、排序、null 留白等关键映射与数据一致。
+ *  2) 阈值过滤、TopN 截断、排序、null 留白等关键映射与数据一致;
+ *  3) 归一化(雷达)、最小样本(箱线)、折叠(饼图"其他")这些口径不被改回去。
  */
 import { describe, expect, test } from "vitest";
-import type { Relation, SankeyData, TeamAverage, WorkerProfile } from "@/pages/tong-ji/compute";
+import type {
+  MonthPoint,
+  Relation,
+  SankeyData,
+  TeamAverage,
+  WorkerProfile,
+} from "@/pages/tong-ji/compute";
 import {
   attendDistChartOption,
   calendarHeatmapOption,
@@ -17,8 +24,11 @@ import {
   dayCalendarYears,
   dayHoursBoxOption,
   graphOption,
+  intensityOption,
+  momOption,
   monthlyOverviewOption,
   monthlyShiftOption,
+  overtimeOption,
   personalCalendarOption,
   personalCumulativeOption,
   personalDayHoursDistOption,
@@ -26,18 +36,20 @@ import {
   personalPartnerOption,
   personalRadarOption,
   personalWeekdayOption,
+  personalWorkSalaryOption,
   radarOption,
+  rankOption,
   recordDistChartOption,
-  salaryTopOption,
   sankeyOption,
   shiftPieOption,
   stableScatterOption,
   themeRiverOption,
-  topWorkerChartOption,
   weekdayOption,
   workerGrowthOption,
+  workerMonthHeatOption,
   workTypeMonthlyOption,
   workTypePieOption,
+  workWeekdayOption,
 } from "@/pages/tong-ji/options";
 
 /** EChartsCoreOption 是索引签名类型,测试里统一用 any 读嵌套字段 */
@@ -45,10 +57,12 @@ const opt = (o: unknown) => o as any;
 
 const emptyRelation: Relation = {
   matrixNames: [],
+  matrixIds: [],
   coMatrix: [],
   graph: { nodes: [], links: [] },
   stable: [],
   partnerPairs: new Map(),
+  nameOf: new Map(),
 };
 const emptySankey: SankeyData = { nodes: [], links: [], topN: 20 };
 
@@ -65,6 +79,9 @@ const worker = (over: Partial<WorkerProfile> = {}): WorkerProfile => ({
   topWork: "搬运",
   workCount: 1,
   firstDay: "2026-08-01",
+  lastDay: "2026-08-01",
+  attendanceRate: 1,
+  percentile: { days: 50, hours: 50, salary: 50, avgDayHours: 50, workCount: 50 },
   ...over,
 });
 
@@ -76,13 +93,34 @@ const teamAvg: TeamAverage = {
   workCount: 2,
 };
 
+const month = (over: Partial<MonthPoint> = {}): MonthPoint => ({
+  month: "2026-08",
+  personDays: 1,
+  workers: 1,
+  minutes: 600,
+  salary: 200,
+  workDays: 1,
+  fullDays: 1,
+  nearFullDays: 0,
+  halfDays: 0,
+  shortDays: 0,
+  avgHoursPerWorker: 10,
+  attendanceRate: 0.5,
+  over10Days: 0,
+  over10Rate: 0,
+  personDaysMom: null,
+  hoursMom: null,
+  salaryMom: null,
+  ...over,
+});
+
 describe("空数据:所有图表配置都不抛错", () => {
   test("概览类", () => {
     expect(() => dailyChartOption([])).not.toThrow();
+    expect(() => dailyChartOption([], [])).not.toThrow();
     expect(() => monthlyOverviewOption([])).not.toThrow();
     expect(() => cumulativeOption([])).not.toThrow();
-    expect(() => salaryTopOption([])).not.toThrow();
-    expect(() => topWorkerChartOption([])).not.toThrow();
+    expect(() => rankOption([])).not.toThrow();
     expect(() => attendDistChartOption([])).not.toThrow();
     expect(() => recordDistChartOption([])).not.toThrow();
     expect(() => shiftPieOption([])).not.toThrow();
@@ -96,6 +134,14 @@ describe("空数据:所有图表配置都不抛错", () => {
     expect(() => dayHoursBoxOption([])).not.toThrow();
   });
 
+  test("时间模式新增类", () => {
+    expect(() => workerMonthHeatOption({ ids: [], names: [], months: [], data: [] })).not.toThrow();
+    expect(() => workWeekdayOption({ works: [], weekdays: [], data: [] })).not.toThrow();
+    expect(() => intensityOption([])).not.toThrow();
+    expect(() => overtimeOption([])).not.toThrow();
+    expect(() => momOption([])).not.toThrow();
+  });
+
   test("关系/结构/个人类", () => {
     expect(() => coHeatmapOption(emptyRelation)).not.toThrow();
     expect(() => graphOption(emptyRelation, 10)).not.toThrow();
@@ -104,6 +150,7 @@ describe("空数据:所有图表配置都不抛错", () => {
     expect(() => radarOption([])).not.toThrow();
     expect(() => personalMonthlyOption([])).not.toThrow();
     expect(() => personalPartnerOption([])).not.toThrow();
+    expect(() => personalWorkSalaryOption([])).not.toThrow();
     expect(() => personalRadarOption(worker(), teamAvg)).not.toThrow();
     expect(() => personalWeekdayOption([])).not.toThrow();
     expect(() => personalDayHoursDistOption([])).not.toThrow();
@@ -136,54 +183,67 @@ describe("概览映射", () => {
     expect(o.series[1].connectNulls).toBe(false);
   });
 
+  test("每日趋势: 异常日画红点,数据多时给 dataZoom", () => {
+    const o = opt(
+      dailyChartOption(
+        [{ day: "2026-08-01", minutes: 780, persons: 2 }],
+        [{ day: "2026-08-01", hours: 13 }],
+      ),
+    );
+    expect(o.series[1].markPoint.data).toHaveLength(1);
+    expect(o.series[1].markPoint.data[0].value).toBe(13);
+    // 单点不加滑块
+    expect(o.dataZoom).toBeUndefined();
+
+    const many = Array.from({ length: 200 }, () => ({
+      day: "2026-01-01",
+      minutes: 60,
+      persons: 1,
+    }));
+    expect(opt(dailyChartOption(many)).dataZoom).toHaveLength(1);
+  });
+
+  test("月度总览: 提示里带环比与人均强度", () => {
+    const o = opt(
+      monthlyOverviewOption([
+        month({ month: "2026-08", personDays: 4, hoursMom: null }),
+        month({ month: "2026-09", personDays: 1, personDaysMom: -75, hoursMom: -95.1 }),
+      ]),
+    );
+    const text = o.tooltip.formatter([{ dataIndex: 1 }]);
+    expect(text).toContain("2026-09");
+    expect(text).toContain("环比 -75%");
+    expect(text).toContain("出勤率:50.0%");
+    expect(o.tooltip.formatter([{ dataIndex: 9 }])).toBe(""); // 越界不炸
+  });
+
   test("累计曲线: 工时与支出逐月累加", () => {
     const o = opt(
       cumulativeOption([
-        {
-          month: "2026-07",
-          personDays: 1,
-          workers: 1,
-          minutes: 600,
-          salary: 200,
-          workDays: 1,
-          fullDays: 1,
-          halfDays: 0,
-          otherDays: 0,
-        },
-        {
-          month: "2026-08",
-          personDays: 1,
-          workers: 1,
-          minutes: 300,
-          salary: 100.5,
-          workDays: 1,
-          fullDays: 0,
-          halfDays: 0,
-          otherDays: 1,
-        },
+        month({ month: "2026-07", minutes: 600, salary: 200 }),
+        month({ month: "2026-08", minutes: 300, salary: 100.5 }),
       ]),
     );
     expect(o.series[0].data).toEqual([10, 15]);
     expect(o.series[1].data).toEqual([200, 300.5]);
   });
 
-  test("支出 Top 与出勤 Top 都反转成升序(横条从上到下)", () => {
-    const salary = opt(
-      salaryTopOption([
-        { name: "甲", salary: 300, days: 3, hours: 20 },
-        { name: "乙", salary: 100, days: 1, hours: 5 },
-      ]),
-    );
-    expect(salary.yAxis.data).toEqual(["乙", "甲"]);
-    expect(salary.series[0].data).toEqual([100, 300]);
-
-    const top = opt(
-      topWorkerChartOption([
-        { id: "w1", name: "甲", days: 3, hours: 20, topWork: "搬运" },
-        { id: "w2", name: "乙", days: 1, hours: 5, topWork: "挖土" },
-      ]),
-    );
-    expect(top.yAxis.data).toEqual(["乙", "甲"]);
+  test("排行: 三种口径共用一张图,数据带 id 供点击联动", () => {
+    const list = [
+      worker({ id: "w1", name: "甲", days: 3, hours: 20, salary: "300" }),
+      worker({ id: "w2", name: "乙", days: 1, hours: 5, salary: "100" }),
+    ];
+    const byDays = opt(rankOption(list, "days"));
+    expect(byDays.yAxis.data).toEqual(["乙", "甲"]);
+    expect(byDays.series[0].data).toEqual([
+      { value: 1, id: "w2" },
+      { value: 3, id: "w1" },
+    ]);
+    // 按支出排序时顺序反转
+    const bySalary = opt(rankOption(list, "salary"));
+    expect(bySalary.yAxis.data).toEqual(["乙", "甲"]);
+    expect(bySalary.series[0].data.map((d: any) => d.value)).toEqual([100, 300]);
+    expect(bySalary.tooltip.formatter([{ dataIndex: 1 }])).toContain("主工种:搬运");
   });
 
   test("记录时长分布的横轴带 h 后缀", () => {
@@ -195,6 +255,14 @@ describe("概览映射", () => {
     );
     expect(o.xAxis.data).toEqual(["0~1h", "14+h"]);
     expect(o.series[0].data).toEqual([2, 1]);
+  });
+
+  test("工种占比: 超过 8 类折叠成其他", () => {
+    const pie = Array.from({ length: 10 }, (_, i) => ({ name: `工种${i}`, hours: 10 - i }));
+    const o = opt(workTypePieOption(pie));
+    expect(o.series[0].data).toHaveLength(9);
+    expect(o.series[0].data[8].name).toBe("其他");
+    expect(o.series[0].data[8].value).toBe(3); // 2 + 1
   });
 
   test("工种按月堆叠: 工种取并集,缺月补 0", () => {
@@ -237,24 +305,25 @@ describe("关系分析映射", () => {
     expect(o.visualMap.max).toBe(3);
   });
 
-  test("搭档网络: 边按阈值过滤,线宽随共现增长且有上限", () => {
+  test("搭档网络: 节点/边用 id,展示名走 display,线宽有上限", () => {
     const r = relation({
       graph: {
-        nodes: [{ name: "甲", days: 10, size: 7.25 }],
+        nodes: [{ id: "w1", name: "甲", days: 10, size: 7.25 }],
         links: [
-          { source: "甲", target: "乙", value: 3 },
-          { source: "甲", target: "丙", value: 12 },
+          { source: "w1", target: "w2", value: 3 },
+          { source: "w1", target: "w3", value: 12 },
         ],
       },
     });
     const filtered = opt(graphOption(r, 5));
-    expect(filtered.series[0].links.map((l: any) => l.target)).toEqual(["丙"]);
+    expect(filtered.series[0].data[0]).toMatchObject({ name: "w1", display: "甲" });
+    expect(filtered.series[0].links.map((l: any) => l.target)).toEqual(["w3"]);
     expect(filtered.series[0].links[0].lineStyle.width).toBeCloseTo(1 + 12 / 25, 5);
     expect(filtered.title.text).toContain("共现 ≥5 天");
 
     const wide = opt(
       graphOption(
-        relation({ graph: { nodes: [], links: [{ source: "甲", target: "乙", value: 1000 }] } }),
+        relation({ graph: { nodes: [], links: [{ source: "w1", target: "w2", value: 1000 }] } }),
         2,
       ),
     );
@@ -279,22 +348,27 @@ describe("关系分析映射", () => {
     expect(o.title.text).toContain("共现 ≥3 天");
   });
 
-  test("桑基: 节点按人/工种着色,链接 value = 工时", () => {
+  test("桑基: 节点 name 用 id,display 存展示名,链接 value = 工时", () => {
     const o = opt(
       sankeyOption(
         sankey({
           nodes: [
-            { name: "甲", hours: 10, isWorker: true },
-            { name: "搬运", hours: 10, isWorker: false },
+            { id: "w1", name: "甲", hours: 10, isWorker: true },
+            { id: "t1", name: "搬运", hours: 10, isWorker: false },
           ],
-          links: [{ source: "甲", target: "搬运", hours: 10 }],
+          links: [{ source: "w1", target: "t1", hours: 10 }],
         }),
       ),
     );
+    expect(o.series[0].data[0]).toMatchObject({ name: "w1", display: "甲" });
     expect(o.series[0].data[0].itemStyle.color).toBe("#5470c6");
     expect(o.series[0].data[1].itemStyle.color).toBe("#91cc75");
-    expect(o.series[0].links).toEqual([{ source: "甲", target: "搬运", value: 10 }]);
+    expect(o.series[0].links).toEqual([{ source: "w1", target: "t1", value: 10 }]);
     expect(o.title.text).toContain("Top20");
+    // 边的提示要把 id 还原成姓名
+    expect(
+      o.tooltip.formatter({ dataType: "edge", data: { source: "w1", target: "t1", value: 10 } }),
+    ).toContain("甲 → 搬运");
   });
 });
 
@@ -336,59 +410,114 @@ describe("时间模式映射", () => {
     expect(o.xAxis.data).toHaveLength(7);
     expect(o.series[0].data).toEqual([0, 1, 2, 3, 4, 5, 6]);
   });
+
+  test("月度班制: 四档堆叠,顺序与口径一致", () => {
+    const o = opt(
+      monthlyShiftOption([month({ fullDays: 1, nearFullDays: 2, halfDays: 3, shortDays: 4 })]),
+    );
+    expect(o.series.map((s: any) => s.name)).toEqual([
+      "全日(≥9h)",
+      "近全日(8~9h)",
+      "半日(3~8h)",
+      "短时(<3h)",
+    ]);
+    expect(o.series.map((s: any) => s.data[0])).toEqual([1, 2, 3, 4]);
+  });
+
+  test("队伍增长: 新增/回归堆叠 + 沉默折线", () => {
+    const o = opt(
+      workerGrowthOption([
+        {
+          month: "2026-08",
+          newWorkers: 2,
+          activeWorkers: 2,
+          returningWorkers: 0,
+          silentWorkers: 0,
+          totalWorkers: 2,
+        },
+      ]),
+    );
+    expect(o.series.map((s: any) => s.name)).toEqual(["当月新增", "当月回归", "沉默人数"]);
+    expect(o.series[0].stack).toBe("team");
+  });
+
+  test("人×月热力: 行列与值直接映射", () => {
+    const o = opt(
+      workerMonthHeatOption({
+        ids: ["w1"],
+        names: ["甲"],
+        months: ["2026-08", "2026-09"],
+        data: [[0, 0, 3]],
+      }),
+    );
+    expect(o.yAxis.data).toEqual(["甲"]);
+    expect(o.xAxis.data).toEqual(["2026-08", "2026-09"]);
+    expect(o.series[0].data).toEqual([[0, 0, 3]]);
+    expect(o.tooltip.formatter({ value: [0, 0, 3] })).toContain("甲 · 2026-08");
+  });
+
+  test("工种×星期热力: 空值时 visualMap 上限兜底 1", () => {
+    const o = opt(workWeekdayOption({ works: [], weekdays: [], data: [] }));
+    expect(o.visualMap.max).toBe(1);
+  });
+
+  test("人均强度/超时: 比例换算成百分数", () => {
+    const m = month({
+      avgHoursPerWorker: 9.5,
+      attendanceRate: 0.42,
+      over10Days: 2,
+      over10Rate: 0.25,
+    });
+    const intensity = opt(intensityOption([m]));
+    expect(intensity.series[0].data).toEqual([9.5]);
+    expect(intensity.series[1].data).toEqual([42]);
+    expect(intensity.tooltip.formatter([{ dataIndex: 0 }])).toContain("出勤率:42.0%");
+
+    const overtime = opt(overtimeOption([m]));
+    expect(overtime.series[0].data).toEqual([2]);
+    expect(overtime.series[1].data).toEqual([25]);
+  });
+
+  test("环比: null 保留为空(不画成 0),0 线作基准", () => {
+    const o = opt(
+      momOption([
+        month({ month: "2026-08", hoursMom: null }),
+        month({ month: "2026-09", hoursMom: 12.5, salaryMom: -3.2 }),
+      ]),
+    );
+    expect(o.series[0].data).toEqual([null, 12.5]);
+    expect(o.series[1].data).toEqual([null, -3.2]);
+    expect(o.series[0].markLine.data).toEqual([{ yAxis: 0 }]);
+    expect(o.tooltip.formatter([{ dataIndex: 1 }])).toContain("支出环比:-3.2%");
+  });
 });
 
 describe("个人分析映射", () => {
-  test("雷达图: topN 截断,指标上限取 TopN 最大值且至少为 1", () => {
+  test("雷达图: 归一化到 0~100,按 topN 截断,提示显示原始值", () => {
+    const scale: TeamAverage = {
+      days: 10,
+      hours: 80,
+      salary: 1600,
+      avgDayHours: 8,
+      workCount: 3,
+    };
     const o = opt(
       radarOption(
         [
-          worker({
-            id: "w1",
-            name: "甲",
-            days: 10,
-            hours: 80,
-            workCount: 3,
-            salary: "1600",
-            avgDayHours: 8,
-          }),
-          worker({
-            id: "w2",
-            name: "乙",
-            days: 2,
-            hours: 16,
-            workCount: 1,
-            salary: "0",
-            avgDayHours: 8,
-          }),
-          worker({
-            id: "w3",
-            name: "丙",
-            days: 1,
-            hours: 8,
-            workCount: 1,
-            salary: "0",
-            avgDayHours: 8,
-          }),
+          worker({ id: "w1", name: "甲", days: 10, hours: 80, workCount: 3, salary: "1600" }),
+          worker({ id: "w2", name: "乙", days: 2, hours: 16, workCount: 1, salary: "0" }),
+          worker({ id: "w3", name: "丙", days: 1, hours: 8, workCount: 1, salary: "0" }),
         ],
+        scale,
         2,
       ),
     );
     expect(o.series[0].data.map((d: any) => d.name)).toEqual(["甲", "乙"]);
-    const indicator = o.radar.indicator;
-    expect(indicator.map((i: any) => i.name)).toEqual([
-      "出勤天数",
-      "总工时(h)",
-      "工种广度",
-      "收入(元)",
-      "日均工时(h)",
-    ]);
-    expect(indicator[0].max).toBe(10);
-    expect(indicator[1].max).toBe(80);
-    expect(indicator[3].max).toBe(1600);
-    // 收入全为 0 时下限兜底 1,避免 ECharts 除以 0
-    const zero = opt(radarOption([worker({ salary: "0" })]));
-    expect(zero.radar.indicator[3].max).toBe(1);
+    expect(o.radar.indicator.map((i: any) => i.max)).toEqual([100, 100, 100, 100, 100]);
+    // 甲各项都顶到 100;乙:2/10,16/80,1/3,0,8/8
+    expect(o.series[0].data[0].value).toEqual([100, 100, 100, 100, 100]);
+    expect(o.series[0].data[1].value).toEqual([20, 20, 33, 0, 100]);
+    expect(o.tooltip.formatter({ name: "甲", data: o.series[0].data[0] })).toContain("出勤天数:10");
   });
 
   test("个人月度: 三个系列分别取 days/hours/salary", () => {
@@ -408,17 +537,39 @@ describe("个人分析映射", () => {
     expect(o.series[0].data).toEqual([1, 3, 5]);
   });
 
-  test("箱线图: 直接使用五数概括", () => {
-    const o = opt(dayHoursBoxOption([{ name: "甲", count: 4, box: [2, 3.5, 5, 6.5, 8] }]));
-    expect(o.xAxis.data).toEqual(["甲"]);
-    expect(o.series[0].data).toEqual([[2, 3.5, 5, 6.5, 8]]);
+  test("工种收入构成: 反转成升序", () => {
+    const o = opt(
+      personalWorkSalaryOption([
+        { name: "搬运", salary: 300 },
+        { name: "挖土", salary: 33.33 },
+      ]),
+    );
+    expect(o.yAxis.data).toEqual(["挖土", "搬运"]);
+    expect(o.series[0].data).toEqual([33.33, 300]);
   });
 
-  test("个人对比雷达: 本人 + 团队人均两条,指标上限留 15% 余量", () => {
+  test("箱线图: 样本不足 5 天的人不画;全员不足时退化为全部展示", () => {
+    const enough = opt(
+      dayHoursBoxOption([
+        { name: "甲", count: 12, box: [2, 3.5, 5, 6.5, 8] },
+        { name: "乙", count: 3, box: [2, 3, 4, 5, 6] },
+      ]),
+    );
+    expect(enough.xAxis.data).toEqual(["甲"]);
+    expect(enough.series[0].data).toEqual([[2, 3.5, 5, 6.5, 8]]);
+
+    const fallback = opt(dayHoursBoxOption([{ name: "丙", count: 2, box: [1, 1, 1, 1, 1] }]));
+    expect(fallback.xAxis.data).toEqual(["丙"]);
+    expect(fallback.title.text).toContain("样本均不足 5 天");
+  });
+
+  test("个人对比雷达: 本人 + 团队中位数,统一归一化", () => {
+    const scale: TeamAverage = { days: 4, hours: 32, salary: 640, avgDayHours: 8, workCount: 3 };
     const o = opt(
       personalRadarOption(
         worker({ name: "甲", days: 4, hours: 32, avgDayHours: 8, workCount: 3, salary: "640" }),
         teamAvg,
+        scale,
       ),
     );
     expect(o.radar.indicator.map((i: any) => i.name)).toEqual([
@@ -428,25 +579,19 @@ describe("个人分析映射", () => {
       "工种广度",
       "收入(元)",
     ]);
-    expect(o.series[0].data.map((d: any) => d.name)).toEqual(["甲", "团队人均"]);
-    // 出勤天数 max(4, 2)=4 → ceil(4*1.15)=5;收入 max(640,100) → 736
-    expect(o.radar.indicator[0].max).toBe(5);
-    expect(o.radar.indicator[4].max).toBe(736);
-    expect(o.series[0].data[1].value).toEqual([2, 10, 5, 2, 100]);
-    // 全 0 时兜底 1,避免 ECharts 除零
+    expect(o.series[0].data.map((d: any) => d.name)).toEqual(["甲", "团队中位数"]);
+    expect(o.series[0].data[0].value).toEqual([100, 100, 100, 100, 100]);
+    // 团队中位数:2/4,10/32,5/8,2/3,100/640
+    expect(o.series[0].data[1].value).toEqual([50, 31, 63, 67, 16]);
+    // 全 0 时兜底 1,不会除零
     const zero = opt(
       personalRadarOption(
         worker({ days: 0, hours: 0, salary: "0", avgDayHours: 0, workCount: 0 }),
-        {
-          days: 0,
-          hours: 0,
-          salary: 0,
-          avgDayHours: 0,
-          workCount: 0,
-        },
+        { days: 0, hours: 0, salary: 0, avgDayHours: 0, workCount: 0 },
+        { days: 0, hours: 0, salary: 0, avgDayHours: 0, workCount: 0 },
       ),
     );
-    expect(zero.radar.indicator.every((i: any) => i.max === 1)).toBe(true);
+    expect(zero.series[0].data[0].value.every((v: number) => v === 0)).toBe(true);
   });
 
   test("个人星期几节奏: 柱=出勤天数,线=日均工时(无出勤留空)", () => {
@@ -510,35 +655,24 @@ describe("tooltip / 轴格式化回调", () => {
     expect(cum.tooltip.valueFormatter(3)).toBe("3");
   });
 
-  test("支出 Top 与出勤 Top 的提示取反转后的行", () => {
-    const salary = opt(
-      salaryTopOption([
-        { name: "甲", salary: 300, days: 3, hours: 20 },
-        { name: "乙", salary: 100, days: 1, hours: 5 },
-      ]),
-    );
-    expect(salary.tooltip.formatter([{ dataIndex: 0 }])).toContain("乙");
-
-    const top = opt(
-      topWorkerChartOption([{ id: "w1", name: "甲", days: 3, hours: 20, topWork: "搬运" }]),
-    );
-    expect(top.tooltip.formatter([{ dataIndex: 0, value: 3 }])).toContain("主工种:搬运");
-  });
-
   test("热力图提示显示两人名字与共现天数", () => {
     const o = opt(coHeatmapOption(relation({ matrixNames: ["甲", "乙"] })));
     expect(o.tooltip.formatter({ value: [0, 1, 3] })).toContain("甲 × 乙");
     expect(o.tooltip.formatter({ value: [0, 1, 3] })).toContain("共现 3 天");
   });
 
-  test("搭档网络提示区分边与节点", () => {
+  test("搭档网络提示区分边与节点(展示名兜底)", () => {
     const o = opt(graphOption(relation(), 10));
     expect(
-      o.tooltip.formatter({ dataType: "edge", data: { source: "甲", target: "乙", value: 6 } }),
+      o.tooltip.formatter({ dataType: "edge", data: { source: "w1", target: "w2", value: 6 } }),
     ).toContain("共现 6 天");
-    expect(o.tooltip.formatter({ dataType: "node", name: "甲", data: { days: 9 } })).toContain(
-      "出勤 9 天",
-    );
+    expect(
+      o.tooltip.formatter({
+        dataType: "node",
+        name: "w1",
+        data: { display: "甲", days: 9 },
+      }),
+    ).toContain("出勤 9 天");
   });
 
   test("稳定性散点提示取排序后的搭档对", () => {
@@ -574,18 +708,18 @@ describe("tooltip / 轴格式化回调", () => {
   test("桑基提示区分边与节点", () => {
     const o = opt(sankeyOption(emptySankey));
     expect(
-      o.tooltip.formatter({ dataType: "edge", data: { source: "甲", target: "搬运", value: 10 } }),
-    ).toContain("甲 → 搬运");
-    expect(o.tooltip.formatter({ name: "甲", value: 10 })).toContain("工时 10h");
+      o.tooltip.formatter({ dataType: "edge", data: { source: "w1", target: "t1", value: 10 } }),
+    ).toContain("工时 10h");
+    expect(o.tooltip.formatter({ name: "w1", value: 10 })).toContain("工时 10h");
   });
 
   test("个人搭档提示与箱线提示", () => {
     const partner = opt(personalPartnerOption([{ name: "乙", co: 5 }]));
     expect(partner.tooltip.formatter([{ dataIndex: 0 }])).toContain("共同出勤 5 天");
 
-    const box = opt(dayHoursBoxOption([{ name: "甲", count: 4, box: [2, 3.5, 5, 6.5, 8] }]));
+    const box = opt(dayHoursBoxOption([{ name: "甲", count: 6, box: [2, 3.5, 5, 6.5, 8] }]));
     const text = box.tooltip.formatter({ dataIndex: 0, value: [2, 3.5, 5, 6.5, 8] });
-    expect(text).toContain("样本 4 天");
+    expect(text).toContain("样本 6 天");
     expect(text).toContain("Q1:3.5h");
   });
 });

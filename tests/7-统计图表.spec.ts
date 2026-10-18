@@ -103,10 +103,16 @@ test("四个 Tab 渲染冒烟(canvas 非空白)", async ({ page }) => {
       }
     });
   };
-  await canvasCheck("概览", 10);
-  await canvasCheck("时间模式", 5);
+  await canvasCheck("概览", 5);
+  await test.step("展开折叠区后补充 4 张", async () => {
+    await page.getByText("分布与画像").click();
+    await expect
+      .poll(() => page.locator("main canvas").count(), { timeout: 10_000 })
+      .toBeGreaterThanOrEqual(9);
+  });
+  await canvasCheck("时间模式", 10);
   await canvasCheck("关系分析", 4);
-  await canvasCheck("个人分析", 5);
+  await canvasCheck("个人分析", 9);
 });
 
 test("共现阈值联动", async ({ page }) => {

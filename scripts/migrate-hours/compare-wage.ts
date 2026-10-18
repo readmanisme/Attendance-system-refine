@@ -248,9 +248,6 @@ function computeSide(
 }
 
 // ---------- 报告工具 ----------
-function fmtW(d: Decimal): string {
-  return d.toSignificantDigits(12).toString();
-}
 function fmtHours(msOrMin: number, isMs: boolean): string {
   const h = new Decimal(isMs ? msOrMin : msOrMin * 60000).div(3600000);
   return h.toSignificantDigits(12).toString();
