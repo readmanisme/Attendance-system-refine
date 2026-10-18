@@ -31,6 +31,9 @@ interface ConfigState {
   /** 考勤月范围,存 "YYYY-MM" 字符串;查询边界由 getWorkDateRange 换算 */
   recordMonthRange: string[];
   setRecordMonthRange: (range: string[]) => void;
+  /** 统计图表页的月份范围(null = 不限),只影响本页,与 recordMonthRange 隔离 */
+  tongjiMonthRange: [string | null, string | null];
+  setTongjiMonthRange: (range: [string | null, string | null]) => void;
   __BACKEND_API_URL__: string;
   set__BACKEND_API_URL__: (url: string) => void;
 }
@@ -48,6 +51,11 @@ export const useConfigStore = create<ConfigState>()(
           dayjs().add(1, "month").format("YYYY-MM"),
         ],
         setRecordMonthRange: (range: string[]) => set({ recordMonthRange: range }),
+
+        // 统计图表页的月份范围,默认不限(全部历史);persist 自动持久化,无需版本迁移
+        tongjiMonthRange: [null, null],
+        setTongjiMonthRange: (range: [string | null, string | null]) =>
+          set({ tongjiMonthRange: range }),
 
         // 后端地址始终以 FIXED_API_URL 初始化
         __BACKEND_API_URL__: FIXED_API_URL,

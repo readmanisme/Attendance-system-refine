@@ -39,6 +39,7 @@
     "antd-style": "^3.7.1",
     "dayjs": "1.11.13",
     "decimal.js": "^10.6.0",
+    "echarts": "^6.1.0",
     "es-toolkit": "^1.52.0",
     "i18next": "^25.10.10",
     "pinyin-pro": "^3.29.5",

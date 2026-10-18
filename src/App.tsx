@@ -29,6 +29,7 @@ import {
   IconCoinYen,
   IconReport,
   IconBriefcase,
+  IconChartBar,
 } from "@tabler/icons-react";
 import { GlobalHelp } from "./components/GlobalHelp";
 import { useTranslation } from "react-i18next";
@@ -40,6 +41,7 @@ import React from "react";
 // 🧩 懒加载页面
 const QianDaoPage = React.lazy(() => import("./pages/qian-dao/qian-dao"));
 const GongShiList = React.lazy(() => import("./pages/gong-shi/list_table"));
+const TongJiPage = React.lazy(() => import("./pages/tong-ji/index"));
 const WorkersList = React.lazy(() => import("./pages/workers/list"));
 const WorkersCreate = React.lazy(() => import("./pages/workers/create"));
 const WorkersEdit = React.lazy(() => import("./pages/workers/edit"));
@@ -82,6 +84,7 @@ const crudRoutes: CrudRouteItem[] = [
   { path: "/workType", list: ListWorkType, create: CreateWorkType, edit: EditWorkType },
   { path: "/xinzi", list: SalaryTypeList, create: SalaryTypeCreate, edit: SalaryTypeEdit },
   { path: "/gongshi", list: GongShiList },
+  { path: "/tongji", list: TongJiPage },
 ];
 const devOnlyRoutesConfig = import.meta.env.DEV
   ? [
@@ -207,6 +210,15 @@ function App() {
                     label: "工时&薪资显示",
                     dataProviderName: undefined,
                     icon: <IconReport />,
+                  },
+                },
+                {
+                  name: "tongji",
+                  list: "/tongji",
+                  meta: {
+                    label: "统计图表",
+                    dataProviderName: undefined,
+                    icon: <IconChartBar />,
                   },
                 },
                 ...devOnlyRoutesConfig,
