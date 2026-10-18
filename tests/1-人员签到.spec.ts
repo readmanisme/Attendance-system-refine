@@ -307,7 +307,8 @@ test.describe("一条龙", async () => {
       // 测试删除按键的作用
       await page.getByTestId("delete-button-1").click();
       await page.getByRole("button", { name: "删 除" }).click();
-      // 删除的就是第一行的人,该人NAME应该消失(表格里不再有该行)
+      // 删除的是原第1行(names[0]);原第2行的 names[1] 上移占据 row-1。
+      // 断言 row-1 仍是 names[1]:既证明 names[0] 的行已消失(行号前移),又证明没删错人。
       await expect(page.getByTestId("row-name-1")).toContainText(names[1]!);
     });
     await test.step("批量删除", async () => {

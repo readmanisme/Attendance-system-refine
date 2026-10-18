@@ -31,7 +31,9 @@ test("列表接口 500 时页面不白屏,基础框架仍可用", async ({ page 
     route.fulfill({ status: 500 }),
   );
   await page.goto(appUrl("attendance-record"));
-  // 页面骨架、提示与操作入口仍在;只是没有数据行
+  // 契约:列表查询失败时该页表现为"0 行的空表"(默认 loading=undefined → 空数据),
+  // 而不是错误占位页。若页面将来改成显示错误态/骨架屏,本用例的 0 行断言会失明,
+  // 此时必须把这里的断言改为跟随新契约,而不是当作失败修掉。
   await expect(page.getByTestId("help-alert")).toBeVisible();
   await expect(page.getByTestId("add-button")).toBeVisible();
   await expect(page.locator('[data-testid^="row-id-"]')).toHaveCount(0);

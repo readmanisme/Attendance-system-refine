@@ -9,7 +9,7 @@ export default defineConfig({
     },
   },
   test: {
-    include: ["vitest-tests/**/*.test.{js,ts}"],
+    include: ["vitest-tests/**/*.test.{js,ts,tsx}"],
     environment: "node",
     coverage: {
       provider: "v8",
@@ -18,6 +18,7 @@ export default defineConfig({
       // pocketbase_admin.ts 需要真实超管凭据,无法在单测里隔离,故不在范围内。
       include: [
         "src/constants.ts",
+        "src/components/WorkMinutesInput.tsx",
         "src/utils/salary.ts",
         "src/utils/workTime.ts",
         "src/utils/tableHelpers.ts",
@@ -25,6 +26,9 @@ export default defineConfig({
         "src/utils/pocketbase.ts",
         "src/pages/tong-ji/compute.ts",
         "src/pages/tong-ji/options.ts",
+        "src/pages/qian-dao/batchState.ts",
+        "src/pages/gong-shi/exportSheets.ts",
+        "src/pages/xin-zi/duplicateCheck.ts",
         "src/stores/index.ts",
       ],
       exclude: ["**/*.d.ts"],

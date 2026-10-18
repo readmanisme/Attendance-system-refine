@@ -2,6 +2,7 @@ import { Create, SaveButton, useForm, useSelect } from "@refinedev/antd";
 import { useList } from "@refinedev/core";
 import { Form, Select, InputNumber, Alert } from "antd";
 import { useState, useMemo } from "react";
+import { checkSalaryDraft } from "./duplicateCheck";
 
 const SalaryTypeCreate = () => {
   const { formProps, saveButtonProps } = useForm({
@@ -33,23 +34,11 @@ const SalaryTypeCreate = () => {
 
   // 校验逻辑：使用 useMemo 代替 useEffect
   const errorMsg = useMemo<string | null>(() => {
-    if (!workerName && !workType) {
-      return "工人和工种不能全为空";
+    const check = checkSalaryDraft({ workerId: workerName, workTypeId: workType }, recordsData?.data);
+    if (check.kind === "empty") return "工人和工种不能全为空";
+    if (check.kind === "duplicate") {
+      return `当前记录与 ${check.workerName} / ${check.workTypeName} 重复`;
     }
-
-    const duplicate = recordsData?.data.find((record: any) => {
-      // 注意：这里的类型推断可能需要根据实际数据结构调整，我添加了any
-      const sameWorker = record.worker_name === workerName || (!record.worker_name && !workerName);
-      const sameType = record.work_type === workType || (!record.work_type && !workType);
-      return sameWorker && sameType;
-    });
-
-    if (duplicate) {
-      const workerText = duplicate.expand?.worker_name?.name || "无工人";
-      const typeText = duplicate.expand?.work_type?.name || "无工种";
-      return `当前记录与 ${workerText} / ${typeText} 重复`;
-    }
-
     return null;
   }, [workerName, workType, recordsData?.data]);
 

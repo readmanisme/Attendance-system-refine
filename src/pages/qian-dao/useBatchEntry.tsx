@@ -6,6 +6,7 @@ import { useCallback, useMemo, useState } from "react";
 import { useCreateMany, useUpdate } from "@refinedev/core";
 import type { Dayjs } from "dayjs";
 import { formatHoursExact, hoursToMinutes } from "@/utils/workTime";
+import { MAX_DAILY_MINUTES, resolveBatchState } from "./batchState";
 
 export type WorkerOption = { key: string; label: string; value: string };
 export type WorkTypeValue = { value: string; label: string } | undefined;
@@ -47,67 +48,63 @@ export function useBatchEntry({ checkDate, setCheckDate, existingRecords }: UseB
   // ======================== 计算衍生数据 ========================
 
   const adjustMinutes = useCallback(
-    (delta: number) => setMinutes((m) => Math.min(24 * 60, Math.max(0, m + delta))),
+    (delta: number) => setMinutes((m) => Math.min(MAX_DAILY_MINUTES, Math.max(0, m + delta))),
     [],
   );
-  const setHoursValue = useCallback((hours: number) => setMinutes(hoursToMinutes(hours)), []);
+  const setHoursValue = useCallback(
+    (hours: number) => setMinutes(Math.min(MAX_DAILY_MINUTES, Math.max(0, hoursToMinutes(hours)))),
+    [],
+  );
 
   const recordsByKey = useRecordsByKey(existingRecords);
 
-  // 录入前的校验提示(无人员 / 无工作 / 同键合并 / 可以录入)
-  const { luruDisabled, alertDescription, alertType, dataTestid } = useMemo(() => {
-    if (!batchWorkers || batchWorkers.length === 0) {
-      return {
-        luruDisabled: true,
-        alertDescription: "请选择考勤人员",
-        alertType: "warning" as const,
-        dataTestid: "no-worker-alert",
-      };
+  // 状态机在 batchState.ts,这里只负责把状态翻译成提示文案
+  const { state, luruDisabled, alertDescription, alertType, dataTestid } = useMemo(() => {
+    const next = resolveBatchState({
+      workers: batchWorkers,
+      workType,
+      minutes,
+      recordsByKey,
+    });
+    const workLabel = workType?.label ?? "";
+
+    switch (next.kind) {
+      case "no-worker":
+        return { state: next, luruDisabled: true, alertDescription: "请选择考勤人员", alertType: "warning" as const, dataTestid: next.testid };
+      case "no-work":
+        return { state: next, luruDisabled: true, alertDescription: "请选择工作", alertType: "warning" as const, dataTestid: next.testid };
+      case "no-minutes":
+        return { state: next, luruDisabled: true, alertDescription: "请录入大于0的工时", alertType: "warning" as const, dataTestid: next.testid };
+      case "over-limit":
+        return {
+          state: next,
+          luruDisabled: true,
+          alertType: "error" as const,
+          dataTestid: next.testid,
+          alertDescription: next.overLimit.map((m) => (
+            <div key={m.workerId}>
+              {m.label}，当天已有{workLabel}记录（{formatHoursExact(m.existingMinutes)}小时），再录
+              {formatHoursExact(minutes)}小时将达到{formatHoursExact(m.totalMinutes)}
+              小时，超过单日 24 小时上限
+            </div>
+          )),
+        };
+      case "merge":
+        return {
+          state: next,
+          luruDisabled: false,
+          alertType: "info" as const,
+          dataTestid: next.testid,
+          alertDescription: next.merges.map((m) => (
+            <div key={m.workerId}>
+              {m.label}，当天已有{workLabel}记录（{formatHoursExact(m.existingMinutes)}小时），录入后自动合并为
+              {formatHoursExact(m.totalMinutes)}小时
+            </div>
+          )),
+        };
+      default:
+        return { state: next, luruDisabled: false, alertDescription: "可以录入", alertType: "success" as const, dataTestid: next.testid };
     }
-    if (!workType) {
-      return {
-        luruDisabled: true,
-        alertDescription: "请选择工作",
-        alertType: "warning" as const,
-        dataTestid: "no-work-alert",
-      };
-    }
-    if (minutes <= 0) {
-      return {
-        luruDisabled: true,
-        alertDescription: "请录入大于0的工时",
-        alertType: "warning" as const,
-        dataTestid: "no-minutes-alert",
-      };
-    }
-    // 同人同天同工种 → 会在库里自动合并(工时叠加)
-    const mergeDescs: React.ReactNode[] = [];
-    for (const name of batchWorkers) {
-      const existing = recordsByKey.get(`${name.key}|${workType?.value}`);
-      if (existing) {
-        mergeDescs.push(
-          <div key={`${name.key}-${existing.id}`}>
-            {name.label}，当天已有{workType?.label}记录（
-            {formatHoursExact(existing.work_minutes)}小时），录入后自动合并为
-            {formatHoursExact((existing.work_minutes ?? 0) + minutes)}小时
-          </div>,
-        );
-      }
-    }
-    if (mergeDescs.length > 0) {
-      return {
-        luruDisabled: false,
-        alertDescription: mergeDescs,
-        alertType: "info" as const,
-        dataTestid: "merge-alert",
-      };
-    }
-    return {
-      luruDisabled: false,
-      alertDescription: "可以录入",
-      alertType: "success" as const,
-      dataTestid: "can-input-alert",
-    };
   }, [batchWorkers, recordsByKey, workType, minutes]);
 
   // ======================== 批量提交 ========================
@@ -117,9 +114,10 @@ export function useBatchEntry({ checkDate, setCheckDate, existingRecords }: UseB
    * 等全部请求结束后才清空选择:任一失败则保留输入,让用户只重试不重选。
    */
   const submitBatch = useCallback(async () => {
-    if (!workType || minutes <= 0 || isSubmitting) {
-      return; // 按钮已禁用,这里只是防御。（注意:不要用 `!` 非空断言,react-compiler 会把读取提升到渲染期）
-    }
+    // 按钮已禁用时不该提交;这里用状态机兜底,防止绕过 UI 直接调用
+    // (注意:不要用 `!` 非空断言,react-compiler 会把读取提升到渲染期)
+    if (state.disabled || !workType || isSubmitting) return;
+
     const workDate = checkDate.format("YYYY-MM-DD");
     const workId = workType.value;
     const creates: any[] = [];
@@ -159,6 +157,7 @@ export function useBatchEntry({ checkDate, setCheckDate, existingRecords }: UseB
       setIsSubmitting(false);
     }
   }, [
+    state.disabled,
     checkDate,
     workType,
     batchWorkers,
@@ -187,7 +186,7 @@ export function useBatchEntry({ checkDate, setCheckDate, existingRecords }: UseB
     luruDisabled,
     /** 是否正在提交 */
     isSubmitting,
-    /** 校验提示内容(types: warning/info/success) */
+    /** 校验提示内容(types: warning/info/success/error) */
     alertDescription,
     alertType,
     dataTestid,
