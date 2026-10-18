@@ -114,7 +114,14 @@ describe("resolveBatchState 单日上限", () => {
     expect(s.disabled).toBe(true);
     expect(s.testid).toBe("over-limit-alert");
     expect(s.overLimit).toEqual([
-      { workerId: "w-a", label: "张三", existingMinutes: 1020, totalMinutes: 1500 },
+      {
+        workerId: "w-a",
+        label: "张三",
+        existingMinutes: 1020,
+        totalMinutes: 1500,
+        otherWorkMinutes: 0,
+        dayTotalMinutes: 1500,
+      },
     ]);
   });
 
@@ -126,5 +133,70 @@ describe("resolveBatchState 单日上限", () => {
     expect(s.disabled).toBe(true);
     expect(s.overLimit.map((m) => m.workerId)).toEqual(["w-a"]);
     expect(s.merges).toHaveLength(2);
+  });
+});
+
+describe("resolveBatchState 单日上限按人天算(含其它工种)", () => {
+  /** 同一个人当天另一个工种的记录(键为 w-a|work-2) */
+  const otherWorkRecord = (workerId: string, minutes: number) =>
+    new Map([[`${workerId}|work-2`, { id: "other", work_minutes: minutes }]]);
+
+  test("同工种没记录,但当天其它工种已满 20h → 再录 8h 超限", () => {
+    const s = resolveBatchState(
+      args({ minutes: 480, recordsByKey: otherWorkRecord("w-a", 1200) }),
+    );
+    expect(s.kind).toBe("over-limit");
+    expect(s.disabled).toBe(true);
+    // 没有同工种记录 → 不产生合并明细
+    expect(s.merges).toEqual([]);
+    expect(s.overLimit[0]).toMatchObject({
+      workerId: "w-a",
+      existingMinutes: 0,
+      totalMinutes: 480,
+      otherWorkMinutes: 1200,
+      dayTotalMinutes: 1680,
+    });
+  });
+
+  test("同工种 + 其它工种合计判定,合并明细只算同工种", () => {
+    const map = new Map([
+      ["w-a|work-1", { id: "r1", work_minutes: 300 }],
+      ["w-a|work-2", { id: "r2", work_minutes: 600 }],
+    ]);
+    const s = resolveBatchState(args({ minutes: 480, recordsByKey: map }));
+    // 同工种 300+480=780(合并明细),人天 300+600+480=1380(未超限)
+    expect(s.kind).toBe("merge");
+    expect(s.merges[0]).toMatchObject({ existingMinutes: 300, totalMinutes: 780 });
+    expect(s.overLimit).toEqual([]);
+
+    // 再抬 120 分钟:人天 1500 > 1440 → 超限,且合并明细仍是同工种口径
+    const s2 = resolveBatchState(args({ minutes: 600, recordsByKey: map }));
+    expect(s2.kind).toBe("over-limit");
+    expect(s2.merges[0]).toMatchObject({ existingMinutes: 300, totalMinutes: 900 });
+    expect(s2.overLimit[0]).toMatchObject({ otherWorkMinutes: 600, dayTotalMinutes: 1500 });
+  });
+
+  test("人天恰好 24 小时仍可录入", () => {
+    const map = new Map([
+      ["w-a|work-1", { id: "r1", work_minutes: 960 }],
+      ["w-a|work-2", { id: "r2", work_minutes: 0 }],
+    ]);
+    const s = resolveBatchState(args({ minutes: 480, recordsByKey: map }));
+    expect(s.kind).toBe("merge");
+    expect(s.disabled).toBe(false);
+  });
+
+  test("其它人的记录不计入本人人天", () => {
+    const map = new Map([["w-b|work-2", { id: "r2", work_minutes: 1440 }]]);
+    const s = resolveBatchState(args({ minutes: 480, recordsByKey: map }));
+    expect(s.kind).toBe("ok");
+    expect(s.disabled).toBe(false);
+  });
+
+  test("键里没有分隔符的脏数据不会串到别人头上", () => {
+    const map = new Map([["bad-key", { id: "bad", work_minutes: 1440 }]]);
+    const s = resolveBatchState(args({ minutes: 480, recordsByKey: map }));
+    expect(s.kind).toBe("ok");
+    expect(s.overLimit).toEqual([]);
   });
 });

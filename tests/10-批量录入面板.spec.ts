@@ -160,6 +160,92 @@ test("合并后超过 24 小时: 禁用录入并提示超限,库里不变", asyn
   expect(records[0].work_minutes).toBe(1200);
 });
 
+test("人天上限: 同一人另一个工种已 20h,再录 8h 禁用", async ({ page }) => {
+  await db.ensureBaseWork();
+  const worker = await db.seedWorker("测试换工");
+  const workA = await db.seedWorkType("测试换工甲");
+  const workB = await db.seedWorkType("测试换工乙");
+  // 当天 20h 记在"甲"工种上,这次录"乙"工种
+  await db.seedRecord({
+    worker_id: worker.id,
+    work: workA.id,
+    work_date: dayjs().format("YYYY-MM-DD"),
+    work_minutes: 1200,
+  });
+
+  await page.goto(appUrl(qiandao_url));
+  await pickWorkers(page, ["换工"], [worker.name]);
+  await page.getByTestId("work-type-select").click();
+  await page.getByTitle(workB.name, { exact: true }).click();
+  await page.getByTestId("hour-button-8").click();
+
+  const alert = page.getByTestId("over-limit-alert");
+  await expect(alert).toBeVisible();
+  // 上限按人天算:同工种没记录,但当天其它工种已占 20h
+  await expect(alert).toContainText("当天其它工种已录入20小时");
+  await expect(alert).toContainText("当天合计将达到28小时");
+  await expect(alert).toContainText("超过单日 24 小时上限");
+  await expect(page.getByTestId("submit-button")).toBeDisabled();
+
+  // 禁用状态下不应产生任何写入
+  const records = await pb.collection(AttendanceRecord_TableName).getFullList();
+  expect(records).toHaveLength(1);
+  expect(records[0].work_minutes).toBe(1200);
+});
+
+test("部分成功: 合并成功而新增失败,重试不会把合并的人再加一遍", async ({ page }) => {
+  await db.ensureBaseWork();
+  const workerA = await db.seedWorker("测试半甲");
+  const workerB = await db.seedWorker("测试半乙");
+  const work = await db.seedWorkType("测试半工种");
+  // 甲当天已有 5h(走 update),乙没有(走 create)
+  await db.seedRecord({
+    worker_id: workerA.id,
+    work: work.id,
+    work_date: dayjs().format("YYYY-MM-DD"),
+    work_minutes: 300,
+  });
+
+  await page.goto(appUrl(qiandao_url));
+  await pickWorkers(page, ["半甲", "半乙"], [workerA.name, workerB.name]);
+  await page.getByTestId("work-type-select").click();
+  await page.getByTitle(work.name, { exact: true }).click();
+  await page.getByTestId("hour-button-8").click(); // 480
+
+  // 只让"批量新增"失败:更新走单条 PATCH,不受影响 → 甲成功、乙失败
+  await page.route(BATCH_URL, (route) => route.fulfill({ status: 500 }));
+  await page.getByTestId("submit-button").click();
+  await expect(page.locator(".ant-notification-notice-error")).toBeVisible({ timeout: 10_000 });
+
+  // 甲已经合并到 13h(300+480),乙还没建
+  await expect
+    .poll(async () => {
+      const rows = await pb.collection(AttendanceRecord_TableName).getFullList();
+      return [rows.length, rows.find((r) => r.worker_id === workerA.id)?.work_minutes ?? null];
+    })
+    .toEqual([1, 780]);
+
+  // 关右上角通知,避免挡住面板控件
+  await expect(async () => {
+    const notices = page.locator(".ant-notification-notice");
+    if ((await notices.count()) > 0) {
+      await page.locator(".ant-notification-notice-close").first().click({ timeout: 3000 });
+    }
+    expect(await notices.count()).toBe(0);
+  }).toPass({ timeout: 10_000 });
+
+  // 解除拦截后直接重试(不重选人/不重填工时)
+  await page.unroute(BATCH_URL);
+  await page.getByTestId("submit-button").click();
+  await expect(page.getByText("成功创建")).toBeVisible();
+
+  const records = await pb.collection(AttendanceRecord_TableName).getFullList();
+  expect(records, "重试后每人恰好一条").toHaveLength(2);
+  // 关键断言:甲仍是 780,不是 1260(重试只补发失败的"新增",不重复叠加)
+  expect(records.find((r) => r.worker_id === workerA.id)!.work_minutes).toBe(780);
+  expect(records.find((r) => r.worker_id === workerB.id)!.work_minutes).toBe(480);
+});
+
 test("批量提交失败: 输入保留可重试,重试成功后才建库", async ({ page }) => {
   await db.ensureBaseWork();
   const workers = await db.seedWorkers(["测试试一", "测试试二"]);

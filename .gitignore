@@ -49,3 +49,4 @@ scripts/migrate-hours/wage-compare-2026-10-16T10-02-44-114Z.json
 pocketbase-for-playwright-test/
 coverage/
 .workbuddy-ai/
+test-results*

@@ -1,19 +1,13 @@
 import { test, expect } from "@playwright/test";
-import fs from "node:fs";
-import path from "node:path";
 import dayjs from "dayjs";
 import { API_URL, appUrl } from "./constants";
 import { TestDB } from "./helpers/pb";
 import { pickMonthRange } from "./helpers/ui";
-import * as XLSX from "xlsx";
+import { exportAndRead, openExportPopover, rowsOf } from "./helpers/export";
 
 const db = new TestDB();
 /** 种子记录 id(明细 sheet 的"序号"列就是记录 id) */
 let recordIds: Record<string, string> = {};
-
-test.afterEach(async () => {
-  await db.cleanup();
-});
 
 /**
  * 种子(与 7-统计图表 不同包,专给导出用):
@@ -37,47 +31,9 @@ test.beforeEach(async () => {
   recordIds = { a1: r1.id, a2: r2.id, b1: r3.id, b2: r4.id };
 });
 
-/** 打开"工时&薪资"页的导出弹窗,并把范围缩到本月。
- *  弹层里的 RangePicker 没传 placeholder,accessible name 是 antd 默认的
- *  开始月份/结束月份(与页面自身的筛选器重名),所以必须限定在 Popconfirm 弹层内。 */
-async function openExportPopover(page: import("@playwright/test").Page) {
-  await page.goto(appUrl("gongshi"));
-  await page.getByRole("button", { name: "导出考勤记录到Excel" }).click();
-  const pop = page.getByRole("tooltip");
-  await pop.waitFor({ state: "visible" });
-  const cur = dayjs().format("YYYY-MM");
-  await pickMonthRange(page, cur, cur, "开始月份", "结束月份", pop);
-}
-
-/** 点击进行导出,等真实浏览器下载完成后解析工作簿}
- *  (XLSX.writeFile 浏览器端触发 download 事件,无需 mock)
- *  注意:不能直接读 download.path() 的临时工件——Windows 上该文件在读取时
- *  可能不可访问(ENOENT),必须先 saveAs 落到自己的输出目录再解析。 */
-async function exportAndRead(page: import("@playwright/test").Page) {
-  const downloadPromise = page.waitForEvent("download");
-  await page.getByRole("button", { name: "进行导出" }).click();
-  const download = await downloadPromise;
-  expect(download.suggestedFilename()).toBe("工时记录.xlsx");
-  const dest = path.join(test.info().outputDir, "工时记录.xlsx");
-  await download.saveAs(dest);
-  // Windows 上刚落盘的 xlsx 可能被杀软实时扫描短暂占用(单独进程里
-  // 重现不了,只有紧跟其后的读取会撞上),读不到就小步重试。
-  let wb: XLSX.WorkBook;
-  for (let i = 0; i < 10; i++) {
-    try {
-      wb = XLSX.read(fs.readFileSync(dest), { type: "buffer" });
-      break;
-    } catch (e) {
-      if (i === 9) throw e;
-      await new Promise((r) => setTimeout(r, 200));
-    }
-  }
-  expect(wb!.SheetNames, "工作簿应有三个 sheet").toEqual(["工时(月)", "工时(日)", "考勤记录"]);
-  return wb!;
-}
-
-const rowsOf = (wb: XLSX.WorkBook, sheet: string) =>
-  XLSX.utils.sheet_to_json<Record<string, any>>(wb.Sheets[sheet]);
+test.afterEach(async () => {
+  await db.cleanup();
+});
 
 test("全量导出: 三个 sheet 的行列与薪资口径逐格核对", async ({ page }) => {
   await openExportPopover(page);
