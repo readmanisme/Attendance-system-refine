@@ -13,13 +13,7 @@ import {
 } from "@/pages/tong-ji/compute";
 
 /** 帮手: 构造一条带 expand 的记录 */
-const rec = (
-  id: string,
-  worker: string,
-  work: string,
-  date: string,
-  minutes: number,
-) => ({
+const rec = (id: string, worker: string, work: string, date: string, minutes: number) => ({
   id,
   worker_id: worker,
   work,
@@ -47,7 +41,10 @@ const nameOfWork = (id: string) => (id === tBy ? "工种by" : "工种wt");
  *  r6 B 09-10 搬运  90 → 兜底 → 1.5h×10 = 15
  *  合计: 分钟 1910, 支出 468.3333, 人天 5, 人数 2, 记录 6 */
 const salaries = [
-  { SalaryNum: 20, expand: { worker_name: { name: nameOf(wA) }, work_type: { name: nameOfWork(tBy) } } },
+  {
+    SalaryNum: 20,
+    expand: { worker_name: { name: nameOf(wA) }, work_type: { name: nameOfWork(tBy) } },
+  },
   { SalaryNum: 10, expand: { worker_name: null, work_type: { name: "基础" } } },
 ];
 const records = [
@@ -117,8 +114,18 @@ describe("buildOverview", () => {
   });
 
   test("工种汇总表(记录数/工时/支出)", () => {
-    expect(o.workTypeTable[0]).toEqual({ name: nameBy, recordCount: 4, hours: 20.5, salary: "355" });
-    expect(o.workTypeTable[1]).toEqual({ name: nameWt, recordCount: 2, hours: 11.33, salary: "113.33" });
+    expect(o.workTypeTable[0]).toEqual({
+      name: nameBy,
+      recordCount: 4,
+      hours: 20.5,
+      salary: "355",
+    });
+    expect(o.workTypeTable[1]).toEqual({
+      name: nameWt,
+      recordCount: 2,
+      hours: 11.33,
+      salary: "113.33",
+    });
   });
 
   test("未定价兜底: 挖土+搬运(仅乙侧)", () => {
@@ -181,9 +188,7 @@ describe("buildRelation", () => {
   });
 
   test("网络节点=出勤≥5天,边候选=共现≥2", () => {
-    expect(rel.graph.nodes).toEqual([
-      { name: "测试A", days: 5, size: expect.closeTo(6.625, 3) },
-    ]);
+    expect(rel.graph.nodes).toEqual([{ name: "测试A", days: 5, size: expect.closeTo(6.625, 3) }]);
     expect(rel.graph.links).toEqual([{ source: "测试A", target: "测试B", value: 3 }]);
   });
 
@@ -225,10 +230,7 @@ describe("buildSankey", () => {
 
   test("topN=1 只保留最活跃的人", () => {
     const data = buildSankey(
-      [
-        rec("k1", wA, tBy, "2026-08-01", 600),
-        rec("k3", wB, tBy, "2026-08-01", 300),
-      ],
+      [rec("k1", wA, tBy, "2026-08-01", 600), rec("k3", wB, tBy, "2026-08-01", 300)],
       1,
     );
     expect(data.nodes.filter((n) => n.isWorker)).toHaveLength(1);
@@ -276,5 +278,68 @@ describe("buildProfiles", () => {
 
   test("无记录工人不出现", () => {
     expect(buildProfiles([], []).list).toEqual([]);
+  });
+
+  test("逐日出勤:只含有出勤的日期,当日跨工种合计", () => {
+    expect(p.dailySeries.get(wA)).toEqual([
+      { day: "2026-08-01", hours: 10 }, // 600 分钟
+      { day: "2026-08-02", hours: 8.33 }, // 300+200 分钟
+    ]);
+    expect(p.dailySeries.get(wB)).toEqual([
+      { day: "2026-08-01", hours: 4 },
+      { day: "2026-08-03", hours: 8 },
+      { day: "2026-09-10", hours: 1.5 },
+    ]);
+  });
+
+  test("星期几节奏:固定 7 项,按星期汇总天数与工时", () => {
+    /** 周一=0 … 周日=6,与聚合口径一致 */
+    const idxOf = (day: string) => {
+      const wd = new Date(`${day}T00:00:00`).getDay();
+      return wd === 0 ? 6 : wd - 1;
+    };
+    const a = p.weekday.get(wA)!;
+    expect(a.map((w) => w.key)).toEqual(["周一", "周二", "周三", "周四", "周五", "周六", "周日"]);
+    expect(a).toHaveLength(7);
+    expect(a[idxOf("2026-08-01")]).toMatchObject({ days: 1, hours: 10 });
+    expect(a[idxOf("2026-08-02")]).toMatchObject({ days: 1, hours: 8.33 });
+    // 其余星期几为 0
+    expect(a.reduce((s, w) => s + w.days, 0)).toBe(2);
+    expect(a.reduce((s, w) => s + w.hours, 0)).toBeCloseTo(18.33, 2);
+  });
+
+  test("单日工时分布与班制占比:人天口径,按当日合计工时分类", () => {
+    // 甲: 10h / 8.33h → 10~11 与 8~9 各一天
+    expect(p.dayHoursDist.get(wA)).toEqual([
+      { bucket: "8~9", days: 1 },
+      { bucket: "10~11", days: 1 },
+    ]);
+    // 8.33h 落在 7.5~9 之间 → 既非全日也非半日,归"其他"(与概览班制同口径)
+    expect(p.shiftPie.get(wA)).toEqual([
+      { name: "全日(≥9h)", value: 1 },
+      { name: "其他", value: 1 },
+    ]);
+    // 乙: 4h 半日 / 8h 其他 / 1.5h 其他
+    expect(p.shiftPie.get(wB)).toEqual([
+      { name: "半日(3~7.5h)", value: 1 },
+      { name: "其他", value: 2 },
+    ]);
+    expect(p.dayHoursDist.get(wB)?.map((b) => b.bucket)).toEqual(["1~2", "4~5", "8~9"]);
+  });
+
+  test("团队人均 = 全员算术平均(个人雷达基线)", () => {
+    expect(p.teamAvg.days).toBe(2.5); // (2+3)/2
+    expect(p.teamAvg.hours).toBeCloseTo(15.92, 1); // (18.33+13.5)/2
+    expect(p.teamAvg.salary).toBeCloseTo(234.17, 0); // (333.33+135)/2
+    expect(p.teamAvg.avgDayHours).toBeCloseTo(6.84, 1); // (9.17+4.5)/2
+    expect(p.teamAvg.workCount).toBe(2);
+    // 空数据不除零
+    expect(buildProfiles([], []).teamAvg).toEqual({
+      days: 0,
+      hours: 0,
+      salary: 0,
+      avgDayHours: 0,
+      workCount: 0,
+    });
   });
 });

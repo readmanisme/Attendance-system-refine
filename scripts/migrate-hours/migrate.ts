@@ -139,6 +139,35 @@ type GroupStat = { minutes: number; count: number };
 type Snap = Map<Key, GroupStat>;
 type Key = string; // `${worker_id}|${work_date}|${work}`
 
+// ---------- 索引解析 ----------
+
+/** 唯一约束的列（顺序无关：唯一性与列顺序无关） */
+const UNIQUE_INDEX_COLUMNS = ["worker_id", "work_date", "work"];
+/** 唯一索引名（与库中实际名字保持一致，便于人工核对） */
+const UNIQUE_INDEX_NAME = `idx_${TABLE}_worker_date_work`;
+
+type IndexInfo = { raw: string; name: string; unique: boolean; columns: string[] };
+
+/** 从 PocketBase 返回的 `CREATE [UNIQUE] INDEX ... ON ... (...)` 语句里解析出名字/是否唯一/列 */
+function parseIndex(raw: string): IndexInfo {
+  const name = raw.match(/INDEX\s+[`"']?([^`"'\s(]+)[`"']?\s+ON\s/i)?.[1] ?? "";
+  const unique = /^\s*CREATE\s+UNIQUE\s+INDEX/i.test(raw);
+  const colsRaw = raw.match(/ON\s+[`"']?[^`"'\s(]+[`"']?\s*\(([^)]*)\)/i)?.[1] ?? "";
+  const columns = colsRaw
+    .split(",")
+    .map((s) => s.trim().replace(/^[`"']+|[`"']+$/g, ""))
+    .filter(Boolean);
+  return { raw, name, unique, columns };
+}
+
+/** 列集合是否相同（大小写与顺序都不敏感） */
+function sameColumns(a: string[], b: string[]): boolean {
+  if (a.length !== b.length) return false;
+  const sa = a.map((s) => s.toLowerCase()).sort();
+  const sb = b.map((s) => s.toLowerCase()).sort();
+  return sa.every((v, i) => v === sb[i]);
+}
+
 async function main() {
   console.log(`目标: ${BASE_URL}  表: ${TABLE}`);
   const off = -tzOffsetMinutes / 60;
@@ -156,11 +185,34 @@ async function main() {
   const hasCheckOut = fields.some((f) => f.name === "check_out");
   const hasWorkDate = fields.some((f) => f.name === "work_date");
   const hasWorkMinutes = fields.some((f) => f.name === "work_minutes");
-  const hasUniqueIndex = indexes.some((ix) => ix.includes("work_date") && /UNIQUE/i.test(ix));
+
+  // 结构化判定：必须是 UNIQUE，且列集合恰好是 (worker_id, work_date, work)。
+  // 只看子串（如 includes("work_date") && UNIQUE）会误判——(work_date) 单列唯一索引也算通过。
+  const indexInfos = indexes.map(parseIndex);
+  const uniqueIndex = indexInfos.find(
+    (ix) => ix.unique && sameColumns(ix.columns, UNIQUE_INDEX_COLUMNS),
+  );
+  const hasUniqueIndex = !!uniqueIndex;
+  // 与目标同名的索引（但定义不对，如非 UNIQUE / 列不符）：补索引前必须先剔除，否则 PATCH 会因重名失败
+  const staleSameNameIndex = indexInfos.find(
+    (ix) => ix.name === UNIQUE_INDEX_NAME && ix !== uniqueIndex,
+  );
+  // 其他"看起来像工时唯一索引"的索引：仅提示，避免误以为唯一约束已生效
+  const otherUniqueOnWorkDate = indexInfos.filter(
+    (ix) => ix.unique && ix !== uniqueIndex && ix.columns.some((c) => c === "work_date"),
+  );
 
   console.log(
     `字段状态: check_in=${hasCheckIn} check_out=${hasCheckOut} work_date=${hasWorkDate} work_minutes=${hasWorkMinutes} 唯一索引=${hasUniqueIndex}`,
   );
+  if (staleSameNameIndex) {
+    console.warn(`⚠️  存在同名但定义不符的索引，将在补索引时剔除: ${staleSameNameIndex.raw}`);
+  }
+  if (otherUniqueOnWorkDate.length) {
+    console.warn(
+      `⚠️  存在其他含 work_date 的唯一索引（不算作目标索引）: ${otherUniqueOnWorkDate.map((ix) => ix.raw).join(" | ")}`,
+    );
+  }
 
   // ---------- 1. 拉取全部记录并生成快照（合并键 -> 合计分钟数/条数） ----------
   const records: RecordRow[] = await fetchAllRecords(token, TABLE);
@@ -321,18 +373,28 @@ async function main() {
   // ---------- 4. 添加唯一索引（必须在合并之后，否则有重复会失败） ----------
   if (!hasUniqueIndex) {
     const cur = await req(`/api/collections/${TABLE}`, { token });
-    const uniqueIndexTarget = `CREATE UNIQUE INDEX \`idx_${TABLE}_worker_date_work\` ON \`${TABLE}\` (\`worker_id\`, \`work_date\`, \`work\`)`;
-    await req(`/api/collections/${TABLE}`, {
-      method: "PATCH",
-      token,
-      body: {
-        indexes: [
-          ...((cur.indexes ?? []) as string[]).filter((ix) => !ix.includes("idx_worker_date_work")),
-          uniqueIndexTarget,
-        ],
-      },
-    });
-    console.log("已添加唯一索引 (worker_id, work_date, work)");
+    const curIndexes = ((cur.indexes ?? []) as string[]).map(parseIndex);
+    // 按名字精确剔除：同名旧索引（非 UNIQUE / 列不符）必须先删掉，否则 SQLite 建同名索引会报 already exists
+    const dropped = curIndexes.filter((ix) => ix.name === UNIQUE_INDEX_NAME);
+    const kept = curIndexes.filter((ix) => ix.name !== UNIQUE_INDEX_NAME).map((ix) => ix.raw);
+    const uniqueIndexTarget = `CREATE UNIQUE INDEX \`${UNIQUE_INDEX_NAME}\` ON \`${TABLE}\` (\`worker_id\`, \`work_date\`, \`work\`)`;
+    // dry-run 对"已迁移"的库也会走到这里，必须只打印不写
+    if (DRY_RUN) {
+      if (dropped.length) {
+        console.log(`（dry-run）将剔除同名旧索引: ${dropped.map((ix) => ix.raw).join(" | ")}`);
+      }
+      console.log(`（dry-run）将添加唯一索引: ${uniqueIndexTarget}`);
+    } else {
+      await req(`/api/collections/${TABLE}`, {
+        method: "PATCH",
+        token,
+        body: { indexes: [...kept, uniqueIndexTarget] },
+      });
+      if (dropped.length) {
+        console.log(`已剔除同名旧索引: ${dropped.map((ix) => ix.raw).join(" | ")}`);
+      }
+      console.log("已添加唯一索引 (worker_id, work_date, work)");
+    }
   }
 
   // ---------- 5. 删除旧字段（首次迁移且未指定 keep） ----------

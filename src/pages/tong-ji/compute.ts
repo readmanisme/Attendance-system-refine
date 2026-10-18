@@ -572,7 +572,13 @@ export const buildRelation = (records: any[] | undefined): Relation => {
   }
   for (const arr of partnerPairs.values()) arr.sort((x, y) => y.co - x.co);
 
-  return { matrixNames, coMatrix, graph: { nodes: graphNodes, links: graphLinks }, stable, partnerPairs };
+  return {
+    matrixNames,
+    coMatrix,
+    graph: { nodes: graphNodes, links: graphLinks },
+    stable,
+    partnerPairs,
+  };
 };
 
 // ======================== 结构与个人视角 ========================
@@ -641,7 +647,11 @@ export const buildSankey = (records: any[] | undefined, topN = 20): SankeyData =
     }
   }
   for (const workName of usedWorks)
-    nodes.push({ name: workName, hours: minutesToHours(workMinutesAll.get(workName) ?? 0), isWorker: false });
+    nodes.push({
+      name: workName,
+      hours: minutesToHours(workMinutesAll.get(workName) ?? 0),
+      isWorker: false,
+    });
 
   return { nodes, links, topN };
 };
@@ -665,6 +675,37 @@ export interface WorkerProfile {
   firstDay: string;
 }
 
+/** 个人逐日出勤点(只含真正出勤的日子,不补空白天) */
+export interface PersonalDay {
+  day: string;
+  /** 当日各工种合计工时(h) */
+  hours: number;
+}
+
+/** 个人星期几节奏(固定周一~周日 7 项) */
+export interface PersonalWeekday {
+  key: string;
+  /** 该星期几的出勤天数 */
+  days: number;
+  /** 该星期几的合计工时(h) */
+  hours: number;
+}
+
+/** 个人单日工时分布(1 小时一档,样本=人天) */
+export interface PersonalBucket {
+  bucket: string;
+  days: number;
+}
+
+/** 团队人均画像:个人对比雷达的基线(各项为全员算术平均) */
+export interface TeamAverage {
+  days: number;
+  hours: number;
+  salary: number;
+  avgDayHours: number;
+  workCount: number;
+}
+
 export interface Profiles {
   /** 全部工人画像,按出勤天降序(Select 数据源与雷达 TopN 用) */
   list: WorkerProfile[];
@@ -674,6 +715,16 @@ export interface Profiles {
   monthSeries: Map<string, { month: string; days: number; hours: number; salary: number }[]>;
   /** id → 工种构成(工时降序) */
   workTypeMinutes: Map<string, { name: string; hours: number }[]>;
+  /** id → 逐日出勤(日期升序,当日工时合计;用于个人日历热力) */
+  dailySeries: Map<string, PersonalDay[]>;
+  /** id → 星期几节奏(固定 7 项;用于看个人是否有固定周节奏) */
+  weekday: Map<string, PersonalWeekday[]>;
+  /** id → 单日工时分布(1h 一档;用于看个人单日干多长) */
+  dayHoursDist: Map<string, PersonalBucket[]>;
+  /** id → 班制占比(全日/半日/其他,按人天) */
+  shiftPie: Map<string, { name: string; value: number }[]>;
+  /** 团队人均画像(个人对比雷达用) */
+  teamAvg: TeamAverage;
 }
 
 /**
@@ -704,6 +755,8 @@ export const buildProfiles = (records: any[] | undefined, salaryRecords?: any[])
       work: Map<string, number>;
       monthDay: Map<string, { days: number; minutes: number }>;
       monthSalary: Map<string, Decimal>;
+      /** 日 → 当日各工种合计分钟(单日工时分布/班制/日历用) */
+      dayMinutes: Map<string, number>;
     }
   >();
 
@@ -724,11 +777,13 @@ export const buildProfiles = (records: any[] | undefined, salaryRecords?: any[])
         work: new Map(),
         monthDay: new Map(),
         monthSalary: new Map(),
+        dayMinutes: new Map(),
       });
     const agg = aggs.get(workerId)!;
     agg.days.add(day);
     agg.minutes += minutes;
     agg.salary = agg.salary.plus(salary);
+    agg.dayMinutes.set(day, (agg.dayMinutes.get(day) ?? 0) + minutes);
     const workName = workTypeMap.get(workId) ?? UNKNOWN_NAME;
     agg.work.set(workName, (agg.work.get(workName) ?? 0) + minutes);
     if (!agg.monthDay.has(month)) agg.monthDay.set(month, { days: 0, minutes: 0 });
@@ -757,27 +812,37 @@ export const buildProfiles = (records: any[] | undefined, salaryRecords?: any[])
         workSorted,
         monthDay: agg.monthDay,
         monthSalary: agg.monthSalary,
+        dayMinutes: agg.dayMinutes,
       };
     })
     .sort((a, b) => b.days - a.days);
 
-  const listProfiles: WorkerProfile[] = ordered.map(({ id, name, days, hours, salary, avgDayHours, topWork, workCount, firstDay }) => ({
-    id,
-    name,
-    days,
-    hours,
-    salary,
-    avgDayHours,
-    topWork,
-    workCount,
-    firstDay,
-  }));
+  const listProfiles: WorkerProfile[] = ordered.map(
+    ({ id, name, days, hours, salary, avgDayHours, topWork, workCount, firstDay }) => ({
+      id,
+      name,
+      days,
+      hours,
+      salary,
+      avgDayHours,
+      topWork,
+      workCount,
+      firstDay,
+    }),
+  );
 
   const byId = new Map(listProfiles.map((p) => [p.id, p]));
 
   // 月度序列(该人首次出现月至末次出现月之间断档月补 0)
-  const monthSeries = new Map<string, { month: string; days: number; hours: number; salary: number }[]>();
+  const monthSeries = new Map<
+    string,
+    { month: string; days: number; hours: number; salary: number }[]
+  >();
   const workTypeMinutes = new Map<string, { name: string; hours: number }[]>();
+  const dailySeries = new Map<string, PersonalDay[]>();
+  const weekday = new Map<string, PersonalWeekday[]>();
+  const dayHoursDist = new Map<string, PersonalBucket[]>();
+  const shiftPie = new Map<string, { name: string; value: number }[]>();
   for (const item of ordered) {
     const months = [...item.monthDay.keys()].sort();
     if (months.length) {
@@ -797,8 +862,80 @@ export const buildProfiles = (records: any[] | undefined, salaryRecords?: any[])
     } else {
       monthSeries.set(item.id, []);
     }
-    workTypeMinutes.set(item.id, item.workSorted.map(([name, m]) => ({ name, hours: minutesToHours(m) })));
+    workTypeMinutes.set(
+      item.id,
+      item.workSorted.map(([name, m]) => ({ name, hours: minutesToHours(m) })),
+    );
+
+    // 逐日出勤(日期升序;样本=该人当日的各工种合计工时)
+    const dayList = [...item.dayMinutes.entries()].sort((a, b) => (a[0] < b[0] ? -1 : 1));
+    dailySeries.set(
+      item.id,
+      dayList.map(([day, m]) => ({ day, hours: minutesToHours(m) })),
+    );
+
+    // 星期几节奏:出勤天数 + 合计工时(周一=0 … 周日=6,与概览口径一致)
+    const wk = Array.from({ length: 7 }, () => ({ days: 0, minutes: 0 }));
+    // 单日工时分布(1h 一档)与班制占比,都按"人天"口径
+    const distMap = new Map<number, number>();
+    let full = 0;
+    let half = 0;
+    let other = 0;
+    for (const [day, m] of dayList) {
+      const wd = new Date(`${day}T00:00:00`).getDay();
+      wk[wd === 0 ? 6 : wd - 1].days++;
+      wk[wd === 0 ? 6 : wd - 1].minutes += m;
+
+      const hours = m / 60;
+      const b = Math.min(Math.floor(hours), 14);
+      distMap.set(b, (distMap.get(b) ?? 0) + 1);
+
+      if (hours >= 9) full++;
+      else if (hours >= 3 && hours <= 7.5) half++;
+      else other++;
+    }
+    weekday.set(
+      item.id,
+      wk.map((w, i) => ({ key: WEEKDAY_KEYS[i], days: w.days, hours: minutesToHours(w.minutes) })),
+    );
+    dayHoursDist.set(
+      item.id,
+      [...distMap.entries()]
+        .sort((a, b) => a[0] - b[0])
+        .map(([b, days]) => ({ bucket: b >= 14 ? "14+" : `${b}~${b + 1}`, days })),
+    );
+    shiftPie.set(
+      item.id,
+      [
+        { name: "全日(≥9h)", value: full },
+        { name: "半日(3~7.5h)", value: half },
+        { name: "其他", value: other },
+      ].filter((x) => x.value > 0),
+    );
   }
 
-  return { list: listProfiles, byId, monthSeries, workTypeMinutes };
+  // 团队人均(个人对比雷达基线):全员算术平均,保留两位小数
+  const avg2 = (v: number) => Math.round(v * 100) / 100;
+  const n = ordered.length || 1;
+  const sum = (pick: (w: (typeof ordered)[number]) => number) =>
+    ordered.reduce((s, w) => s + pick(w), 0);
+  const teamAvg: TeamAverage = {
+    days: avg2(sum((w) => w.days) / n),
+    hours: avg2(sum((w) => w.hours) / n),
+    salary: avg2(sum((w) => Number(w.salary)) / n),
+    avgDayHours: avg2(sum((w) => w.avgDayHours) / n),
+    workCount: avg2(sum((w) => w.workCount) / n),
+  };
+
+  return {
+    list: listProfiles,
+    byId,
+    monthSeries,
+    workTypeMinutes,
+    dailySeries,
+    weekday,
+    dayHoursDist,
+    shiftPie,
+    teamAvg,
+  };
 };

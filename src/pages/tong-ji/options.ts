@@ -5,7 +5,14 @@
  * - 时长/工种类用记录口径(人×天×工种),在轴/提示语里注明;
  * - 断档月按 0 显示;每日序列无记录日以 null 留白不连线(与 报告.md 一致)。
  */
-import type { Relation, SankeyData, WorkerProfile } from "./compute";
+import type {
+  PersonalBucket,
+  PersonalWeekday,
+  Relation,
+  SankeyData,
+  TeamAverage,
+  WorkerProfile,
+} from "./compute";
 import { minutesToHours, type Overview } from "./compute";
 import type { ChartOption } from "./EChart";
 
@@ -384,8 +391,13 @@ export const graphOption = (relation: Relation, coThreshold: number): ChartOptio
 });
 
 /** 稳定性散点:横轴共现天数,纵轴共现占两人出勤较小值的比例;按 coThreshold 过滤 */
-export const stableScatterOption = (stable: Relation["stable"], coThreshold: number): ChartOption => {
-  const pairs = [...stable].filter((s) => s.coDays >= coThreshold).sort((a, b) => b.ratio - a.ratio);
+export const stableScatterOption = (
+  stable: Relation["stable"],
+  coThreshold: number,
+): ChartOption => {
+  const pairs = [...stable]
+    .filter((s) => s.coDays >= coThreshold)
+    .sort((a, b) => b.ratio - a.ratio);
   return {
     title: {
       text: `共现 ≥${coThreshold} 天的搭档对:越靠右越活跃,越靠上越固定(搭档绑定紧密)`,
@@ -415,22 +427,25 @@ export const stableScatterOption = (stable: Relation["stable"], coThreshold: num
 
 // ======================== 时间模式 ========================
 
-/** 出勤覆盖的年份序列(日历热力每年一个日历格) */
-export const calendarYears = (daily: Overview["daily"]): string[] => [
-  ...new Set(daily.filter((d) => d.minutes != null).map((d) => d.day.slice(0, 4))),
+/** 日期序列覆盖的年份(日历热力每年一个日历格) */
+export const dayCalendarYears = (days: string[]): string[] => [
+  ...new Set(days.map((d) => d.slice(0, 4))),
 ];
 
-/** 出勤日历热力:#GitHub 风格,每年一行,颜色=当日总工时(h) */
-export const calendarHeatmapOption = (daily: Overview["daily"]): ChartOption => {
-  const years = calendarYears(daily);
-  const points = daily
-    .filter((d) => d.minutes != null)
-    .map((d) => [d.day, minutesToHours(d.minutes as number)] as [string, number]);
+/** 出勤覆盖的年份序列(概览/时间模式口径:跳过无记录日) */
+export const calendarYears = (daily: Overview["daily"]): string[] =>
+  dayCalendarYears(daily.filter((d) => d.minutes != null).map((d) => d.day));
+
+/** 日历热力公共构造:points = [日期, 数值],每年一行(概览与个人分析共用) */
+const calendarCore = (
+  points: [string, number][],
+  tooltipFormatter: (p: any) => string,
+  colors: string[] = ["#f0f0f0", "#8ab4ff", "#3a72d4"],
+): ChartOption => {
+  const years = dayCalendarYears(points.map((p) => p[0] as string));
   const maxVal = Math.max(1, ...points.map((p) => p[1]));
   return {
-    tooltip: {
-      formatter: (p: any) => `${p.value?.[0]}<br/>当日总工时 ${p.value?.[1]}h`,
-    },
+    tooltip: { formatter: tooltipFormatter },
     visualMap: {
       min: 0,
       max: maxVal,
@@ -439,7 +454,7 @@ export const calendarHeatmapOption = (daily: Overview["daily"]): ChartOption => 
       right: 8,
       top: "middle",
       text: [`${maxVal}h`, "0h"],
-      inRange: { color: ["#f0f0f0", "#8ab4ff", "#3a72d4"] },
+      inRange: { color: colors },
     },
     calendar: years.map((y, i) => ({
       range: y,
@@ -459,6 +474,14 @@ export const calendarHeatmapOption = (daily: Overview["daily"]): ChartOption => 
       data: points.filter((p) => (p[0] as string).startsWith(y)),
     })),
   };
+};
+
+/** 出勤日历热力:#GitHub 风格,每年一行,颜色=当日总工时(h) */
+export const calendarHeatmapOption = (daily: Overview["daily"]): ChartOption => {
+  const points = daily
+    .filter((d) => d.minutes != null)
+    .map((d) => [d.day, minutesToHours(d.minutes as number)] as [string, number]);
+  return calendarCore(points, (p: any) => `${p.value?.[0]}<br/>当日总工时 ${p.value?.[1]}h`);
 };
 
 /** 月度班制结构堆叠(数据源头即 MonthPoint 的 fullDays/halfDays/otherDays) */
@@ -554,13 +577,19 @@ export const workerGrowthOption = (growth: Overview["growth"]): ChartOption => (
 });
 
 /** 工种工时主题河流:工种 × 月 工时流量(记录口径;超过 topN 的工种并入"其他") */
-export const themeRiverOption = (workTypeMonthly: Overview["workTypeMonthly"], topN = 7): ChartOption => {
+export const themeRiverOption = (
+  workTypeMonthly: Overview["workTypeMonthly"],
+  topN = 7,
+): ChartOption => {
   const totals = new Map<string, number>();
   for (const m of workTypeMonthly)
     for (const [name, minutes] of Object.entries(m.workMinutes))
       totals.set(name, (totals.get(name) ?? 0) + minutes);
   const topNames = new Set(
-    [...totals.entries()].sort((a, b) => b[1] - a[1]).slice(0, topN).map(([n]) => n),
+    [...totals.entries()]
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, topN)
+      .map(([n]) => n),
   );
   const hasOther = totals.size > topNames.size;
   if (hasOther) topNames.add("其他");
@@ -584,7 +613,10 @@ export const themeRiverOption = (workTypeMonthly: Overview["workTypeMonthly"], t
       trigger: "axis",
       axisPointer: { type: "line", lineStyle: { color: "transparent" } },
       formatter: (params: any[]) => {
-        const rows = params?.map((p) => `${p?.data?.[2]}: ${p?.data?.[1]}h`).filter((s) => !s.endsWith("0h")) ?? [];
+        const rows =
+          params
+            ?.map((p) => `${p?.data?.[2]}: ${p?.data?.[1]}h`)
+            .filter((s) => !s.endsWith("0h")) ?? [];
         return `${params?.[0]?.data?.[0] ?? ""}${rows.length ? `<br/>${rows.join("<br/>")}` : ""}`;
       },
     },
@@ -774,3 +806,165 @@ export const dayHoursBoxOption = (boxData: Overview["boxData"]): ChartOption => 
     },
   ],
 });
+
+/** 个人 vs 团队人均 雷达:指标上限取两者较大值留 15% 余量,便于看出偏长/偏短 */
+export const personalRadarOption = (profile: WorkerProfile, teamAvg: TeamAverage): ChartOption => {
+  const self = {
+    days: profile.days,
+    hours: profile.hours,
+    avgDayHours: profile.avgDayHours,
+    workCount: profile.workCount,
+    salary: Number(profile.salary) || 0,
+  };
+  const dims = [
+    { name: "出勤天数", get: (x: typeof self) => x.days },
+    { name: "总工时(h)", get: (x: typeof self) => x.hours },
+    { name: "日均工时(h)", get: (x: typeof self) => x.avgDayHours },
+    { name: "工种广度", get: (x: typeof self) => x.workCount },
+    { name: "收入(元)", get: (x: typeof self) => x.salary },
+  ];
+  return {
+    tooltip: { trigger: "item" },
+    legend: { top: 12 },
+    radar: {
+      center: ["50%", "58%"],
+      radius: "62%",
+      indicator: dims.map((d) => ({
+        name: d.name,
+        max: Math.max(1, Math.ceil(Math.max(d.get(self), d.get(teamAvg)) * 1.15)),
+      })),
+      axisName: { fontSize: 11, color: "#666" },
+    },
+    series: [
+      {
+        type: "radar",
+        emphasis: { focus: "series" },
+        symbolSize: 4,
+        data: [
+          {
+            name: profile.name,
+            value: dims.map((d) => d.get(self)),
+            areaStyle: { opacity: 0.22 },
+            lineStyle: { width: 2 },
+          },
+          {
+            name: "团队人均",
+            value: dims.map((d) => d.get(teamAvg)),
+            areaStyle: { opacity: 0.08 },
+            lineStyle: { width: 1.5, type: "dashed" },
+          },
+        ],
+      },
+    ],
+  };
+};
+
+/** 个人星期几节奏:出勤天数(柱,左) + 该星期几的日均工时(线,右) */
+export const personalWeekdayOption = (weekday: PersonalWeekday[]): ChartOption => ({
+  tooltip: {
+    trigger: "axis",
+    formatter: (params: any) => {
+      const item = weekday[params?.[0]?.dataIndex];
+      const avg = item && item.days > 0 ? (item.hours / item.days).toFixed(1) : "-";
+      return `${item?.key}<br/>出勤:${item?.days} 天<br/>工时:${item?.hours}h<br/>日均:${avg}h`;
+    },
+  },
+  legend: { top: 12 },
+  grid,
+  xAxis: { type: "category", data: weekday.map((w) => w.key) },
+  yAxis: [
+    { type: "value", name: "出勤天数", minInterval: 1 },
+    { type: "value", name: "日均工时(h)" },
+  ],
+  series: [
+    {
+      name: "出勤天数",
+      type: "bar",
+      data: weekday.map((w) => w.days),
+      label: { show: true, position: "top" },
+    },
+    {
+      name: "日均工时",
+      type: "line",
+      yAxisIndex: 1,
+      smooth: true,
+      lineStyle: { width: 2 },
+      data: weekday.map((w) => (w.days > 0 ? Number((w.hours / w.days).toFixed(2)) : null)),
+    },
+  ],
+});
+
+/** 个人单日工时分布(1h 一档;样本=人天,当日跨工种合计) */
+export const personalDayHoursDistOption = (dist: PersonalBucket[]): ChartOption => ({
+  title: {
+    text: "口径:每个出勤日的合计工时(人天)",
+    left: 8,
+    top: 0,
+    textStyle: { fontSize: 12, fontWeight: "normal", color: "#999" },
+  },
+  tooltip: { trigger: "axis", valueFormatter: (v: number) => `${v} 天` },
+  grid: { ...grid, top: 56 },
+  xAxis: { type: "category", data: dist.map((d) => `${d.bucket}h`), axisLabel: { rotate: 45 } },
+  yAxis: { type: "value", name: "天数", minInterval: 1 },
+  series: [
+    {
+      name: "天数",
+      type: "bar",
+      data: dist.map((d) => d.days),
+      label: { show: true, position: "top" },
+    },
+  ],
+});
+
+/** 个人累计工时 & 累计收入(自首个出勤月逐月累加;断档月按 0 累计) */
+export const personalCumulativeOption = (
+  series: { month: string; hours: number; salary: number }[],
+): ChartOption => {
+  let cumHours = 0;
+  let cumSalary = 0;
+  const acc = series.map((s) => ({
+    month: s.month,
+    cumHours: Math.round((cumHours += s.hours) * 100) / 100,
+    cumSalary: Math.round((cumSalary += s.salary) * 100) / 100,
+  }));
+  return {
+    tooltip: { trigger: "axis" },
+    legend: { top: 12 },
+    grid,
+    xAxis: { type: "category", data: acc.map((a) => a.month), axisLabel: { rotate: 45 } },
+    yAxis: [
+      { type: "value", name: "累计工时(h)" },
+      { type: "value", name: "累计收入(元)" },
+    ],
+    series: [
+      {
+        name: "累计工时",
+        type: "line",
+        yAxisIndex: 0,
+        smooth: true,
+        showSymbol: false,
+        lineStyle: { width: 2 },
+        areaStyle: { opacity: 0.08 },
+        data: acc.map((a) => a.cumHours),
+      },
+      {
+        name: "累计收入(估算)",
+        type: "line",
+        yAxisIndex: 1,
+        smooth: true,
+        showSymbol: false,
+        lineStyle: { width: 2 },
+        areaStyle: { opacity: 0.08 },
+        data: acc.map((a) => a.cumSalary),
+      },
+    ],
+  };
+};
+
+/** 个人出勤日历热力:该人每个出勤日的工时(橙色调,与全局蓝色日历区分) */
+export const personalCalendarOption = (series: { day: string; hours: number }[]): ChartOption =>
+  calendarCore(
+    series.map((s) => [s.day, s.hours] as [string, number]),
+    (p: any) => `${p.value?.[0]}<br/>当日工时 ${p.value?.[1]}h`,
+    ["#f0f0f0", "#ffd591", "#fa8c16"],
+  );

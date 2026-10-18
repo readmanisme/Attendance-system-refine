@@ -8,9 +8,6 @@
 - `work_date`: text,"YYYY-MM-DD",本地日历日
 - `work_minutes`: number,整数分钟(工时 × 60;20 分钟就是 20)
 
-视图 `workHour_day_view_test` / `workHour_month_view_test` 已改为 `SUM(work_minutes)/60.0`
-(视图输出字段名 `work_date` / `work_month` / `total_work_hours` 保持不变,前端展示逻辑兼容)。
-
 ## 脚本用法
 
 ```powershell
@@ -24,14 +21,13 @@ node scripts/migrate-hours/migrate.ts --url http://127.0.0.1:29401 --email <超�
 
 参数说明:
 
-| 参数                          | 说明                                                           |
-| ----------------------------- | -------------------------------------------------------------- |
-| `--url`                       | PocketBase 地址                                                |
-| `--table`                     | 考勤表名,默认 `attendance_record_test`                         |
-| `--day-view` / `--month-view` | 两个工时视图名                                                 |
-| `--email` / `--password`      | 超管账号;也可用环境变量 `PB_ADMIN_EMAIL` / `PB_ADMIN_PASSWORD` |
-| `--dry-run`                   | 只打印计划不动数据                                             |
-| `--keep-old-fields`           | 临时保留 check_in/check_out(调试用),默认删除                   |
+| 参数                     | 说明                                                           |
+| ------------------------ | -------------------------------------------------------------- |
+| `--url`                  | PocketBase 地址                                                |
+| `--table`                | 考勤表名,默认 `attendance_record_test`                         |
+| `--email` / `--password` | 超管账号;也可用环境变量 `PB_ADMIN_EMAIL` / `PB_ADMIN_PASSWORD` |
+| `--dry-run`              | 只打印计划不动数据                                             |
+| `--keep-old-fields`      | 临时保留 check_in/check_out(调试用),默认删除                   |
 
 脚本会自动探测新版(`_superusers`)和旧版(`/api/admins`)登录端点,新旧 PocketBase 都能跑。
 
@@ -40,10 +36,11 @@ node scripts/migrate-hours/migrate.ts --url http://127.0.0.1:29401 --email <超�
 1. 新增 `work_date`(text) / `work_minutes`(number) 字段
 2. 每条记录:`work_date` = 本地时区 check_in 日期;`work_minutes` = |check_out − check_in| 分
 3. 同 (worker_id, work_date, work) 合并为一条(分钟求和,保留 created 最早的那条,其余删除)
-4. 两个工时视图改写为 `SUM(work_minutes)/60.0`
-5. 添加唯一索引 (worker_id, work_date, work)
-6. 删除 `check_in` / `check_out` 字段
-7. 自校验:迁移前后按合并键的工时合计逐键比对 + day 视图逐日比对;报告写入
+4. 添加唯一索引 (worker_id, work_date, work):按索引名精确剔除同名旧索引后再建,
+   避免"同名但非 UNIQUE / 列不符"的索引导致建索引失败;判定时校验列组合,
+   不会被 `(work_date)` 之类的其他唯一索引误判为已完成
+5. 删除 `check_in` / `check_out` 字段
+6. 自校验:迁移前后按合并键的工时合计逐键比对;报告写入
    `scripts/migrate-hours/report-*.json`,不一致退出码 2
 
 ## 生产环境操作步骤

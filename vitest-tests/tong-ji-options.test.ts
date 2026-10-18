@@ -6,7 +6,7 @@
  *  2) 阈值过滤、TopN 截断、排序、null 留白等关键映射与数据一致。
  */
 import { describe, expect, test } from "vitest";
-import type { Relation, SankeyData, WorkerProfile } from "@/pages/tong-ji/compute";
+import type { Relation, SankeyData, TeamAverage, WorkerProfile } from "@/pages/tong-ji/compute";
 import {
   attendDistChartOption,
   calendarHeatmapOption,
@@ -14,12 +14,18 @@ import {
   coHeatmapOption,
   cumulativeOption,
   dailyChartOption,
+  dayCalendarYears,
   dayHoursBoxOption,
   graphOption,
   monthlyOverviewOption,
   monthlyShiftOption,
+  personalCalendarOption,
+  personalCumulativeOption,
+  personalDayHoursDistOption,
   personalMonthlyOption,
   personalPartnerOption,
+  personalRadarOption,
+  personalWeekdayOption,
   radarOption,
   recordDistChartOption,
   salaryTopOption,
@@ -62,6 +68,14 @@ const worker = (over: Partial<WorkerProfile> = {}): WorkerProfile => ({
   ...over,
 });
 
+const teamAvg: TeamAverage = {
+  days: 2,
+  hours: 10,
+  salary: 100,
+  avgDayHours: 5,
+  workCount: 2,
+};
+
 describe("空数据:所有图表配置都不抛错", () => {
   test("概览类", () => {
     expect(() => dailyChartOption([])).not.toThrow();
@@ -90,6 +104,11 @@ describe("空数据:所有图表配置都不抛错", () => {
     expect(() => radarOption([])).not.toThrow();
     expect(() => personalMonthlyOption([])).not.toThrow();
     expect(() => personalPartnerOption([])).not.toThrow();
+    expect(() => personalRadarOption(worker(), teamAvg)).not.toThrow();
+    expect(() => personalWeekdayOption([])).not.toThrow();
+    expect(() => personalDayHoursDistOption([])).not.toThrow();
+    expect(() => personalCumulativeOption([])).not.toThrow();
+    expect(() => personalCalendarOption([])).not.toThrow();
   });
 
   test("空数据下的轴/系列仍是空数组", () => {
@@ -120,8 +139,28 @@ describe("概览映射", () => {
   test("累计曲线: 工时与支出逐月累加", () => {
     const o = opt(
       cumulativeOption([
-        { month: "2026-07", personDays: 1, workers: 1, minutes: 600, salary: 200, workDays: 1, fullDays: 1, halfDays: 0, otherDays: 0 },
-        { month: "2026-08", personDays: 1, workers: 1, minutes: 300, salary: 100.5, workDays: 1, fullDays: 0, halfDays: 0, otherDays: 1 },
+        {
+          month: "2026-07",
+          personDays: 1,
+          workers: 1,
+          minutes: 600,
+          salary: 200,
+          workDays: 1,
+          fullDays: 1,
+          halfDays: 0,
+          otherDays: 0,
+        },
+        {
+          month: "2026-08",
+          personDays: 1,
+          workers: 1,
+          minutes: 300,
+          salary: 100.5,
+          workDays: 1,
+          fullDays: 0,
+          halfDays: 0,
+          otherDays: 1,
+        },
       ]),
     );
     expect(o.series[0].data).toEqual([10, 15]);
@@ -148,7 +187,12 @@ describe("概览映射", () => {
   });
 
   test("记录时长分布的横轴带 h 后缀", () => {
-    const o = opt(recordDistChartOption([{ bucket: "0~1", count: 2 }, { bucket: "14+", count: 1 }]));
+    const o = opt(
+      recordDistChartOption([
+        { bucket: "0~1", count: 2 },
+        { bucket: "14+", count: 1 },
+      ]),
+    );
     expect(o.xAxis.data).toEqual(["0~1h", "14+h"]);
     expect(o.series[0].data).toEqual([2, 1]);
   });
@@ -299,9 +343,33 @@ describe("个人分析映射", () => {
     const o = opt(
       radarOption(
         [
-          worker({ id: "w1", name: "甲", days: 10, hours: 80, workCount: 3, salary: "1600", avgDayHours: 8 }),
-          worker({ id: "w2", name: "乙", days: 2, hours: 16, workCount: 1, salary: "0", avgDayHours: 8 }),
-          worker({ id: "w3", name: "丙", days: 1, hours: 8, workCount: 1, salary: "0", avgDayHours: 8 }),
+          worker({
+            id: "w1",
+            name: "甲",
+            days: 10,
+            hours: 80,
+            workCount: 3,
+            salary: "1600",
+            avgDayHours: 8,
+          }),
+          worker({
+            id: "w2",
+            name: "乙",
+            days: 2,
+            hours: 16,
+            workCount: 1,
+            salary: "0",
+            avgDayHours: 8,
+          }),
+          worker({
+            id: "w3",
+            name: "丙",
+            days: 1,
+            hours: 8,
+            workCount: 1,
+            salary: "0",
+            avgDayHours: 8,
+          }),
         ],
         2,
       ),
@@ -324,9 +392,7 @@ describe("个人分析映射", () => {
   });
 
   test("个人月度: 三个系列分别取 days/hours/salary", () => {
-    const o = opt(
-      personalMonthlyOption([{ month: "2026-08", days: 2, hours: 12, salary: 120 }]),
-    );
+    const o = opt(personalMonthlyOption([{ month: "2026-08", days: 2, hours: 12, salary: 120 }]));
     expect(o.series.map((s: any) => s.data)).toEqual([[2], [12], [120]]);
   });
 
@@ -346,6 +412,90 @@ describe("个人分析映射", () => {
     const o = opt(dayHoursBoxOption([{ name: "甲", count: 4, box: [2, 3.5, 5, 6.5, 8] }]));
     expect(o.xAxis.data).toEqual(["甲"]);
     expect(o.series[0].data).toEqual([[2, 3.5, 5, 6.5, 8]]);
+  });
+
+  test("个人对比雷达: 本人 + 团队人均两条,指标上限留 15% 余量", () => {
+    const o = opt(
+      personalRadarOption(
+        worker({ name: "甲", days: 4, hours: 32, avgDayHours: 8, workCount: 3, salary: "640" }),
+        teamAvg,
+      ),
+    );
+    expect(o.radar.indicator.map((i: any) => i.name)).toEqual([
+      "出勤天数",
+      "总工时(h)",
+      "日均工时(h)",
+      "工种广度",
+      "收入(元)",
+    ]);
+    expect(o.series[0].data.map((d: any) => d.name)).toEqual(["甲", "团队人均"]);
+    // 出勤天数 max(4, 2)=4 → ceil(4*1.15)=5;收入 max(640,100) → 736
+    expect(o.radar.indicator[0].max).toBe(5);
+    expect(o.radar.indicator[4].max).toBe(736);
+    expect(o.series[0].data[1].value).toEqual([2, 10, 5, 2, 100]);
+    // 全 0 时兜底 1,避免 ECharts 除零
+    const zero = opt(
+      personalRadarOption(
+        worker({ days: 0, hours: 0, salary: "0", avgDayHours: 0, workCount: 0 }),
+        {
+          days: 0,
+          hours: 0,
+          salary: 0,
+          avgDayHours: 0,
+          workCount: 0,
+        },
+      ),
+    );
+    expect(zero.radar.indicator.every((i: any) => i.max === 1)).toBe(true);
+  });
+
+  test("个人星期几节奏: 柱=出勤天数,线=日均工时(无出勤留空)", () => {
+    const o = opt(
+      personalWeekdayOption([
+        { key: "周一", days: 2, hours: 16 },
+        { key: "周二", days: 0, hours: 0 },
+      ]),
+    );
+    expect(o.series[0].data).toEqual([2, 0]);
+    expect(o.series[1].data).toEqual([8, null]);
+  });
+
+  test("个人单日工时分布: 横轴带 h 后缀,数据取天数", () => {
+    const o = opt(
+      personalDayHoursDistOption([
+        { bucket: "8~9", days: 3 },
+        { bucket: "14+", days: 1 },
+      ]),
+    );
+    expect(o.xAxis.data).toEqual(["8~9h", "14+h"]);
+    expect(o.series[0].data).toEqual([3, 1]);
+  });
+
+  test("个人累计: 工时与收入逐月累加", () => {
+    const o = opt(
+      personalCumulativeOption([
+        { month: "2026-07", hours: 10, salary: 200 },
+        { month: "2026-08", hours: 5.5, salary: 110.5 },
+        { month: "2026-09", hours: 0, salary: 0 },
+      ]),
+    );
+    expect(o.series[0].data).toEqual([10, 15.5, 15.5]);
+    expect(o.series[1].data).toEqual([200, 310.5, 310.5]);
+  });
+
+  test("个人日历: 每年一格,只放该人的出勤日", () => {
+    const o = opt(
+      personalCalendarOption([
+        { day: "2025-12-31", hours: 8 },
+        { day: "2026-01-02", hours: 5.5 },
+      ]),
+    );
+    expect(dayCalendarYears(["2026-01-02", "2026-03-01", "2025-12-31"])).toEqual(["2026", "2025"]);
+    expect(o.calendar).toHaveLength(2);
+    expect(o.series).toHaveLength(2);
+    expect(o.series[0].data).toEqual([["2025-12-31", 8]]);
+    expect(o.series[1].data).toEqual([["2026-01-02", 5.5]]);
+    expect(o.visualMap.max).toBe(8);
   });
 });
 
@@ -423,9 +573,9 @@ describe("tooltip / 轴格式化回调", () => {
 
   test("桑基提示区分边与节点", () => {
     const o = opt(sankeyOption(emptySankey));
-    expect(o.tooltip.formatter({ dataType: "edge", data: { source: "甲", target: "搬运", value: 10 } })).toContain(
-      "甲 → 搬运",
-    );
+    expect(
+      o.tooltip.formatter({ dataType: "edge", data: { source: "甲", target: "搬运", value: 10 } }),
+    ).toContain("甲 → 搬运");
     expect(o.tooltip.formatter({ name: "甲", value: 10 })).toContain("工时 10h");
   });
 
@@ -485,6 +635,8 @@ describe("主题河流: TopN 与补零", () => {
     expect(text).toContain("甲: 1h");
     expect(text).not.toContain("其他");
     expect(o.tooltip.formatter([])).toBe("");
-    expect(o.singleAxis.axisLabel.formatter(new Date("2026-03-01T00:00:00").getTime())).toBe("2026-03");
+    expect(o.singleAxis.axisLabel.formatter(new Date("2026-03-01T00:00:00").getTime())).toBe(
+      "2026-03",
+    );
   });
 });

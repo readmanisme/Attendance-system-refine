@@ -1,9 +1,11 @@
 /**
  * 统计图表页(4 个 Tab)。
  * - 概览:顶部卡片 + 出勤趋势/Top/分布/班制/工种结构/月度总览/累计曲线/支出 Top
+ *   以及"全局画像对比"(Top5 画像雷达、各人单日工时箱线)
  * - 时间模式:出勤日历热力、月度班制堆叠、星期几分布、队伍增长、工种主题河流
  * - 关系分析:共现热力、搭档网络(阈值可调)、搭档稳定性散点、人×工种桑基
- * - 个人分析:选人 → 画像四联卡/月度趋势/工种构成/搭档排名/Top5 雷达/各人工时箱线
+ * - 个人分析:选人 → 画像卡/月度趋势/工种构成/星期几节奏/单日工时分布/班制占比/
+ *   与团队人均对比/出勤日历/累计曲线/搭档排名(只放与该人相关的图)
  * 数据:考勤记录全量(useList 分页关闭,expand 工种/人员),薪资设置全量;
  * 聚合复用"工时&薪资"页同一份支出引擎(computeSalaryStats),口径永远一致。
  * 时间范围:本页局部状态,月份粒度,默认全部历史(不写全局 store,不影响其他页面)。
@@ -97,6 +99,15 @@ export default function TongJiPage() {
   const selectedPartners = selectedId
     ? (relation.partnerPairs.get(selectedId) ?? []).slice(0, 10)
     : [];
+  const selectedDaily = selectedId ? (profiles.dailySeries.get(selectedId) ?? []) : [];
+  const selectedWeekday = selectedId ? (profiles.weekday.get(selectedId) ?? []) : [];
+  const selectedDayDist = selectedId ? (profiles.dayHoursDist.get(selectedId) ?? []) : [];
+  const selectedShift = selectedId ? (profiles.shiftPie.get(selectedId) ?? []) : [];
+  // 日历热力高度 = 年数 × 单年高度 + 边距(个人日历只看该人的出勤日)
+  const personalCalendarHeight = Math.max(
+    200,
+    opts.dayCalendarYears(selectedDaily.map((d) => d.day)).length * 170 + 20,
+  );
   // 日历热力高度 = 年数 × 单年高度 + 边距
   const calendarHeight = Math.max(200, opts.calendarYears(overview.daily).length * 170 + 20);
 
@@ -193,6 +204,31 @@ export default function TongJiPage() {
             title={cardTitle("班制占比", "按人天统计:当日合计 ≥9h 全日,3~7.5h 半日")}
           >
             <EChart option={opts.shiftPieOption(overview.shiftPie)} height={430} />
+          </Card>
+        </Col>
+      </Row>
+
+      <Row gutter={[8, 8]}>
+        <Col xs={24} lg={10}>
+          <Card
+            size="small"
+            title={cardTitle(
+              "Top5 工人画像雷达",
+              "出勤天数 Top5;出勤/工时/工种广度/收入/日均工时五维对比",
+            )}
+          >
+            <EChart option={opts.radarOption(profiles.list)} height={420} />
+          </Card>
+        </Col>
+        <Col xs={24} lg={14}>
+          <Card
+            size="small"
+            title={cardTitle(
+              "各人单日工时箱线",
+              "出勤 Top15;盒须=单日合计工时的 min/Q1/Q2/Q3/max,看谁稳定谁浮动",
+            )}
+          >
+            <EChart option={opts.dayHoursBoxOption(overview.boxData)} height={420} />
           </Card>
         </Col>
       </Row>
@@ -325,24 +361,21 @@ export default function TongJiPage() {
       </Card>
       <Card
         size="small"
-        title={cardTitle(
-          "搭档网络",
-          "节点=出勤 ≥5 天的人;阈值同时作用于下方的搭档稳定性散点",
-        )}
+        title={cardTitle("搭档网络", "节点=出勤 ≥5 天的人;阈值同时作用于下方的搭档稳定性散点")}
         extra={
           <Space size={4}>
             <Typography.Text type="secondary" style={{ fontSize: 12 }}>
               共现阈值(天)
             </Typography.Text>
             <div data-testid="tj-co-threshold" className="inline-flex items-center">
-            <InputNumber
-              size="small"
-              min={MIN_PAIR_CO}
-              max={999}
-              precision={0}
-              value={coThreshold}
-              onChange={(v) => setCoThreshold(v ?? MIN_PAIR_CO)}
-            />
+              <InputNumber
+                size="small"
+                min={MIN_PAIR_CO}
+                max={999}
+                precision={0}
+                value={coThreshold}
+                onChange={(v) => setCoThreshold(v ?? MIN_PAIR_CO)}
+              />
             </div>
           </Space>
         }
@@ -436,34 +469,64 @@ export default function TongJiPage() {
         <Col xs={24} md={12}>
           <Card
             size="small"
-            title={cardTitle("搭档排名 Top10", "共同出勤最多的人;共现 1 天也计入")}
+            title={cardTitle("星期几节奏", "该人按星期汇总:出勤天数(柱)+ 日均工时(线)")}
           >
-            <EChart
-              option={opts.personalPartnerOption(
-                selectedPartners.map((p) => ({ name: p.name, co: p.co })),
-              )}
-              height={420}
-            />
+            <EChart option={opts.personalWeekdayOption(selectedWeekday)} height={360} />
           </Card>
         </Col>
         <Col xs={24} md={12}>
           <Card
             size="small"
-            title={cardTitle("Top5 工人画像雷达", "出勤/工时/工种广度/收入/日均工时;与选人无关")}
+            title={cardTitle("单日工时分布", "1h 一档;看该人一天通常干多长(人天口径)")}
           >
-            <EChart option={opts.radarOption(profiles.list)} height={420} />
+            <EChart option={opts.personalDayHoursDistOption(selectedDayDist)} height={360} />
+          </Card>
+        </Col>
+      </Row>
+
+      <Row gutter={[8, 8]}>
+        <Col xs={24} md={12}>
+          <Card
+            size="small"
+            title={cardTitle("班制占比", "该人全日(≥9h)/半日(3~7.5h)/其他的人天构成")}
+          >
+            <EChart option={opts.shiftPieOption(selectedShift)} height={340} />
+          </Card>
+        </Col>
+        <Col xs={24} md={12}>
+          <Card
+            size="small"
+            title={cardTitle("与团队人均对比", "实线=本人,虚线=全员人均;五维看长板与短板")}
+          >
+            <EChart option={opts.personalRadarOption(selected, profiles.teamAvg)} height={340} />
           </Card>
         </Col>
       </Row>
 
       <Card
         size="small"
-        title={cardTitle(
-          "各人单日工时箱线",
-          "出勤 Top15;盒须=单日合计工时的 min/Q1/Q2/Q3/max,看谁稳定谁浮动",
-        )}
+        title={cardTitle("出勤日历热力", "该人每个出勤日的工时;颜色越深当天干得越久")}
       >
-        <EChart option={opts.dayHoursBoxOption(overview.boxData)} height={420} />
+        <EChart
+          option={opts.personalCalendarOption(selectedDaily)}
+          height={personalCalendarHeight}
+        />
+      </Card>
+
+      <Card
+        size="small"
+        title={cardTitle("累计工时 & 累计收入", "自该人首个出勤月起逐月累加;断档月按 0 累计")}
+      >
+        <EChart option={opts.personalCumulativeOption(selectedMonthly)} height={380} />
+      </Card>
+
+      <Card size="small" title={cardTitle("搭档排名 Top10", "共同出勤最多的人;共现 1 天也计入")}>
+        <EChart
+          option={opts.personalPartnerOption(
+            selectedPartners.map((p) => ({ name: p.name, co: p.co })),
+          )}
+          height={420}
+        />
       </Card>
     </div>
   ) : (
