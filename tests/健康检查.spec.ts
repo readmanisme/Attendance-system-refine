@@ -1,4 +1,4 @@
-import { API_URL } from "./constants";
+import { API_URL, appUrl } from "./constants";
 import { test, expect } from "@playwright/test";
 const HealthUrl = API_URL + "/health";
 const SettingsUrl = API_URL + "/settings";
@@ -12,12 +12,12 @@ test("健康检查", async ({ page }) => {
       await new Promise((r) => setTimeout(r, 2000));
       await route.fallback();
     });
-    await page.goto("/");
+    await page.goto(appUrl());
     await expect(page.getByTestId("Initializing-alert"), "初始化Alert").toBeVisible();
     await page.unroute(HealthUrl);
   });
   await test.step("自动导航到签到页面", async () => {
-    await expect(page.getByRole("heading", { name: "签到录入系统" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "工时录入系统" })).toBeVisible();
   });
   await test.step("后端异常Alert", async () => {
     await page.route(HealthUrl, async (route) => {
@@ -25,7 +25,8 @@ test("健康检查", async ({ page }) => {
         status: 404,
       });
     });
-    await expect(page.getByTestId("Error-alert"), "后端异常Alert").toBeVisible({ timeout: 11_000 });
+    // 连续失败阈值=3次(每次间隔5s),最长需要约15s才报错
+    await expect(page.getByTestId("Error-alert"), "后端异常Alert").toBeVisible({ timeout: 20_000 });
   });
   await test.step("恢复正常", async () => {
     await page.unroute(HealthUrl);
@@ -37,7 +38,7 @@ test("健康检查", async ({ page }) => {
 test("Batch检查", async ({ page }) => {
   // // 测试后端Batch设置状态与相应提示显示
   await test.step("正常", async () => {
-    await page.goto("/qiandao");
+    await page.goto(appUrl("/#/qiandao"));
     await expect(page.getByTestId("batch-error-tag")).not.toBeVisible();
   });
   await test.step("未开启", async () => {

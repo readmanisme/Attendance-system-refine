@@ -1,8 +1,8 @@
 import { test, expect } from "@playwright/test";
-import { workers_url } from "./constants";
+import { appUrl } from "./constants";
 test.describe("帮助功能测试", () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto("/qiandao"); //beforeEach为每个test执行，但step不执行
+    await page.goto(appUrl("/#/qiandao"));
   });
 
   test("应正确显示和隐藏帮助内容", async ({ page }) => {
@@ -53,6 +53,7 @@ test.describe("帮助功能测试", () => {
         await page.getByRole("link", { name: pageName }).click();
         await page.getByTestId("help-button").click();
 
+        await expect(page.getByText(`${pageName} 帮助`)).toBeVisible();
         await expect(
           page.getByRole("heading", { name: `${pageName}页面` }),
           `应显示${pageName}页面的帮助标题`,
@@ -67,13 +68,13 @@ test.describe("帮助功能测试", () => {
     }
   });
   test("点击图标和标题回到首页", async ({ page }) => {
-    await page.goto(workers_url);
+    await page.goto(appUrl("/#/workers"));
     await expect(page.getByTestId("delete-alert"), "工人页面已显示").toBeVisible();
     await page.getByTestId("logoAndTitle").click();
     await expect(page.getByRole("heading", { name: "工时录入系统" }), "首页标题可见").toBeVisible();
   });
   test("菜单折叠与展开", async ({ page }) => {
-    await page.goto("/");
+    await page.goto(appUrl());
     await expect(page.getByTestId("version-badge"), "版本号可见").toBeVisible();
     await page.getByRole("button", { name: "left" }).click();
     // codegen不能加viewpoint的参数，否则看不到，但是测试的时候好像无所谓

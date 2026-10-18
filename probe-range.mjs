@@ -1,0 +1,14 @@
+import { chromium } from "@playwright/test";
+const browser = await chromium.launch();
+const page = await browser.newPage({ viewport: { width: 1536, height: 864 } });
+await page.goto("http://localhost:4172/?pb-port=29410#/attendance-record");
+await page.waitForTimeout(2000);
+const start = page.getByRole("textbox", { name: "开始月份" });
+const apply = page.getByRole("button", { name: "应 用" });
+await start.click();
+await page.getByRole("cell", { description: "2026-09" }).first().click();
+await page.getByRole("cell", { description: "2026-10" }).first().click();
+console.log("start=", await start.inputValue(), "disabled=", await apply.isDisabled());
+await apply.click();
+console.log("applied, start now:", await start.inputValue());
+await browser.close();

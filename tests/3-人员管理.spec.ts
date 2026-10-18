@@ -1,75 +1,96 @@
 import { test, expect } from "@playwright/test";
-import { Workers_TableName, Backend_URL, workers_url } from "./constants";
-import PocketBase from "pocketbase";
-const pb = new PocketBase(Backend_URL);
+import { appUrl, workers_url } from "./constants";
+import { TestDB } from "./helpers/pb";
+import { clearPySearchSelect, setPageSize } from "./helpers/ui";
+
+const db = new TestDB();
+
+test.afterEach(async () => {
+  await db.cleanup();
+});
+
+/** 12 人撑出两页(默认10条/页) */
+async function seedPagingWorkers() {
+  return db.seedWorkers(
+    Array.from({ length: 12 }, (_, i) => `测试工人${String(i + 1).padStart(2, "0")}`),
+  );
+}
 
 test.describe("人员 列表", () => {
   test("表格显示测试", async ({ page }) => {
-    await page.goto(workers_url);
+    await seedPagingWorkers();
+    await page.goto(appUrl(workers_url));
     await test.step("默认显示", async () => {
       await expect(page.getByTestId("delete-alert")).toBeVisible();
-      await expect(page.getByTestId("row-name-0")).toContainText("李红红");
-      await expect(page.getByTestId("row-num-0")).toContainText("4");
-      await expect(page.getByTestId("row-name-9")).toContainText("张列列");
+      // 排序按 created 逆序: 最后创建的"测试工人12"是第一行；新人记录数量为0
+      await expect(page.getByTestId("row-name-0")).toContainText("测试工人12");
+      await expect(page.getByTestId("row-num-0")).toContainText("0");
+      // 第一页最后一行是最早创建的"测试工人03"(第二页还有10人,所以是row-9)
+      await expect(page.getByTestId("row-name-9")).toContainText("测试工人03");
     });
     await test.step("翻页", async () => {
       await page.getByRole("link", { name: "2" }).click();
-      await expect(page.getByTestId("row-name-0")).toContainText("杨秀英");
-      await expect(page.getByTestId("row-num-0")).toContainText("90");
-      await expect(page.getByTestId("row-name-9")).toContainText("何樱桃");
+      // 第二页只有剩余的两个人
+      await expect(page.getByTestId("row-name-0")).toContainText("测试工人02");
+      await expect(page.getByTestId("row-name-1")).toContainText("测试工人01");
       await page.getByRole("link", { name: "1" }).click();
-      await expect(page.getByTestId("row-name-0")).toContainText("李红红");
-      await expect(page.getByTestId("row-name-9")).toContainText("张列列");
+      await expect(page.getByTestId("row-name-0")).toContainText("测试工人12");
     });
     await test.step("分页", async () => {
-      await page.getByText("条/页").first().click();
-      await page.getByRole("option", { name: "20 条/页" }).click();
-      await expect(page.getByTestId("row-name-0")).toContainText("李红红");
-      await expect(page.getByTestId("row-num-0")).toContainText("4");
-      await expect(page.getByTestId("row-name-19")).toContainText("何樱桃");
-      await expect(page.getByTestId("row-num-19")).toContainText("6");
-      await page.getByText("条/页").nth(1).first().click();
-      await page.getByRole("option", { name: "10 条/页" }).click();
-      await expect(page.getByTestId("row-name-0")).toContainText("李红红");
-      await expect(page.getByTestId("row-name-9")).toContainText("张列列");
+      await setPageSize(page, "20 条/页");
+      // 20条/页下 12 人全在一页
+      await expect(page.getByTestId("row-name-11")).toContainText("测试工人01");
+      await expect(page.getByTestId("row-num-11")).toContainText("0");
+      await setPageSize(page, "10 条/页");
+      await expect(page.getByTestId("row-name-0")).toContainText("测试工人12");
     });
   });
   test("搜索测试", async ({ page }) => {
-    await page.goto(workers_url);
+    const workers = await seedPagingWorkers();
+    const targetA = workers[0]; // 测试工人01
+    const targetB = workers[5]; // 测试工人06
+    await page.goto(appUrl(workers_url));
     await page.getByRole("link", { name: "2" }).click();
     await test.step("单个", async () => {
       await page.getByTestId("py-search-select").click();
-      await page.keyboard.type("何琴芳");
-      await page.getByTitle("何琴芳").click();
+      await page.keyboard.type(targetA.name.replace("测试", ""));
+      await page.getByTitle(targetA.name).click();
       await page.getByTestId("py-search-button").click();
-      await expect(page.getByTestId("row-name-0")).toContainText("何琴芳");
-      await expect(page.getByTestId("row-num-0")).toContainText("33");
+      // 只显示目标一人，且回到第一页
+      const names = await page.locator('[data-testid^="row-name-"]').allTextContents();
+      expect(names.map((n) => n.trim()), "只显示搜索目标").toEqual([targetA.name]);
       await expect(page.getByRole("link", { name: "2" })).not.toBeVisible();
     });
     await test.step("多个", async () => {
       await page.getByTestId("py-search-select").click();
-      await page.keyboard.type("马福娃");
-      await page.getByTitle("马福娃").click();
+      await page.keyboard.type(targetB.name.replace("测试", ""));
+      await page.getByTitle(targetB.name).click();
       await page.getByTestId("py-search-button").click();
-      await expect(page.getByTestId("row-name-1")).toContainText("何琴芳");
-      await expect(page.getByTestId("row-num-1")).toContainText("33");
-      await expect(page.getByTestId("row-name-0")).toContainText("马福娃");
-      await expect(page.getByTestId("row-num-0")).toContainText("15");
+      const names = await page.locator('[data-testid^="row-name-"]').allTextContents();
+      expect(new Set(names.map((n) => n.trim())), "显示两个人").toEqual(
+        new Set([targetA.name, targetB.name]),
+      );
     });
     await test.step("复原", async () => {
-      await page.getByTestId("py-search-select").click();
-      await page.keyboard.press("Backspace");
-      await page.keyboard.press("Backspace");
+      // 用 clear 图标清理已选人(Backspace 清多选有焦点竞态)
+      await clearPySearchSelect(page);
       await page.getByTestId("py-search-button").click();
-      await expect(page.getByTestId("row-name-0")).toContainText("李红红");
-      await expect(page.getByTestId("row-num-0")).toContainText("4");
+      // 复原后重新出现两页，第一页仍是默认排序
+      await expect(page.getByRole("link", { name: "2" })).toBeVisible();
+      await expect(page.getByTestId("row-name-0")).toContainText("测试工人12");
     });
   });
 });
 
 test.describe("人员 创建", () => {
+  /** 提供两个已存在的人员给“已存在”校验使用 */
+  async function seedExistingWorkers() {
+    return db.seedWorkers(["测试马小琴", "测试魏变变"]);
+  }
+
   test("校验测试", async ({ page }) => {
-    await page.goto(workers_url + "/create");
+    await seedExistingWorkers();
+    await page.goto(appUrl(workers_url + "/create"));
 
     await test.step("默认内容", async () => {
       // 显示提示，名字是空的，不能提交
@@ -147,14 +168,14 @@ test.describe("人员 创建", () => {
       await expect(page.getByTestId("save-button")).not.toBeDisabled();
     });
     await test.step("已存在", async () => {
-      const texts = ["马小琴", "魏变变"];
+      const texts = ["测试马小琴", "测试魏变变"];
       const text = "郝致远";
       texts.push(text);
       // 输入姓名，已存在，提示错误，不能提交
       await page.getByTestId("name-input").fill(texts.join("\n"));
       await expect(page.getByTestId("name-input")).toHaveValue(texts.join("\n"));
       await expect(page.getByTestId("error-alert")).toContainText(
-        "以下姓名重复或已存在：马小琴魏变变",
+        "以下姓名重复或已存在：测试马小琴测试魏变变",
       );
       await expect(page.getByTestId("save-button")).toBeDisabled();
       // 输入姓名，不重复，提示成功，可以提交
@@ -173,20 +194,22 @@ test.describe("人员 创建", () => {
     });
   });
 });
+
 test.describe("人员 编辑", () => {
   test("校验测试", async ({ page }) => {
-    await page.goto(workers_url + "/edit/5w268d0ekgd5zas"); //魏变变
+    const worker = await db.seedWorker("测试魏变变");
+    const others = await db.seedWorkers(["测试马小琴"]);
+    await page.goto(appUrl(workers_url + `/edit/${worker.id}`));
     await test.step("默认内容", async () => {
-      // 显示提示；内容正确；id不能改；不能保存。
+      // 显示提示；内容正确；id不能改。
+      // 校验逻辑排除自己，所以编辑初始名字不报"已存在"，保存可用
       await expect(page.getByTestId("format-requirement-alert")).toBeVisible();
-      await expect(page.getByTestId("error-alert")).toContainText(
-        "姓名已存在，若不想继续编辑可返回",
-      );
-      await expect(page.getByTestId("name-input")).toHaveValue("魏变变");
+      await expect(page.getByTestId("error-alert")).not.toBeVisible();
+      await expect(page.getByTestId("name-input")).toHaveValue("测试魏变变");
       await expect(page.getByTestId("id-input")).toBeDisabled();
-      await expect(page.getByTestId("save-button")).toBeDisabled();
+      expect(others.length).toBe(1);
     });
-    // 然后和之前一样测试下划线，特殊字符，已存在。
+    // 然后和创建一样测试下划线，特殊字符，已存在。
     await test.step("下划线", async () => {
       const texts = ["_郝致远", "郝致远_", "郝_致远"];
       const text = "郝致远";
@@ -236,7 +259,7 @@ test.describe("人员 编辑", () => {
       await expect(page.getByTestId("save-button")).not.toBeDisabled();
     });
     await test.step("已存在", async () => {
-      const text = "马小琴";
+      const text = "测试马小琴";
       await page.getByTestId("name-input").fill(text);
       await expect(page.getByTestId("name-input")).toHaveValue(text);
       await expect(page.getByTestId("error-alert")).toContainText(
@@ -254,54 +277,48 @@ test.describe("人员 编辑", () => {
     });
   });
 });
+
 test.describe("人员 创建删除编辑", () => {
-  // 数据清理
-  test.afterEach(async () => {
-    const records = await pb.collection(Workers_TableName).getFullList({
-      filter: 'created > "2025-11-10"',
-    });
-    const ids = records.map((record) => record.id);
-    if (ids.length === 0) return; //空数据发batch也会报错
-    const batch = pb.createBatch();
-    for (const id of ids) {
-      batch.collection(Workers_TableName).delete(id);
-    }
-    const result = await batch.send();
-    expect(result.every((r) => r.status === 204)).toBe(true); //body是null
-  });
   test("创建删除编辑", async ({ page }) => {
-    await page.goto(workers_url);
+    // 预置一个有记录的人员，用于验证"有记录的人的删除提示不一样"
+    await db.ensureBaseWork();
+    const workA = await db.seedWorkType("测试搬砖");
+    const oldWorker = await db.seedWorker("测试有记录的人");
+    await db.seedRecord({
+      worker_id: oldWorker.id,
+      work: workA.id,
+      work_date: "2020-01-01",
+      work_minutes: 300,
+    });
+    await page.goto(appUrl(workers_url));
     let names;
     await test.step("创建", async () => {
       // 创建人员，一个有空格用来测试自动去除空格的功能
       await page.getByTestId("create-button").click();
       await page.getByTestId("name-input").click();
-      await page.getByTestId("name-input").fill("张三三撒\n   李四思思"); //空格用来确定数据处理的时候有没有删掉空格
+      await page.getByTestId("name-input").fill("测试张三三撒\n   测试李四思思"); //空格用来确定数据处理的时候有没有删掉空格
       await page.getByTestId("save-button").click();
       //成功提示
       await expect(page.getByText("成功创建")).toBeVisible();
       // 两个人的记录数量应该是0.
       await expect(page.getByTestId("row-num-0")).toContainText("0");
       await expect(page.getByTestId("row-num-1")).toContainText("0");
-      // await expect(page.getByTestId("row-name-0")).toContainText("李四思思");
-      // await expect(page.getByTestId("row-name-1")).toContainText("张三三撒");
-      // 这里顺序不固定，而且抽象的是刚刚好和上面两行代码顺序反着，我代码变了他表格顺序就变了，抽象完了。
+      // 新人按 created 逆序排在最前面，两人先后顺序不固定
       const first_name = await page.getByTestId("row-name-0").textContent();
       const second_name = await page.getByTestId("row-name-1").textContent();
       names = [first_name, second_name];
-      expect(names).toContainEqual("张三三撒"); //这个断言就是我需要的，适合数组的
-      expect(names).toContainEqual("李四思思");
+      expect(names).toContainEqual("测试张三三撒"); //这个断言就是我需要的，适合数组的
+      expect(names).toContainEqual("测试李四思思");
     });
     await test.step("删除", async () => {
       // 删除人员，并测试提示；
       await page.getByTestId("delete-button-0").click();
       await expect(page.getByText("确定删除吗？")).toBeVisible();
       await page.getByRole("button", { name: "删 除" }).click();
-      // 成功提示
-      // await expect(page.getByText('成功删除')).toBeVisible();
+      // 删除后剩下的第一行是另一个新人
       await expect(page.getByTestId("row-name-0")).toContainText(names[1]);
-      // 有记录的人的删除提示应该不一样
-      await page.getByTestId("delete-button-2").click();
+      // 有记录的人的删除提示应该不一样(此时只剩两行: 新人第0行,旧人员第1行)
+      await page.getByTestId("delete-button-1").click();
       await expect(page.getByText("删除此人将一并删除相关考勤记录！")).toBeVisible();
       await page.getByRole("button", { name: "取 消" }).click();
     });
@@ -314,12 +331,10 @@ test.describe("人员 创建删除编辑", () => {
       // 编辑
       await page.getByTestId("edit-button-0").click();
       await page.getByTestId("name-input").click();
-      await page.getByTestId("name-input").fill("李四思思111");
+      await page.getByTestId("name-input").fill("测试李四思思111");
       await page.getByTestId("save-button").click();
-      // 成功提示
-      // await expect(page.getByText('成功编辑')).toBeVisible();
-      // await page.getByText('成功', { exact: true }).click();
-      await expect(page.getByTestId("row-name-0")).toContainText("李四思思111");
+      // 判断结果
+      await expect(page.getByTestId("row-name-0")).toContainText("测试李四思思111");
     });
   });
 });

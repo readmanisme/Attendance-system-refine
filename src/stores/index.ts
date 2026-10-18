@@ -19,9 +19,12 @@ export const useUiStore = create<UiState>()(
 
 // ======================== 后端地址 / 考勤月范围配置 ========================
 
-// electron 预注入端口可用时用它(未注入则用默认端口)
-// @ts-expect-error,111
-const PORT = window?.process1?.env?.PORTTTT ?? 29401;
+// electron 预注入端口可用时用它；网页 URL 带 ?pb-port=xxx 时用该参数（playwright 测试用）；否则用默认端口
+const PORT =
+  // @ts-expect-error,111
+  window?.process1?.env?.PORTTTT ??
+  new URLSearchParams(window.location.search).get("pb-port") ??
+  29401;
 const FIXED_API_URL = `http://localhost:${PORT}`;
 
 interface ConfigState {
