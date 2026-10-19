@@ -5,7 +5,7 @@
 import dayjs from "dayjs";
 import { Alert, Button, Card, DatePicker, Flex, InputNumber, Select, Tag } from "antd";
 import { CloseCircleOutlined } from "@ant-design/icons";
-import { minutesToHours } from "@/utils/workTime";
+import { formatHoursHm, minutesToHours } from "@/utils/workTime";
 import PySearchSelect from "@/components/PySearchSelect";
 import { HelpTip } from "@/components/ui/HelpTip";
 import type { WorkerOption, useBatchEntry } from "./useBatchEntry";
@@ -202,9 +202,14 @@ export function BatchEntryPanel({ batch, workTypeSelectProps }: BatchEntryPanelP
               <Tag
                 data-testid="time-difference"
                 color="blue"
-                style={{ marginInlineEnd: 0, minWidth: 76, textAlign: "center" }}
+                style={{
+                  marginInlineEnd: 0,
+                  minWidth: 84,
+                  textAlign: "center",
+                  fontVariantNumeric: "tabular-nums",
+                }}
               >
-                {minutes}分钟
+                {formatHoursHm(minutes)}
               </Tag>
             </Flex>
 

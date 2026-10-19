@@ -1,9 +1,13 @@
 import { List as LList, useTable } from "@refinedev/antd";
-import { useList } from "@refinedev/core";
+import { useList, type CrudFilter } from "@refinedev/core";
 import PySearchSelect from "@/components/PySearchSelect";
-import { useEffect, useState, type Key } from "react";
+import { useEffect, useMemo, useState, type Key } from "react";
+import Decimal from "decimal.js";
 import { buildEqOrFilter, cellTestId } from "@/utils/tableHelpers";
-import { buildSalaryDict } from "@/utils/salary";
+import { buildSalaryDict, computeSalaryStats } from "@/utils/salary";
+import { formatHoursExact } from "@/utils/workTime";
+import { getWorkDateRange } from "@/utils/get_data_picker_filter";
+import { useConfigStore } from "@/stores";
 import { SwitchDataRange } from "@/components/SwitchDataRange";
 import { BASE_WORK_TYPE_NAME } from "@/constants";
 import { WorkerExpandTables } from "./ExpandTables";
@@ -66,6 +70,32 @@ export default function GongShiList() {
   // 真 loading：render 期间直接派生，避免 useState+useEffect
   const isDataLoading = !!workerData.loading || query.isLoading || querySalary.isLoading;
 
+  // 主表汇总：当前日期范围内每人的合计工时 / 合计薪资。
+  // 与展开表、Excel 导出共用 computeSalaryStats 的同一套口径。
+  const { recordMonthRange } = useConfigStore();
+  const rangeFilter = useMemo<CrudFilter>(() => {
+    const { gte, lte } = getWorkDateRange(recordMonthRange);
+    return {
+      operator: "and",
+      value: [
+        { field: "work_date", operator: "gte", value: gte },
+        { field: "work_date", operator: "lte", value: lte },
+      ],
+    };
+  }, [recordMonthRange]);
+  const { result: rangeRecords, query: rangeQuery } = useList({
+    resource: __AttendanceRecord_TableName,
+    filters: [rangeFilter],
+    pagination: { mode: "off" },
+  });
+  // 薪资按"工人名"解析，主表汇总必须用全量工人名（分页的 workerMap 只有当前页）
+  const { result: allWorkers, query: allWorkersQuery } = useList({
+    resource: __Workers_TableName,
+    pagination: { mode: "off" },
+  });
+  const isTableLoading =
+    isDataLoading || rangeQuery.isLoading || allWorkersQuery.isLoading;
+
   // ======================== 衍生数据计算 ========================
   const workTypeMap = new Map<string, string>();
   workTypeList?.data?.forEach((t: any) => {
@@ -79,6 +109,25 @@ export default function GongShiList() {
       );
 
   const salaryDict = buildSalaryDict(result?.data);
+
+  // 按工人汇总当前范围内的工时与薪资（记录 id → 单条薪资 由 computeSalaryStats 提供）
+  const allWorkerMap = new Map<string, string>();
+  allWorkers?.data?.forEach((w: any) => {
+    if (w?.id !== undefined) allWorkerMap.set(w.id, w.name);
+  });
+  const rangeStats = computeSalaryStats(rangeRecords?.data, {
+    workerMap: allWorkerMap,
+    workTypeMap,
+    salaryDict,
+  });
+  const rangeTotals = new Map<string, { minutes: number; salary: Decimal }>();
+  for (const rec of rangeRecords?.data ?? []) {
+    const workerId = String(rec.worker_id);
+    const cur = rangeTotals.get(workerId) ?? { minutes: 0, salary: new Decimal(0) };
+    cur.minutes += Number(rec.work_minutes) || 0;
+    cur.salary = cur.salary.plus(rangeStats.recordMap.get(String(rec.id))?.salary ?? 0);
+    rangeTotals.set(workerId, cur);
+  }
 
   const workTypes = [...workTypeMap.values()];
   const unSalaryWorkTypes = workTypes.filter((item) => !(item in salaryDict));
@@ -174,8 +223,9 @@ export default function GongShiList() {
           ...workerData.pagination,
           showSizeChanger: true,
         }}
-        loading={isDataLoading}
+        loading={isTableLoading}
         rowKey="id"
+        tableLayout="fixed"
         expandable={{
           expandedRowRender,
           expandedRowKeys,
@@ -193,7 +243,23 @@ export default function GongShiList() {
         <DataTable.Column
           dataIndex="name"
           title="姓名"
+          width={200}
           onCell={cellTestId((i) => `row-name-${i}`)}
+        />
+        <DataTable.Column
+          title="合计工时"
+          width={150}
+          className="num"
+          render={(_: any, record: any) => formatHoursExact(rangeTotals.get(record.id)?.minutes)}
+          onCell={cellTestId((i) => `row-hours-${i}`)}
+        />
+        <DataTable.Column
+          title="合计薪资"
+          width={150}
+          className="num"
+          render={(_: any, record: any) =>
+            (rangeTotals.get(record.id)?.salary ?? new Decimal(0)).toString()
+          }
         />
       </DataTable>
     </LList>

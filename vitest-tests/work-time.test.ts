@@ -6,6 +6,7 @@
 import { describe, expect, test } from "vitest";
 import {
   formatHoursExact,
+  formatHoursHm,
   hoursToMinutes,
   minutesToHours,
   minutesToHoursDecimal,
@@ -77,5 +78,35 @@ describe("formatHoursExact", () => {
     // 18 分钟 = 0.3h 恰好两位;19 分钟 = 0.31666… → 0.32
     expect(formatHoursExact(18)).toBe("0.3");
     expect(formatHoursExact(19)).toBe("0.32 (0h 19m)");
+  });
+});
+
+describe("formatHoursHm", () => {
+  test("null/undefined 显示 --", () => {
+    expect(formatHoursHm(null)).toBe("--");
+    expect(formatHoursHm(undefined)).toBe("--");
+  });
+
+  test("整小时只显示小时位", () => {
+    expect(formatHoursHm(0)).toBe("0h");
+    expect(formatHoursHm(60)).toBe("1h");
+    expect(formatHoursHm(480)).toBe("8h");
+    expect(formatHoursHm(1440)).toBe("24h");
+  });
+
+  test("不足 1 小时只显示分钟位", () => {
+    expect(formatHoursHm(20)).toBe("20m");
+    expect(formatHoursHm(59)).toBe("59m");
+  });
+
+  test("非整小时显示 xh xm", () => {
+    expect(formatHoursHm(90)).toBe("1h 30m");
+    expect(formatHoursHm(450)).toBe("7h 30m");
+    expect(formatHoursHm(125)).toBe("2h 5m");
+  });
+
+  test("负数保留符号", () => {
+    expect(formatHoursHm(-90)).toBe("-1h 30m");
+    expect(formatHoursHm(-20)).toBe("-20m");
   });
 });

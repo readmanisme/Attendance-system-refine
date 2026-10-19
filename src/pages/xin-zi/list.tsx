@@ -61,7 +61,7 @@ const SalaryTypeList = () => {
         )}
       </div>
 
-      <DataTable {...tableProps} dataSource={dataSource} rowKey="id">
+      <DataTable {...tableProps} dataSource={dataSource} rowKey="id" tableLayout="fixed">
         <DataTable.Column
           dataIndex="id"
           title="ID"
@@ -72,24 +72,27 @@ const SalaryTypeList = () => {
         <DataTable.Column
           dataIndex={["expand", "worker_name", "name"]}
           title="工人"
+          width={200}
           onCell={cellTestId((i) => `row-worker-${i}`)}
         />
         <DataTable.Column
           dataIndex={["expand", "work_type", "name"]}
           title="工作"
+          width={200}
           onCell={cellTestId((i) => `row-work-${i}`)}
         />
         <DataTable.Column
           dataIndex="SalaryNum"
           title="时薪"
           className="num"
-          width={100}
+          width={110}
           onCell={cellTestId((i) => `row-salary-${i}`)}
         />
         <DataTable.Column
           title="操作"
           dataIndex="actions"
           width={110}
+          align="right"
           render={(_value, record: BaseRecord, index: number) => (
             <Space>
               <EditButton

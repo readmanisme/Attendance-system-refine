@@ -132,46 +132,52 @@ const AttendanceRecordList = () => {
           showSizeChanger: true,
         }}
         rowKey="id"
+        // 固定列宽布局：所有列都给了 width，剩余空间按比例摊到每一列，
+        // 避免只有"无 width 的列"吃掉全部剩余宽度、导致中间大片空白
+        tableLayout="fixed"
         // @ts-expect-error,111
         rowSelection={selection.rowSelection}
       >
         <DataTable.Column
           dataIndex="id"
           title="ID"
-          width={120}
+          width={130}
           ellipsis
           onCell={cellTestId((i) => `row-id-${i}`)}
         />
         <DataTable.Column
           dataIndex={["expand", "worker_id", "name"]}
           title="人员姓名"
+          width={160}
           onCell={cellTestId((i) => `row-name-${i}`)}
         />
         <DataTable.Column
           dataIndex="work_date"
           title="日期"
+          width={150}
           onCell={cellTestId((i) => `row-date-${i}`)}
         />
         <DataTable.Column
           dataIndex="work_minutes"
           title="工时"
           className="num"
-          width={100}
+          width={110}
           render={(value: number | null) => formatHoursExact(value)}
           onCell={cellTestId((i) => `row-num-${i}`)}
         />
         <DataTable.Column
           dataIndex={["expand", "work", "name"]}
           title="工作类型"
-          width={140}
+          width={160}
           onCell={cellTestId((i) => `row-work-${i}`)}
         />
         <DataTable.Column
           title="操作"
           dataIndex="actions"
-          width={110}
+          width={120}
+          align="right"
           render={(_: any, record: BaseRecord, index: number) => (
-            <div style={{ display: "flex", gap: 6 }}>
+            <div style={{ display: "flex", gap: 6, justifyContent: "flex-end" }}>
               <EditButton
                 data-testid={`edit-button-${index}`}
                 hideText

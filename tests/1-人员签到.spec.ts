@@ -91,27 +91,27 @@ test("工时选择测试", async ({ page }) => {
    */
   await page.goto(appUrl(qiandao_url));
   await test.step("默认值", async () => {
-    await expect(page.getByTestId("time-difference"), "默认0分钟").toContainText("0分钟");
+    await expect(page.getByTestId("time-difference"), "默认0分钟").toContainText("0h");
     await expect(page.getByTestId("hours-input"), "输入框显示0小时").toHaveValue("0小时");
   });
   await test.step("加减分钟", async () => {
     await page.getByRole("button", { name: "+30min" }).click();
-    await expect(page.getByTestId("time-difference")).toContainText("30分钟");
+    await expect(page.getByTestId("time-difference")).toContainText("30m");
     await page.getByRole("button", { name: "-30min" }).click();
-    await expect(page.getByTestId("time-difference")).toContainText("0分钟"); //不会减为负数
+    await expect(page.getByTestId("time-difference")).toContainText("0h"); //不会减为负数
     await page.getByRole("button", { name: "+10min" }).click();
-    await expect(page.getByTestId("time-difference")).toContainText("10分钟");
+    await expect(page.getByTestId("time-difference")).toContainText("10m");
     await page.getByRole("button", { name: "-10min" }).click();
-    await expect(page.getByTestId("time-difference")).toContainText("0分钟");
+    await expect(page.getByTestId("time-difference")).toContainText("0h");
   });
   await test.step("直接输入小时", async () => {
     // 整数
     await page.getByTestId("hours-input").click();
     await page.getByTestId("hours-input").fill("8");
-    await expect(page.getByTestId("time-difference")).toContainText("480分钟");
+    await expect(page.getByTestId("time-difference")).toContainText("8h");
     // 小数，1/3小时=20分钟
     await page.getByTestId("hours-input").fill("0.3333");
-    await expect(page.getByTestId("time-difference")).toContainText("20分钟");
+    await expect(page.getByTestId("time-difference")).toContainText("20m");
   });
   await test.step("快速工时", async () => {
     // 测试tooltip显示
@@ -119,10 +119,10 @@ test("工时选择测试", async ({ page }) => {
     await expect(page.getByRole("tooltip", { name: "工时可以精确到分钟" })).toBeVisible();
     // 设置2小时
     await page.getByTestId("hour-button-2").click();
-    await expect(page.getByTestId("time-difference")).toContainText("120分钟");
+    await expect(page.getByTestId("time-difference")).toContainText("2h");
     // 7.5小时
     await page.getByTestId("hour-button-7.5").click();
-    await expect(page.getByTestId("time-difference")).toContainText("450分钟");
+    await expect(page.getByTestId("time-difference")).toContainText("7h 30m");
   });
 });
 

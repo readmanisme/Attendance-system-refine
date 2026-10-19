@@ -11,6 +11,8 @@ function DataTableInner<T extends object>({ pagination, size = "middle", ...rest
       : {
           showSizeChanger: true,
           showTotal: (total: number) => `共 ${total} 条`,
+          // Table 的 size="middle" 默认会把分页降级成 small,这里固定用常规尺寸
+          size: "default" as const,
           ...pagination,
         };
 

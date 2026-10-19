@@ -40,21 +40,22 @@ const WorkersList = () => {
     {
       dataIndex: "name",
       title: "姓名",
-      width: 240,
+      width: 180,
       onCell: cellTestId((i) => `row-name-${i}`),
     },
     {
       dataIndex: "num",
       title: "考勤记录数",
       className: "num",
-      width: 120,
+      width: 130,
       onCell: cellTestId((i) => `row-num-${i}`),
       render: (_text: any, record: any) => WorkerRecordNum.get(record.id),
     },
     {
       title: "操作",
       dataIndex: "actions",
-      width: 170,
+      width: 110,
+      align: "right" as const,
       render: (_value: any, record: BaseRecord, index: number) => (
         <Space>
           <EditButton size="small" recordItemId={record.id} data-testid={`edit-button-${index}`}>
@@ -109,6 +110,7 @@ const WorkersList = () => {
         {...tableProps}
         rowKey="id"
         columns={columns}
+        tableLayout="fixed"
         pagination={{ ...tableProps.pagination, showSizeChanger: true }}
       />
     </List>

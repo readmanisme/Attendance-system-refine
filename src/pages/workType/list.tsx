@@ -119,7 +119,7 @@ const ListWorkType = () => {
         <span data-testid="delete-alert">删除工作将一并删除与之相关的考勤记录和薪资计算方式</span>
       </div>
 
-      <DataTable {...tableProps} dataSource={dataSource} rowKey="id">
+      <DataTable {...tableProps} dataSource={dataSource} rowKey="id" tableLayout="fixed">
         <DataTable.Column
           dataIndex="id"
           title="ID"
@@ -127,12 +127,17 @@ const ListWorkType = () => {
           ellipsis
           onCell={cellTestId((i) => `row-id-${i}`)}
         />
-        <DataTable.Column dataIndex="name" title="名字" onCell={cellTestId((i) => `row-name-${i}`)} />
+        <DataTable.Column
+          dataIndex="name"
+          title="名字"
+          width={200}
+          onCell={cellTestId((i) => `row-name-${i}`)}
+        />
         <DataTable.Column
           dataIndex="num"
           title="考勤记录数"
           className="num"
-          width={120}
+          width={130}
           render={(_text: any, record: any) => WorkRecordNum.get(record.id)}
           onCell={cellTestId((i) => `row-num-${i}`)}
         />
@@ -140,6 +145,7 @@ const ListWorkType = () => {
           title="操作"
           dataIndex="actions"
           width={120}
+          align="right"
           render={(_value, record: BaseRecord, index: number) => (
             <Space>
               <EditButton

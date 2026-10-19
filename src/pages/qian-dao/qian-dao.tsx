@@ -177,6 +177,7 @@ export default function QianDaoPage() {
                 {...tableProps}
                 rowKey="id"
                 size="middle"
+                tableLayout="fixed"
                 locale={{
                   emptyText: (
                     <EmptyState
@@ -192,11 +193,13 @@ export default function QianDaoPage() {
                 <Table.Column
                   dataIndex={["expand", "worker_id", "name"]}
                   title="人员姓名"
+                  width={200}
                   onCell={cellTestId((i) => `row-name-${i}`)}
                 />
                 <Table.Column
                   dataIndex="workTime"
                   title="工时"
+                  width={220}
                   onCell={cellTestId((i) => `row-time-${i}`)}
                   render={(value, record) => {
                     if (isEditing(record.id)) {
@@ -216,6 +219,7 @@ export default function QianDaoPage() {
                 <Table.Column
                   dataIndex={["expand", "work", "name"]}
                   title="工作类型"
+                  width={220}
                   onCell={cellTestId((i) => `row-work-${i}`)}
                   render={(value, record) => {
                     if (isEditing(record.id)) {
@@ -232,11 +236,13 @@ export default function QianDaoPage() {
                 <Table.Column
                   title="操作"
                   dataIndex="actions"
+                  width={120}
+                  align="right"
                   render={(_, record: BaseRecord, index) => {
                     // @ts-expect-error,111
                     if (isEditing(record.id)) {
                       return (
-                        <Flex gap={6}>
+                        <Flex gap={6} justify="flex-end">
                           <SaveButton
                             data-testid={`save-button-${index}`}
                             {...saveButtonProps}
@@ -254,7 +260,7 @@ export default function QianDaoPage() {
                       );
                     }
                     return (
-                      <Flex gap={6}>
+                      <Flex gap={6} justify="flex-end">
                         <EditButton
                           // @ts-expect-error,111
                           {...editButtonProps(record.id)}

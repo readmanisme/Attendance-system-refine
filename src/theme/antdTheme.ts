@@ -90,6 +90,11 @@ export const antdTheme: ThemeConfig = {
       cellPaddingInline: 12,
       footerBg: neutral.bgSubtle,
     },
+    // 分页器整体放大一档:默认页码 32px,小号 24px,表格底部分页尤其显小
+    Pagination: {
+      itemSize: 36,
+      itemSizeSM: 30,
+    },
     Button: {
       fontWeight: font.weight.medium,
       primaryShadow: "none",
