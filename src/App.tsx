@@ -14,7 +14,7 @@ import routerBindings, {
   NavigateToResource,
   UnsavedChangesNotifier,
 } from "@refinedev/react-router";
-import { App as AntdApp, Avatar, Space, Spin, Typography } from "antd";
+import { App as AntdApp, Avatar, Space, Typography } from "antd";
 import { Outlet, Route, Routes, HashRouter } from "react-router";
 import { Header } from "./components/header";
 import { ColorModeContextProvider } from "./contexts/color-mode";
@@ -32,6 +32,8 @@ import {
   IconChartBar,
 } from "@tabler/icons-react";
 import { GlobalHelp } from "./components/GlobalHelp";
+import { PageShell } from "./components/layout/PageShell";
+import { SkeletonPage } from "./components/ui/SkeletonPage";
 import { useTranslation } from "react-i18next";
 import { getPb } from "@/utils/pocketbase";
 import { useConfigStore } from "./stores";
@@ -54,12 +56,8 @@ const SalaryTypeList = React.lazy(() => import("./pages/xin-zi/list"));
 const SalaryTypeCreate = React.lazy(() => import("./pages/xin-zi/create"));
 const SalaryTypeEdit = React.lazy(() => import("./pages/xin-zi/edit"));
 
-// 统一加载组件，可以考虑骨架屏
-const RouteLoading = () => (
-  <div className="flex items-center justify-center h-full min-h-96">
-    <Spin size="large" />
-  </div>
-);
+// 统一加载组件：骨架屏，切页时保留布局结构
+const RouteLoading = () => <SkeletonPage />;
 
 /** 常规 CRUD 页面的路由配置:同构的 组统一生成 */
 interface CrudRouteItem {
@@ -106,8 +104,8 @@ const DevRoutes = import.meta.env.DEV ? (
 ) : (
   <></>
 );
-// 独立 Title 组件（Memo 避免重复渲染）
-const AppTitle = React.memo(({ collapsed }: { collapsed: boolean }) => (
+// 独立 Title 组件（React Compiler 会自动 memo，无需手写）
+const AppTitle = ({ collapsed }: { collapsed: boolean }) => (
   <ThemedTitleV2
     collapsed={collapsed}
     icon={
@@ -120,7 +118,7 @@ const AppTitle = React.memo(({ collapsed }: { collapsed: boolean }) => (
     }
     text={null}
   />
-));
+);
 function App() {
   const { t, i18n } = useTranslation();
   const { __BACKEND_API_URL__ } = useConfigStore();
@@ -136,7 +134,7 @@ function App() {
   return (
     <HashRouter>
       <ColorModeContextProvider>
-        <AntdApp>
+        <AntdApp notification={{ placement: "bottomRight" }}>
           <DevtoolsProvider>
             <Refine
               dataProvider={{
@@ -238,7 +236,9 @@ function App() {
                       Header={() => <Header sticky />}
                       Sider={(props) => <ThemedSiderV2 {...props} fixed />}
                     >
-                      <Outlet />
+                      <PageShell>
+                        <Outlet />
+                      </PageShell>
                     </ThemedLayoutV2>
                   }
                 >

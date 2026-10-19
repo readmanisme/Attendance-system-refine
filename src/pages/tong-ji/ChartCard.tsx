@@ -15,7 +15,7 @@ export const cardTitle = (title: string, tip?: string) => (
     {title}
     {tip ? (
       <Tooltip title={tip}>
-        <IconInfoCircle size={15} color="#999" />
+        <IconInfoCircle size={15} color="var(--text-tertiary)" />
       </Tooltip>
     ) : null}
   </span>
@@ -23,6 +23,8 @@ export const cardTitle = (title: string, tip?: string) => (
 
 interface ChartCardProps {
   title: string;
+  /** 锚点导航的目标 id */
+  id?: string;
   /** 口径说明,悬浮在标题后的 info 图标上 */
   tip?: string;
   /** 标题右侧额外内容(如阈值输入框) */
@@ -38,6 +40,7 @@ interface ChartCardProps {
 /** 图表卡片:高度由调用方给,导出按钮直接拿 ECharts 实例出图 */
 export const ChartCard = ({
   title,
+  id,
   tip,
   extra,
   height = 320,
@@ -49,6 +52,7 @@ export const ChartCard = ({
   const chartRef = useRef<EChartsType | null>(null);
   return (
     <Card
+      id={id}
       size="small"
       data-testid={testId}
       title={cardTitle(title, tip)}

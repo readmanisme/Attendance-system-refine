@@ -5,19 +5,7 @@
  * 折叠区:出勤/时长分布 + 画像雷达 + 箱线。
  * 长尾的分布类图表默认折叠,让首屏只留"结论"。
  */
-import {
-  Alert,
-  Button,
-  Card,
-  Col,
-  Collapse,
-  Row,
-  Segmented,
-  Statistic,
-  Table,
-  Tag,
-  Tooltip,
-} from "antd";
+import { Alert, Button, Card, Col, Collapse, Row, Segmented, Table, Tag, Tooltip } from "antd";
 import { IconDownload } from "@tabler/icons-react";
 import { useState } from "react";
 import type { HealthIssue, Overview, Profiles } from "./compute";
@@ -26,6 +14,8 @@ import type { RankMode } from "./options";
 import * as opts from "./options";
 import { ChartCard, cardTitle } from "./ChartCard";
 import { downloadCsv } from "./download";
+import { StatCard } from "@/components/ui/StatCard";
+import { ChartNav } from "@/components/ui/ChartNav";
 
 interface OverviewTabProps {
   overview: Overview;
@@ -52,16 +42,16 @@ const HealthBlock = ({ issue }: { issue: HealthIssue }) => {
   return (
     <div
       data-testid={`tj-health-${issue.key}`}
-      className="rounded-md border border-solid border-gray-200 p-2"
+      className="rounded-md border border-solid border-[var(--border)] p-2"
     >
       <div className="flex flex-row flex-wrap items-center gap-2">
         <Tag color={issue.level === "warn" ? "error" : "warning"}>
           {opts.healthLevelText(issue.level)}
         </Tag>
         <span className="font-medium">{issue.title}</span>
-        <span className="text-gray-500">{issue.count} 处</span>
+        <span className="text-[var(--text-tertiary)]">{issue.count} 处</span>
       </div>
-      <div className="mt-1 text-xs text-gray-500">{issue.hint}</div>
+      <div className="mt-1 text-xs text-[var(--text-tertiary)]">{issue.hint}</div>
       <div
         className={
           collapsible && !expanded
@@ -70,7 +60,7 @@ const HealthBlock = ({ issue }: { issue: HealthIssue }) => {
         }
       >
         {issue.details.map((d, i) => (
-          <div key={`${issue.key}-${i}`} className="border-t border-solid border-gray-100">
+          <div key={`${issue.key}-${i}`} className="border-t border-solid border-[var(--border-subtle)]">
             {d}
           </div>
         ))}
@@ -84,6 +74,15 @@ const HealthBlock = ({ issue }: { issue: HealthIssue }) => {
   );
 };
 
+const NAV_ITEMS = [
+  { id: "tj-health", label: "数据体检" },
+  { id: "tj-trend", label: "每日趋势" },
+  { id: "tj-monthly", label: "月度总览" },
+  { id: "tj-rank", label: "工人排行" },
+  { id: "tj-shift", label: "班制占比" },
+  { id: "tj-worktype", label: "工种结构" },
+];
+
 export const OverviewTab = ({ overview, profiles, health, onPickWorker }: OverviewTabProps) => {
   const [rankMode, setRankMode] = useState<RankMode>("days");
   const rankItems = profiles.list;
@@ -95,50 +94,43 @@ export const OverviewTab = ({ overview, profiles, health, onPickWorker }: Overvi
       {/* 顶部统计卡片 */}
       <Row gutter={[8, 8]}>
         <Col xs={12} md={4}>
-          <Card size="small" data-testid="tj-total-hours">
-            <Statistic
-              title="总工时"
-              value={minutesToHours(overview.totalMinutes)}
-              suffix="h"
-              precision={1}
-            />
-          </Card>
+          <StatCard
+            testId="tj-total-hours"
+            title="总工时"
+            value={minutesToHours(overview.totalMinutes)}
+            suffix="h"
+            precision={1}
+          />
         </Col>
         <Col xs={12} md={4}>
-          <Card size="small" data-testid="tj-total-salary">
-            <Statistic
-              title="支出(估算)"
-              value={overview.totalSalary.toDecimalPlaces(2).toString()}
-              suffix="元"
-            />
-          </Card>
+          <StatCard
+            testId="tj-total-salary"
+            title="支出(估算)"
+            value={overview.totalSalary.toDecimalPlaces(2).toString()}
+            suffix="元"
+          />
         </Col>
         <Col xs={8} md={4}>
-          <Card size="small" data-testid="tj-person-days">
-            <Statistic title="出勤人天" value={overview.personDays} suffix="人天" />
-          </Card>
+          <StatCard testId="tj-person-days" title="出勤人天" value={overview.personDays} suffix="人天" />
         </Col>
         <Col xs={8} md={4}>
-          <Card size="small" data-testid="tj-worker-count">
-            <Statistic title="出勤人数" value={overview.workerCount} suffix="人" />
-          </Card>
+          <StatCard testId="tj-worker-count" title="出勤人数" value={overview.workerCount} suffix="人" />
         </Col>
         <Col xs={8} md={4}>
-          <Card size="small" data-testid="tj-record-count">
-            <Statistic title="记录条数" value={overview.recordCount} suffix="条" />
-          </Card>
+          <StatCard testId="tj-record-count" title="记录条数" value={overview.recordCount} suffix="条" />
         </Col>
         <Col xs={24} md={4}>
-          <Card size="small" data-testid="tj-percapita-hours">
-            <Statistic
-              title="人均月工时"
-              value={overview.perCapita.avgHoursPerWorker}
-              suffix="h"
-              precision={1}
-            />
-          </Card>
+          <StatCard
+            testId="tj-percapita-hours"
+            title="人均月工时"
+            value={overview.perCapita.avgHoursPerWorker}
+            suffix="h"
+            precision={1}
+          />
         </Col>
       </Row>
+
+      <ChartNav items={NAV_ITEMS} />
 
       {unpriced.names.length > 0 && (
         <Alert
@@ -151,6 +143,7 @@ export const OverviewTab = ({ overview, profiles, health, onPickWorker }: Overvi
 
       {/* 数据体检:先看数据对不对,再看图 */}
       <Card
+        id="tj-health"
         size="small"
         data-testid="tj-health-card"
         title={cardTitle("数据体检", "只提示不修改;每条问题都列出全部明细,便于逐条核对")}
@@ -180,6 +173,7 @@ export const OverviewTab = ({ overview, profiles, health, onPickWorker }: Overvi
       </Card>
 
       <ChartCard
+        id="tj-trend"
         title="每日出勤人数 & 总工时趋势"
         tip="人天口径;无记录日期如实留白不连线;红点=当天有人合计 >12h"
         height={360}
@@ -187,6 +181,7 @@ export const OverviewTab = ({ overview, profiles, health, onPickWorker }: Overvi
       />
 
       <ChartCard
+        id="tj-monthly"
         title="月度总览"
         tip="人天/工时左轴,支出右轴;断档月如实为 0;悬浮显示环比、人均工时与出勤率"
         height={420}
@@ -196,6 +191,7 @@ export const OverviewTab = ({ overview, profiles, health, onPickWorker }: Overvi
       <Row gutter={[8, 8]}>
         <Col xs={24} lg={14}>
           <ChartCard
+            id="tj-rank"
             title="工人排行"
             tip="三种排序共用一张图;点条形跳到该人的个人分析"
             height={430}
@@ -223,6 +219,7 @@ export const OverviewTab = ({ overview, profiles, health, onPickWorker }: Overvi
         </Col>
         <Col xs={24} lg={10}>
           <ChartCard
+            id="tj-shift"
             title="班制占比"
             tip="按人天统计:全日 ≥9h / 近全日 8~9h / 半日 3~8h / 短时 <3h,四档首尾相接"
             height={430}
@@ -234,6 +231,7 @@ export const OverviewTab = ({ overview, profiles, health, onPickWorker }: Overvi
       <Row gutter={[8, 8]}>
         <Col xs={24} md={12}>
           <ChartCard
+            id="tj-worktype"
             title="工种工时占比"
             tip="记录口径;超过 8 类折叠为'其他'"
             height={340}
@@ -270,18 +268,18 @@ export const OverviewTab = ({ overview, profiles, health, onPickWorker }: Overvi
               dataSource={overview.workTypeTable}
               columns={[
                 { title: "工种", dataIndex: "name", key: "name" },
-                { title: "记录数", dataIndex: "recordCount", key: "recordCount" },
-                { title: "总工时(h)", dataIndex: "hours", key: "hours" },
-                { title: "支出(估算)", dataIndex: "salary", key: "salary" },
+                { title: "记录数", dataIndex: "recordCount", key: "recordCount", className: "num" },
+                { title: "总工时(h)", dataIndex: "hours", key: "hours", className: "num" },
+                { title: "支出(估算)", dataIndex: "salary", key: "salary", className: "num" },
               ]}
             />
           </Card>
         </Col>
       </Row>
 
+      {/* 分布与画像默认收起：首屏只留结论 */}
       <Collapse
         size="small"
-        defaultActiveKey="dist" // 默认展开
         items={[
           {
             key: "dist",

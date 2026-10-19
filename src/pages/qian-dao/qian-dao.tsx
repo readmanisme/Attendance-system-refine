@@ -1,14 +1,5 @@
 import dayjs, { Dayjs } from "dayjs";
-import {
-  Typography,
-  Table,
-  Alert,
-  Button,
-  Space,
-  Form,
-  Select,
-  Popconfirm,
-} from "antd";
+import { Table, Button, Form, Select, Popconfirm, Flex, Card } from "antd";
 import { DeleteOutlined } from "@ant-design/icons";
 import {
   DeleteButton,
@@ -20,16 +11,15 @@ import {
   useSelect,
 } from "@refinedev/antd";
 import { BaseRecord, useDeleteMany } from "@refinedev/core";
-import { useCallback, useState } from "react";
+import { useState } from "react";
 import { formatHoursExact } from "@/utils/workTime";
 import WorkMinutesInput from "@/components/WorkMinutesInput";
 import PySearchSelect from "@/components/PySearchSelect";
 import { cellTestId, buildEqOrFilter } from "@/utils/tableHelpers";
 import { useBatchRowSelection } from "../useBatchRowSelection";
+import { EmptyState } from "@/components/ui/EmptyState";
 import { BatchEntryPanel } from "./BatchEntryPanel";
 import { useBatchEntry } from "./useBatchEntry";
-
-const { Title: AntdTitle } = Typography;
 
 export default function QianDaoPage() {
   // ======================== 所选日期(状态在页面:记录表和批量录入都用) ========================
@@ -43,28 +33,35 @@ export default function QianDaoPage() {
   });
 
   // ======================== 当天记录表 ========================
-  const { tableProps, formProps, setFilters, isEditing, saveButtonProps, cancelButtonProps, editButtonProps } =
-    useEditableTable({
-      resource: __AttendanceRecord_TableName,
-      pagination: {
-        mode: "off",
-      },
-      sorters: {
-        permanent: [{ field: "created", order: "desc" }],
-      },
-      filters: {
-        permanent: [
-          {
-            field: "work_date",
-            operator: "eq",
-            value: checkDate.format("YYYY-MM-DD"),
-          },
-        ],
-      },
-      meta: {
-        expand: ["work", "worker_id"],
-      },
-    });
+  const {
+    tableProps,
+    formProps,
+    setFilters,
+    isEditing,
+    saveButtonProps,
+    cancelButtonProps,
+    editButtonProps,
+  } = useEditableTable({
+    resource: __AttendanceRecord_TableName,
+    pagination: {
+      mode: "off",
+    },
+    sorters: {
+      permanent: [{ field: "created", order: "desc" }],
+    },
+    filters: {
+      permanent: [
+        {
+          field: "work_date",
+          operator: "eq",
+          value: checkDate.format("YYYY-MM-DD"),
+        },
+      ],
+    },
+    meta: {
+      expand: ["work", "worker_id"],
+    },
+  });
 
   // 批量录入(传入当天记录,用于"同键合并"的判断与提示)
   const batch = useBatchEntry({
@@ -73,11 +70,11 @@ export default function QianDaoPage() {
     existingRecords: tableProps.dataSource,
   });
 
-  // 批量删除(同一模式类似):等删除成功再清空选择,失败保留选中便于重试
+  // 批量删除:等删除成功再清空选择,失败保留选中便于重试
   const selection = useBatchRowSelection();
   const { mutateAsync: deleteManyAsync } = useDeleteMany();
   const { selectedRowKeys, clearSelection } = selection;
-  const handleBatchDelete = useCallback(async () => {
+  const handleBatchDelete = async () => {
     if (!selectedRowKeys.length) return;
     try {
       await deleteManyAsync({
@@ -88,43 +85,74 @@ export default function QianDaoPage() {
     } catch {
       // 删除失败:refine 已弹出错误通知,保留选中让用户直接重试
     }
-  }, [deleteManyAsync, selectedRowKeys, clearSelection]);
+  };
 
   // 表格内编辑行的工时组件 value 就是整数分钟,直接写 work_minutes
-  const handleOnFinish = useCallback(
-    (values: any) => {
-      const rest: any = { ...values };
-      if (rest.workTime != null) {
-        rest.work_minutes = rest.workTime;
-      }
-      delete rest.workTime;
-      if (formProps.onFinish) {
-        formProps.onFinish(rest);
-      }
-    },
-    [formProps],
-  );
+  const handleOnFinish = (values: any) => {
+    const rest: any = { ...values };
+    if (rest.workTime != null) {
+      rest.work_minutes = rest.workTime;
+    }
+    delete rest.workTime;
+    if (formProps.onFinish) {
+      formProps.onFinish(rest);
+    }
+  };
 
   // ======================== UI ========================
-
   return (
-    <List>
-      <div className={`min-h-screen bg-gray-50 p-4 sm:p-6 lg:p-8`}>
-        <div className="max-w-6xl mx-auto">
-          <div className="mb-6">
-            <AntdTitle level={3} className="mb-6! text-center">
-              工时录入系统
-            </AntdTitle>
-            <BatchEntryPanel batch={batch} workTypeSelectProps={workTypeSelectProps} />
-          </div>
-          <Space direction="vertical">
-            <Space>
-              <Alert
-                data-testid="edit-alert"
-                type="info"
-                message="同一人同一天的相同工作不会产生第二条记录，而是自动叠加为一个总工时"
-                showIcon
+    <List
+      title="工时录入系统"
+      breadcrumb={false}
+      headerProps={{ subTitle: "选择人员、日期、工种与工时，一次录入多人" }}
+    >
+      <div style={{ display: "flex", gap: 16, alignItems: "stretch" }}>
+        {/* 左：录入 + 当天汇总 */}
+        <div style={{ width: 420, flex: "none" }}>
+          <BatchEntryPanel batch={batch} workTypeSelectProps={workTypeSelectProps} />
+        </div>
+
+        {/* 右：当天记录 */}
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <Card
+            size="small"
+            style={{ height: "100%" }}
+            title="当天记录"
+            extra={
+              <span style={{ fontSize: 12, color: "var(--text-tertiary)" }}>
+                {checkDate.format("YYYY-MM-DD")}
+              </span>
+            }
+          >
+            {/* 说明压成一行小字：保留 testid 供 E2E 断言，但不再用大块 Alert 占据首屏 */}
+            <div
+              style={{
+                display: "flex",
+                flexWrap: "wrap",
+                gap: "4px 16px",
+                marginBottom: 12,
+                fontSize: 12,
+                color: "var(--text-tertiary)",
+              }}
+            >
+              <span data-testid="edit-alert">同人同日同工种自动合并为总工时</span>
+              <span data-testid="search-alert">可用搜索筛选人员，快速确认某人当天是否已记录</span>
+            </div>
+
+            <Flex justify="space-between" align="center" gap={8} style={{ marginBottom: 12 }}>
+              <PySearchSelect
+                onChangeFn={(values) => {
+                  const ids = (Array.isArray(values) ? values : [values]).map((v) => v.value);
+                  setFilters(buildEqOrFilter("worker_id", ids), "replace");
+                }}
+                placeholder="按人员筛选当天记录，支持拼音"
+                mode="multiple"
+                labelPlaceholder=""
+                width="100%"
+                onClearFn={() => setFilters([], "replace")}
+                type="qiandao"
               />
+
               <Popconfirm
                 title="确认删除选中记录？"
                 onConfirm={handleBatchDelete}
@@ -136,128 +164,121 @@ export default function QianDaoPage() {
                   danger
                   icon={<DeleteOutlined />}
                   disabled={!selection.selectedRowKeys.length}
+                  style={{ flex: "none" }}
                 >
                   删除选中 ({selection.selectedRowKeys.length})
                 </Button>
               </Popconfirm>
-            </Space>
-            <Alert
-              data-testid="search-alert"
-              type="info"
-              message="可在下方搜索框中筛选人员，快速确认某人当天是否已记录"
-              showIcon
-            />
-            <PySearchSelect
-              onChangeFn={(values) => {
-                const ids = (Array.isArray(values) ? values : [values]).map((v) => v.value);
-                setFilters(buildEqOrFilter("worker_id", ids), "replace");
-              }}
-              placeholder="按人员筛选当天记录,支持拼音"
-              mode="multiple"
-              labelPlaceholder=""
-              width="100%"
-              onClearFn={() => setFilters([], "replace")}
-              type="qiandao"
-            />
-          </Space>
-          <Form {...formProps} onFinish={handleOnFinish}>
-            <Table
-              data-testid="table"
-              {...tableProps}
-              className="mt-2"
-              rowKey="id"
-              // @ts-expect-error,111
-              rowSelection={selection.rowSelection}
-            >
-              <Table.Column
-                dataIndex={["expand", "worker_id", "name"]}
-                title="人员姓名"
-                onCell={cellTestId((i) => `row-name-${i}`)}
-              />
-              <Table.Column
-                dataIndex="workTime"
-                title="工时"
-                onCell={cellTestId((i) => `row-time-${i}`)}
-                render={(value, record) => {
-                  if (isEditing(record.id)) {
-                    return (
-                      <Form.Item
-                        name="workTime"
-                        style={{ margin: 0 }}
-                        initialValue={record.work_minutes}
-                      >
-                        <WorkMinutesInput showHint={false} />
-                      </Form.Item>
-                    );
-                  }
-                  return <TextField value={formatHoursExact(record.work_minutes)} />;
+            </Flex>
+
+            <Form {...formProps} onFinish={handleOnFinish}>
+              <Table
+                data-testid="table"
+                {...tableProps}
+                rowKey="id"
+                size="middle"
+                locale={{
+                  emptyText: (
+                    <EmptyState
+                      compact
+                      title="当天还没有记录"
+                      description="在左侧选择人员、工种与工时后点击「录入」"
+                    />
+                  ),
                 }}
-              />
-              <Table.Column
-                dataIndex={["expand", "work", "name"]}
-                title="工作类型"
-                onCell={cellTestId((i) => `row-work-${i}`)}
-                render={(value, record) => {
-                  if (isEditing(record.id)) {
+                // @ts-expect-error,111
+                rowSelection={selection.rowSelection}
+              >
+                <Table.Column
+                  dataIndex={["expand", "worker_id", "name"]}
+                  title="人员姓名"
+                  onCell={cellTestId((i) => `row-name-${i}`)}
+                />
+                <Table.Column
+                  dataIndex="workTime"
+                  title="工时"
+                  onCell={cellTestId((i) => `row-time-${i}`)}
+                  render={(value, record) => {
+                    if (isEditing(record.id)) {
+                      return (
+                        <Form.Item
+                          name="workTime"
+                          style={{ margin: 0 }}
+                          initialValue={record.work_minutes}
+                        >
+                          <WorkMinutesInput showHint={false} />
+                        </Form.Item>
+                      );
+                    }
+                    return <TextField value={formatHoursExact(record.work_minutes)} />;
+                  }}
+                />
+                <Table.Column
+                  dataIndex={["expand", "work", "name"]}
+                  title="工作类型"
+                  onCell={cellTestId((i) => `row-work-${i}`)}
+                  render={(value, record) => {
+                    if (isEditing(record.id)) {
+                      return (
+                        <Form.Item name="work" style={{ margin: 0 }}>
+                          {/* 编辑行内的 initialValue 由表单根据 name 自动设置 */}
+                          <Select {...workTypeSelectProps} />
+                        </Form.Item>
+                      );
+                    }
+                    return <TextField value={value} />;
+                  }}
+                />
+                <Table.Column
+                  title="操作"
+                  dataIndex="actions"
+                  render={(_, record: BaseRecord, index) => {
+                    // @ts-expect-error,111
+                    if (isEditing(record.id)) {
+                      return (
+                        <Flex gap={6}>
+                          <SaveButton
+                            data-testid={`save-button-${index}`}
+                            {...saveButtonProps}
+                            hideText
+                            size="small"
+                          />
+                          <Button
+                            data-testid={`cancel-button-${index}`}
+                            {...cancelButtonProps}
+                            size="small"
+                          >
+                            取消
+                          </Button>
+                        </Flex>
+                      );
+                    }
                     return (
-                      <Form.Item name="work" style={{ margin: 0 }}>
-                        {/* 编辑行内的 initialValue 由表单根据 name 自动设置 */}
-                        <Select {...workTypeSelectProps} />
-                      </Form.Item>
-                    );
-                  }
-                  return <TextField value={value} />;
-                }}
-              />
-              <Table.Column
-                title="操作"
-                dataIndex="actions"
-                render={(_, record: BaseRecord, index) => {
-                  // @ts-expect-error,111
-                  if (isEditing(record.id)) {
-                    return (
-                      <Space>
-                        <SaveButton
-                          data-testid={`save-button-${index}`}
-                          {...saveButtonProps}
+                      <Flex gap={6}>
+                        <EditButton
+                          // @ts-expect-error,111
+                          {...editButtonProps(record.id)}
+                          data-testid={`edit-button-${index}`}
                           hideText
                           size="small"
+                          resource={__AttendanceRecord_TableName}
+                          recordItemId={record.id}
                         />
-                        <Button
-                          data-testid={`cancel-button-${index}`}
-                          {...cancelButtonProps}
+                        <DeleteButton
+                          data-testid={`delete-button-${index}`}
+                          hideText
+                          disabled={selection.hasSelection}
                           size="small"
-                        >
-                          取消
-                        </Button>
-                      </Space>
+                          resource={__AttendanceRecord_TableName}
+                          recordItemId={record.id}
+                        />
+                      </Flex>
                     );
-                  }
-                  return (
-                    <Space>
-                      <EditButton
-                        // @ts-expect-error,111
-                        {...editButtonProps(record.id)}
-                        data-testid={`edit-button-${index}`}
-                        hideText
-                        size="small"
-                        resource={__AttendanceRecord_TableName}
-                        recordItemId={record.id}
-                      />
-                      <DeleteButton
-                        data-testid={`delete-button-${index}`}
-                        hideText
-                        disabled={selection.hasSelection}
-                        size="small"
-                        resource={__AttendanceRecord_TableName}
-                        recordItemId={record.id}
-                      />
-                    </Space>
-                  );
-                }}
-              />
-            </Table>
-          </Form>
+                  }}
+                />
+              </Table>
+            </Form>
+          </Card>
         </div>
       </div>
     </List>

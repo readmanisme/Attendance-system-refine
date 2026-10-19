@@ -16,11 +16,12 @@
  */
 import { List } from "@refinedev/antd";
 import { useList } from "@refinedev/core";
-import { Empty, Segmented, Spin, Tabs, Typography } from "antd";
+import { Segmented, Spin, Tabs, Typography } from "antd";
 import { DatePicker } from "antd";
 import dayjs from "dayjs";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useConfigStore } from "@/stores";
+import { EmptyState } from "@/components/ui/EmptyState";
 import {
   buildContext,
   buildHealth,
@@ -215,7 +216,12 @@ export default function TongJiPage() {
               ]}
             />
           ) : (
-            <Empty description={isLoading ? "加载中..." : "所选范围内没有记录"} />
+            <EmptyState
+              title={isLoading ? "加载中…" : "所选范围内没有记录"}
+              description={
+                isLoading ? undefined : "换一个月份范围，或先到「人员签到」录入工时后再回来查看"
+              }
+            />
           )}
         </div>
       </Spin>

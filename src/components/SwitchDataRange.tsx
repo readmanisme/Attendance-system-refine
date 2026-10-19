@@ -23,7 +23,7 @@ export const SwitchDataRange = ({ onApplyFn = () => {} }) => {
     <div className="flex flex-row justify-end items-center gap-2">
       <RangePicker
         allowClear={false}
-        className="w-56"
+        style={{ width: 240, flex: "none", flexShrink: 0 }}
         value={value}
         onChange={(date, dateString) => {
           // 清空(取消)时保持原范围不被覆盖

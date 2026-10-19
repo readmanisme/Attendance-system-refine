@@ -1,7 +1,6 @@
 import { DeleteButton, EditButton, List, useTable } from "@refinedev/antd";
 import { useDeleteMany, BaseRecord, CrudFilter } from "@refinedev/core";
-import { Space, Table, Button, Popconfirm, Alert, Tooltip } from "antd";
-import { useCallback } from "react";
+import { Button, Popconfirm, Tooltip } from "antd";
 import { SwitchDataRange } from "@/components/SwitchDataRange";
 import { useGetDatePickerFilter } from "@/utils/get_data_picker_filter";
 import PySearchSelect from "@/components/PySearchSelect";
@@ -10,6 +9,8 @@ import { buildEqOrFilter, cellTestId } from "@/utils/tableHelpers";
 import { DeleteOutlined, PlusSquareOutlined } from "@ant-design/icons";
 import { useResourceParams } from "@refinedev/core";
 import { useBatchRowSelection } from "../useBatchRowSelection";
+import { FilterBar } from "@/components/ui/FilterBar";
+import { DataTable } from "@/components/ui/DataTable";
 
 const AttendanceRecordList = () => {
   const datePickerFilter = useGetDatePickerFilter();
@@ -34,7 +35,7 @@ const AttendanceRecordList = () => {
 
   const { selectedRowKeys, clearSelection } = selection;
   const resourceName = resource?.name;
-  const handleBatchDelete = useCallback(async () => {
+  const handleBatchDelete = async () => {
     if (!selectedRowKeys.length) return;
     try {
       await deleteManyAsync({
@@ -46,83 +47,85 @@ const AttendanceRecordList = () => {
     } catch {
       // 删除失败:refine 已弹出错误通知,保留选中让用户直接重试
     }
-  }, [deleteManyAsync, resourceName, selectedRowKeys, clearSelection]);
+  };
 
   return (
     <List
+      breadcrumb={false}
+      headerProps={{ subTitle: "按日期与人员查看历史记录；新增记录请到「人员签到」页" }}
       headerButtons={
         <Tooltip title="请到签到页面添加记录">
-          {/* 因为CreateButton会导致tooltip位置异常，所以换成普通的button，无所谓，反正不用 */}
-          <Button data-testid="add-button" disabled icon={<PlusSquareOutlined />}>
+          {/* CreateButton 会导致 tooltip 位置异常，所以换成普通按钮 */}
+          <Button data-testid="add-button" disabled icon={<PlusSquareOutlined />} size="middle">
             添加记录
           </Button>
         </Tooltip>
       }
     >
-      <Alert
-        data-testid="help-alert"
-        message="点选复选框选择记录，然后可以批量删除；只能选择当页记录，记录较多的情况下可以到右下角切换每页显示数量。"
-        type="info"
-        showIcon
-        className="mb-2!"
-      />
-      <Alert
-        data-testid="help-alert-2"
-        message="要查看特定天数的记录，推荐到人员签到页面切换时间到此天查看"
-        type="info"
-        showIcon
-        className="mb-2!"
-      />
+      {/* 原两个大块 Alert 合并为一行小字，testid 分别保留 */}
+      <div
+        style={{
+          display: "flex",
+          flexWrap: "wrap",
+          gap: "4px 16px",
+          marginBottom: 10,
+          fontSize: 12,
+          color: "var(--text-tertiary)",
+        }}
+      >
+        <span data-testid="help-alert">
+          点选复选框可批量删除（仅当前页）；记录较多时可在右下角切换每页数量
+        </span>
+        <span data-testid="help-alert-2">查看某天的记录，推荐到「人员签到」页切换日期</span>
+      </div>
 
-      {/* 顶部操作区 */}
-      <div className="flex flex-row justify-between items-center mb-2">
-        <div className="flex flex-row gap-2 items-center"></div>
-
-        <div className="flex gap-2 items-center">
-          <Popconfirm
-            title="确认删除选中记录？"
-            onConfirm={handleBatchDelete}
-            disabled={!selection.selectedRowKeys.length}
-          >
-            <Button
-              type="primary"
-              data-testid="batch-delete-button"
-              danger
-              icon={<DeleteOutlined />}
-              disabled={!selection.selectedRowKeys.length}
-            >
-              删除选中 ({selection.selectedRowKeys.length})
-            </Button>
-          </Popconfirm>
-
-          <SwitchDataRange
-            onApplyFn={() => {
+      <FilterBar
+        left={
+          <PySearchSelect
+            onChangeFn={(values) => {
+              setFilters(buildEqOrFilter("worker_id", toOptionValues(values) ?? []) as CrudFilter[]);
               setCurrentPage(1);
               selection.clearSelection();
             }}
+            placeholder="多选工人，支持拼音"
+            mode="multiple"
+            onClearFn={() => {
+              setFilters([], "replace");
+              setCurrentPage(1);
+              selection.clearSelection();
+            }}
+            needButton
           />
-        </div>
-      </div>
+        }
+        right={
+          <>
+            <Popconfirm
+              title="确认删除选中记录？"
+              onConfirm={handleBatchDelete}
+              disabled={!selection.selectedRowKeys.length}
+            >
+              <Button
+                type="primary"
+                data-testid="batch-delete-button"
+                danger
+                icon={<DeleteOutlined />}
+                disabled={!selection.selectedRowKeys.length}
+              >
+                删除选中 ({selection.selectedRowKeys.length})
+              </Button>
+            </Popconfirm>
 
-      {/* 工人筛选 */}
-      <PySearchSelect
-        onChangeFn={(values) => {
-          setFilters(buildEqOrFilter("worker_id", toOptionValues(values) ?? []) as CrudFilter[]);
-          setCurrentPage(1);
-          selection.clearSelection();
-        }}
-        placeholder="多选工人,支持拼音"
-        mode="multiple"
-        onClearFn={() => {
-          setFilters([], "replace");
-          setCurrentPage(1);
-          selection.clearSelection();
-        }}
-        needButton
+            <SwitchDataRange
+              onApplyFn={() => {
+                setCurrentPage(1);
+                selection.clearSelection();
+              }}
+            />
+          </>
+        }
       />
 
-      {/* 表格部分 */}
-      <Table
+      <DataTable
         {...tableProps}
         pagination={{
           ...tableProps.pagination,
@@ -131,35 +134,44 @@ const AttendanceRecordList = () => {
         rowKey="id"
         // @ts-expect-error,111
         rowSelection={selection.rowSelection}
-        className="mt-2"
       >
-        <Table.Column dataIndex="id" title="ID" onCell={cellTestId((i) => `row-id-${i}`)} />
-        <Table.Column
+        <DataTable.Column
+          dataIndex="id"
+          title="ID"
+          width={120}
+          ellipsis
+          onCell={cellTestId((i) => `row-id-${i}`)}
+        />
+        <DataTable.Column
           dataIndex={["expand", "worker_id", "name"]}
           title="人员姓名"
           onCell={cellTestId((i) => `row-name-${i}`)}
         />
-        <Table.Column
+        <DataTable.Column
           dataIndex="work_date"
           title="日期"
           onCell={cellTestId((i) => `row-date-${i}`)}
         />
-        <Table.Column
+        <DataTable.Column
           dataIndex="work_minutes"
           title="工时"
+          className="num"
+          width={100}
           render={(value: number | null) => formatHoursExact(value)}
           onCell={cellTestId((i) => `row-num-${i}`)}
         />
-        <Table.Column
+        <DataTable.Column
           dataIndex={["expand", "work", "name"]}
           title="工作类型"
+          width={140}
           onCell={cellTestId((i) => `row-work-${i}`)}
         />
-        <Table.Column
+        <DataTable.Column
           title="操作"
           dataIndex="actions"
-          render={(_, record: BaseRecord, index) => (
-            <Space>
+          width={110}
+          render={(_: any, record: BaseRecord, index: number) => (
+            <div style={{ display: "flex", gap: 6 }}>
               <EditButton
                 data-testid={`edit-button-${index}`}
                 hideText
@@ -173,10 +185,10 @@ const AttendanceRecordList = () => {
                 recordItemId={record.id}
                 disabled={selection.hasSelection}
               />
-            </Space>
+            </div>
           )}
         />
-      </Table>
+      </DataTable>
     </List>
   );
 };

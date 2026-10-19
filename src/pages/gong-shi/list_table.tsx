@@ -1,14 +1,15 @@
 import { List as LList, useTable } from "@refinedev/antd";
 import { useList } from "@refinedev/core";
-import { Alert, Space, Table } from "antd";
 import PySearchSelect from "@/components/PySearchSelect";
-import { useEffect, useMemo, useState, type Key } from "react";
+import { useEffect, useState, type Key } from "react";
 import { buildEqOrFilter, cellTestId } from "@/utils/tableHelpers";
 import { buildSalaryDict } from "@/utils/salary";
 import { SwitchDataRange } from "@/components/SwitchDataRange";
 import { BASE_WORK_TYPE_NAME } from "@/constants";
 import { WorkerExpandTables } from "./ExpandTables";
 import { ExportPopover } from "./ExportPopover";
+import { FilterBar } from "@/components/ui/FilterBar";
+import { DataTable } from "@/components/ui/DataTable";
 
 export default function GongShiList() {
   // ======================== useState等 ========================
@@ -29,15 +30,12 @@ export default function GongShiList() {
     },
   });
 
-  const workerMap = useMemo(() => {
-    const m = new Map<string, string>();
-    workerData.dataSource?.forEach((w: any) => {
-      if (w?.id !== undefined) m.set(w.id, w.name);
-    });
-    return m;
-  }, [workerData.dataSource]);
+  const workerMap = new Map<string, string>();
+  workerData.dataSource?.forEach((w: any) => {
+    if (w?.id !== undefined) workerMap.set(w.id, w.name);
+  });
 
-  const selectedIds = useMemo(() => SelectedPerson.map((p) => p.value), [SelectedPerson]);
+  const selectedIds = SelectedPerson.map((p) => p.value);
 
   // 工人表只显示所选(未选人 = 全部工人)
   useEffect(() => {
@@ -65,19 +63,14 @@ export default function GongShiList() {
       expand: ["worker_name", "work_type"],
     },
   });
-  // 真 loading：render 期间直接派生，避免 useState+useEffect。
-  // (考勤记录已下沉到展开行按需查询,不再参与页面级 loading)
+  // 真 loading：render 期间直接派生，避免 useState+useEffect
   const isDataLoading = !!workerData.loading || query.isLoading || querySalary.isLoading;
 
   // ======================== 衍生数据计算 ========================
-
-  const workTypeMap = useMemo(() => {
-    const m = new Map<string, string>();
-    workTypeList?.data?.forEach((t: any) => {
-      if (t?.id !== undefined) m.set(t.id, t.name);
-    });
-    return m;
-  }, [workTypeList?.data]);
+  const workTypeMap = new Map<string, string>();
+  workTypeList?.data?.forEach((t: any) => {
+    if (t?.id !== undefined) workTypeMap.set(t.id, t.name);
+  });
 
   const hasBaseSalaryType = querySalary.isLoading
     ? true
@@ -85,37 +78,38 @@ export default function GongShiList() {
         (t) => t.expand?.work_type?.name === BASE_WORK_TYPE_NAME && t.worker_name === "",
       );
 
-  const salaryDict = useMemo(() => buildSalaryDict(result?.data), [result?.data]);
+  const salaryDict = buildSalaryDict(result?.data);
 
-  const get_un_salary_work = useMemo(() => {
-    const work_types = [...workTypeMap.values()];
-    const un_salary_work_types = work_types.filter((item) => !(item in salaryDict));
-    // 这里的判断很精准，不会混淆没人的工作和有人的工作
-    if (!un_salary_work_types.length) return "";
-    return `未设置工资的工作类型：${un_salary_work_types.join(
-      ",",
-    )}，请设置其对应的工资,否则按照基础工资计算。`;
-  }, [workTypeMap, salaryDict]);
+  const workTypes = [...workTypeMap.values()];
+  const unSalaryWorkTypes = workTypes.filter((item) => !(item in salaryDict));
+  // 这里的判断很精准，不会混淆没人的工作和有人的工作
+  const get_un_salary_work = unSalaryWorkTypes.length
+    ? `未设置工资的工作类型：${unSalaryWorkTypes.join(",")}，请设置其对应的工资,否则按照基础工资计算。`
+    : "";
 
   // ======================== 基础记录校验 ========================
   if (!hasBaseWorkType) {
     return (
-      <Alert
-        message="基础工作类型不存在，请添加"
-        type="error"
-        showIcon
-        description="如果基础工资类型不存在，也请添加基础工作后添加"
-      />
+      <div style={{ padding: "48px 0", textAlign: "center" }}>
+        <div style={{ fontSize: 16, fontWeight: 600, marginBottom: 8 }}>
+          基础工作类型不存在，请先到「工作管理」添加
+        </div>
+        <div style={{ color: "var(--text-tertiary)", fontSize: 13 }}>
+          基础工资类型依赖基础工作，请添加基础工作后再设置其对应的时薪
+        </div>
+      </div>
     );
   }
   if (!hasBaseSalaryType) {
     return (
-      <Alert
-        message="基础工作的时薪 不存在，请添加"
-        type="error"
-        showIcon
-        description="如果基础工作类型不存在，请添加基础工作类型，并设置其对应的时薪。"
-      />
+      <div style={{ padding: "48px 0", textAlign: "center" }}>
+        <div style={{ fontSize: 16, fontWeight: 600, marginBottom: 8 }}>
+          基础工作的时薪不存在，请先到「薪资设置」添加
+        </div>
+        <div style={{ color: "var(--text-tertiary)", fontSize: 13 }}>
+          如果基础工作类型也不存在，请先添加基础工作类型，并设置其对应的时薪
+        </div>
+      </div>
     );
   }
 
@@ -133,50 +127,55 @@ export default function GongShiList() {
   // ======================== UI ========================
   return (
     <LList
+      breadcrumb={false}
+      headerProps={{ subTitle: "按人员查看每月 / 每日 / 每条的工时与薪资；可导出 Excel" }}
       headerButtons={({ defaultButtons }) => (
         <>
           {defaultButtons}
-          <Space>
-            <ExportPopover salaryDict={salaryDict} />
-          </Space>
+          <ExportPopover salaryDict={salaryDict} />
         </>
       )}
     >
       {get_un_salary_work !== "" && (
-        <Alert
+        <div
           data-testid="un-salary-work-alert"
-          message={get_un_salary_work}
-          type="warning"
-          showIcon
-          className="mb-2! mr-2! w-full"
-        />
+          style={{
+            marginBottom: 10,
+            fontSize: 12,
+            color: "var(--warning)",
+          }}
+        >
+          {get_un_salary_work}
+        </div>
       )}
-      <div className="flex items-center justify-between mb-2">
-        <PySearchSelect
-          onChangeFn={(value) => {
-            setSelectedPerson(value as { value: string; label: string }[]);
-            setCurrent(1);
-          }}
-          placeholder="多选工人,支持拼音"
-          mode="multiple"
-          needButton={true}
-          onClearFn={() => {
-            setSelectedPerson([]);
-            setCurrent(1);
-          }}
-        />
-        <SwitchDataRange />
-      </div>
-      <Table
+
+      <FilterBar
+        left={
+          <PySearchSelect
+            onChangeFn={(value) => {
+              setSelectedPerson(value as { value: string; label: string }[]);
+              setCurrent(1);
+            }}
+            placeholder="多选工人，支持拼音"
+            mode="multiple"
+            needButton={true}
+            onClearFn={() => {
+              setSelectedPerson([]);
+              setCurrent(1);
+            }}
+          />
+        }
+        right={<SwitchDataRange />}
+      />
+
+      <DataTable
         {...workerData}
         pagination={{
           ...workerData.pagination,
           showSizeChanger: true,
-          size: "default",
         }}
         loading={isDataLoading}
         rowKey="id"
-        size="small"
         expandable={{
           expandedRowRender,
           expandedRowKeys,
@@ -184,9 +183,19 @@ export default function GongShiList() {
           expandRowByClick: true,
         }}
       >
-        <Table.Column dataIndex="id" title="ID" onCell={cellTestId((i) => `row-id-${i}`)} />
-        <Table.Column dataIndex="name" title="姓名" onCell={cellTestId((i) => `row-name-${i}`)} />
-      </Table>
+        <DataTable.Column
+          dataIndex="id"
+          title="ID"
+          width={130}
+          ellipsis
+          onCell={cellTestId((i) => `row-id-${i}`)}
+        />
+        <DataTable.Column
+          dataIndex="name"
+          title="姓名"
+          onCell={cellTestId((i) => `row-name-${i}`)}
+        />
+      </DataTable>
     </LList>
   );
 }

@@ -1,1 +1,147 @@
 @import "tailwindcss";
+
+/* ============================================================
+   全局基础样式（light only）
+   色值统一来自 src/theme/tokens.ts，这里只写结构与排版
+   ============================================================ */
+
+:root {
+  --brand: #2563eb;
+  --brand-soft: #eff6ff;
+  --bg-layout: #f6f7f9;
+  --bg-container: #ffffff;
+  --bg-subtle: #f8fafc;
+  --border: #e5e8ee;
+  --border-subtle: #eef1f5;
+  --text: #0f172a;
+  --text-secondary: #475569;
+  --text-tertiary: #94a3b8;
+  --radius-base: 8px;
+  --radius-lg: 12px;
+  --shadow-card: 0 1px 2px rgba(15, 23, 42, 0.04), 0 1px 3px rgba(15, 23, 42, 0.06);
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--bg-layout);
+  color: var(--text);
+  font-family:
+    -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB",
+    "Microsoft YaHei", "Helvetica Neue", Arial, sans-serif;
+  font-size: 14px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+::selection {
+  background: #dbeafe;
+  color: var(--text);
+}
+
+/* 数字统一等宽，保证工时 / 金额 / 统计在表格里纵向对齐 */
+.ant-statistic-content-value,
+.ant-table-cell .num,
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---------- 页面容器 ---------- */
+.page-shell {
+  width: 100%;
+  margin-inline: auto;
+}
+
+/* ---------- Refine PageHeader ---------- */
+.ant-page-header {
+  padding: 0 !important;
+}
+
+.ant-page-header-heading {
+  margin-bottom: 18px;
+}
+
+.ant-page-header-heading-title {
+  font-size: 20px !important;
+  font-weight: 600 !important;
+  line-height: 1.4 !important;
+}
+
+.ant-page-header-heading-sub-title {
+  font-size: 13px !important;
+  font-weight: 400 !important;
+  color: var(--text-tertiary) !important;
+}
+
+.ant-page-header-content {
+  padding-top: 0 !important;
+  padding-bottom: 0 !important;
+}
+
+/* ---------- 表格 ---------- */
+.ant-table-wrapper .ant-table-thead > tr > th {
+  font-weight: 500;
+  font-size: 13px;
+  white-space: nowrap;
+}
+
+.ant-table-wrapper .ant-table-tbody > tr > td {
+  font-size: 14px;
+}
+
+/* 数字列右对齐（给列加 className="num" 即可） */
+.ant-table-wrapper .ant-table-tbody > tr > td.num,
+.ant-table-wrapper .ant-table-thead > tr > th.num {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---------- 卡片 ---------- */
+.ant-card {
+  box-shadow: var(--shadow-card);
+}
+
+.ant-card .ant-card-head {
+  border-bottom-color: var(--border-subtle);
+}
+
+/* ---------- 表单 ---------- */
+.ant-form-item-label > label {
+  font-size: 13px;
+}
+
+/* ---------- 滚动条 ---------- */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #d7dbe3;
+  border: 3px solid transparent;
+  border-radius: 8px;
+  background-clip: content-box;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #b9c0cc;
+  border: 3px solid transparent;
+  background-clip: content-box;
+}
+
+/* ---------- 焦点可见（不额外做无障碍，但键盘操作时别丢焦点） ---------- */
+:focus-visible {
+  outline: 2px solid var(--brand);
+  outline-offset: 2px;
+}

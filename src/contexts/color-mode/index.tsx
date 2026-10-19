@@ -1,7 +1,7 @@
-import { RefineThemes } from "@refinedev/antd";
 import { ConfigProvider } from "antd";
 import { type PropsWithChildren } from "react";
 import locale from "antd/es/locale/zh_CN";
+import { antdTheme } from "@/theme/antdTheme";
 import dayjs from "dayjs";
 import "dayjs/locale/zh-cn";
 import timezone from "dayjs/plugin/timezone";
@@ -23,13 +23,7 @@ dayjs.locale("zh-cn");
 
 export const ColorModeContextProvider: React.FC<PropsWithChildren> = ({ children }) => {
   return (
-    <ConfigProvider
-      locale={locale}
-      // you can change the theme colors here. example: ...RefineThemes.Magenta,
-      theme={{
-        ...RefineThemes.Blue,
-      }}
-    >
+    <ConfigProvider locale={locale} theme={antdTheme}>
       {children}
     </ConfigProvider>
   );

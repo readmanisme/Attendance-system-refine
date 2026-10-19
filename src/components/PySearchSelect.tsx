@@ -4,6 +4,7 @@ import { useState, useCallback, useRef } from "react";
 import type { DefaultOptionType } from "antd/es/select";
 import { useSelect } from "@refinedev/antd";
 import { SearchOutlined } from "@ant-design/icons";
+import { brand } from "@/theme/tokens";
 
 /** 单个选项,或 antd 多选模式下的选项数组 */
 type SearchValue = { value: string; label: string };
@@ -101,7 +102,7 @@ export default function PySearchSelect({
         <span>
           {parts.map((part, idx) =>
             highlightWords.has(part) ? (
-              <span key={idx} style={{ color: "#4169E1" }}>
+              <span key={idx} style={{ color: brand.primary }}>
                 {part}
               </span>
             ) : (
@@ -130,7 +131,7 @@ export default function PySearchSelect({
   );
 
   return (
-    <Flex gap="small" align="center">
+    <Flex gap="small" align="center" style={{ width: "100%" }}>
       {labelPlaceholder && <div>{labelPlaceholder}</div>}
       <Select
         data-testid="py-search-select"
@@ -144,6 +145,7 @@ export default function PySearchSelect({
         labelInValue
         optionFilterProp="label"
         style={{ width: width }}
+        listHeight={180}
         filterOption={handleFilter}
         onChange={handleChange} //选择和删除选项触发
         onClear={handleClear}

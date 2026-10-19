@@ -1,10 +1,12 @@
 import { BaseRecord, useCreate, useList } from "@refinedev/core";
 import { useTable, List, EditButton, DeleteButton, CreateButton } from "@refinedev/antd";
-import { Table, Space, Alert, Button, Result } from "antd";
-import { useCallback, useMemo, useState } from "react";
+import { Button, Space, Result } from "antd";
+import { useState } from "react";
 import { useInvalidate } from "@refinedev/core";
 import { cellTestId } from "@/utils/tableHelpers";
 import { BASE_WORK_TYPE_NAME } from "@/constants";
+import { DataTable } from "@/components/ui/DataTable";
+
 const ListWorkType = () => {
   const invalidate = useInvalidate();
 
@@ -21,41 +23,37 @@ const ListWorkType = () => {
   const { mutate } = useCreate({
     resource: __WorkTypes_TableName,
   });
-  const sortedDataSource = useMemo(() => {
-    const dataSource = [...(tableProps?.dataSource || [])];
-    // 找到符合条件的项的索引
-    const index = dataSource.findLastIndex((item) => item.name === BASE_WORK_TYPE_NAME);
-    // 这里用findLastIndex而不是findIndex，因为基础在后面的可能性很大
 
-    if (index > 0) {
-      // 如果找到了且不在第一位，则将其移动到数组开头
-      const [item] = dataSource.splice(index, 1);
-      dataSource.unshift(item);
-    }
+  // 基础工作置顶：用 findLastIndex 因为基础在后面的可能性更大
+  const dataSource = [...(tableProps?.dataSource || [])];
+  const baseIndex = dataSource.findLastIndex((item) => item.name === BASE_WORK_TYPE_NAME);
+  if (baseIndex > 0) {
+    const [item] = dataSource.splice(baseIndex, 1);
+    dataSource.unshift(item);
+  }
 
-    return dataSource;
-  }, [tableProps.dataSource]);
-  // 乐观警告显示不能通过提前设置true来解决，因为马上会被覆盖。
+  // 乐观警告显示不能通过提前设置 true 来解决，因为马上会被覆盖
   const HaveBaseWork =
     tableProps.dataSource?.some((item: any) => item.name == BASE_WORK_TYPE_NAME) ?? true;
   const { result } = useList({ resource: __WorkRecordNum_TableName, pagination: { mode: "off" } });
   const WorkRecordNum = new Map(result.data.map((item: any) => [item.work_id, item.record_count]));
-  // 添加基础工作期间禁用按钮,防止双击重复提交
+
+  // 添加基础工作期间禁用按钮，防止双击重复提交
   const [addingBase, setAddingBase] = useState(false);
-  const handleAddBaseWork = useCallback(() => {
+  const handleAddBaseWork = () => {
     if (addingBase) return;
     setAddingBase(true);
     mutate(
       {
         values: {
-          id: "basebasebasebas", //必须刚好15位
+          id: "basebasebasebas", // 必须刚好 15 位
           name: BASE_WORK_TYPE_NAME,
         },
       },
       {
-        // onSuccess必须放在mutate里面而不是useCreate的里面，后者会导致refine默认行为被覆盖，导致通知和数据失效不起作用。
+        // onSuccess 必须放在 mutate 里面而不是 useCreate 的里面，后者会导致 refine 默认行为被覆盖
         onSuccess: () => {
-          // 如果把mutate2和mutate放在一起，因为是异步的原因可能导致顺序错乱从而创建失败。
+          // 如果把 mutate2 和 mutate 放在一起，异步会导致顺序错乱从而创建失败
           mutate2({
             values: {
               id: "basebasebaseba1",
@@ -64,7 +62,7 @@ const ListWorkType = () => {
             },
           });
           invalidate({
-            //需要手动刷新数据
+            // 需要手动刷新数据
             resource: __WorkRecordNum_TableName,
             invalidates: ["list"],
           });
@@ -73,10 +71,15 @@ const ListWorkType = () => {
         onSettled: () => setAddingBase(false),
       },
     );
-  }, [addingBase, mutate, mutate2, invalidate]);
+  };
+
   if (!HaveBaseWork) {
     return (
-      <List headerButtons={<CreateButton data-testid="create-button">添加工作</CreateButton>}>
+      <List
+        breadcrumb={false}
+        headerProps={{ subTitle: "工作类型用于区分不同工种的时薪" }}
+        headerButtons={<CreateButton data-testid="create-button">添加工作</CreateButton>}
+      >
         <Result
           status="warning"
           title="缺少基础工作，点击下方按钮添加基础工作及其时薪（时薪后续可修改）"
@@ -94,50 +97,50 @@ const ListWorkType = () => {
       </List>
     );
   }
-  return (
-    <List headerButtons={<CreateButton data-testid="create-button">添加工作</CreateButton>}>
-      <Alert
-        data-testid="Base-alert"
-        className="mb-2!"
-        message="基础工作类型一经创建便不可编辑和删除"
-        type="info"
-        showIcon
-      />
-      <Alert
-        data-testid="delete-alert"
-        className="mb-2!"
-        message="删除工作将一并删除与之相关的考勤记录和薪资计算方式"
-        type="warning"
-        showIcon
-      />
 
-      <Table {...tableProps} dataSource={sortedDataSource} rowKey="id">
-        {/* <Table.Column
-                    dataIndex="collectionName"
-                    title="Collection Name"
-                /> */}
-        {/* <Table.Column
-                    dataIndex={["created"]}
-                    title="Created"
-                    render={(value: any) => <DateField value={value} />}
-                /> */}
-        <Table.Column dataIndex="id" title="Id" onCell={cellTestId((i) => `row-id-${i}`)} />
-        <Table.Column dataIndex="name" title="名字" onCell={cellTestId((i) => `row-name-${i}`)} />
-        <Table.Column
+  return (
+    <List
+      breadcrumb={false}
+      headerProps={{ subTitle: "维护工作类型；删除工作会一并清理相关考勤记录与薪资设置" }}
+      headerButtons={<CreateButton data-testid="create-button">添加工作</CreateButton>}
+    >
+      {/* 原两个大块 Alert 合并为一行小字，testid 分别保留 */}
+      <div
+        style={{
+          display: "flex",
+          flexWrap: "wrap",
+          gap: "4px 16px",
+          marginBottom: 10,
+          fontSize: 12,
+          color: "var(--text-tertiary)",
+        }}
+      >
+        <span data-testid="Base-alert">基础工作类型一经创建便不可编辑和删除</span>
+        <span data-testid="delete-alert">删除工作将一并删除与之相关的考勤记录和薪资计算方式</span>
+      </div>
+
+      <DataTable {...tableProps} dataSource={dataSource} rowKey="id">
+        <DataTable.Column
+          dataIndex="id"
+          title="ID"
+          width={130}
+          ellipsis
+          onCell={cellTestId((i) => `row-id-${i}`)}
+        />
+        <DataTable.Column dataIndex="name" title="名字" onCell={cellTestId((i) => `row-name-${i}`)} />
+        <DataTable.Column
           dataIndex="num"
           title="考勤记录数"
-          render={(text: any, record: any) => WorkRecordNum.get(record.id)}
+          className="num"
+          width={120}
+          render={(_text: any, record: any) => WorkRecordNum.get(record.id)}
           onCell={cellTestId((i) => `row-num-${i}`)}
         />
-        {/* <Table.Column
-                    dataIndex={["updated"]}
-                    title="Updated"
-                    render={(value: any) => <DateField value={value} />}
-                /> */}
-        <Table.Column
-          title="Actions"
+        <DataTable.Column
+          title="操作"
           dataIndex="actions"
-          render={(value, record: BaseRecord, index: number) => (
+          width={120}
+          render={(_value, record: BaseRecord, index: number) => (
             <Space>
               <EditButton
                 data-testid={`edit-button-${index}`}
@@ -146,12 +149,10 @@ const ListWorkType = () => {
                 recordItemId={record.id}
                 disabled={record.name === BASE_WORK_TYPE_NAME}
               />
-              {/* <ShowButton hideText size="small" recordItemId={record.id} /> */}
-
               <DeleteButton
                 data-testid={`delete-button-${index}`}
                 disabled={record.name === BASE_WORK_TYPE_NAME}
-                type={WorkRecordNum.get(record.id) > 0 ? "link" : "dashed"}
+                type="text"
                 confirmTitle={
                   WorkRecordNum.get(record.id) > 0
                     ? "删除工作将一并删除相关考勤记录！"
@@ -159,12 +160,13 @@ const ListWorkType = () => {
                 }
                 size="small"
                 recordItemId={record.id}
-              ></DeleteButton>
+              />
             </Space>
           )}
         />
-      </Table>
+      </DataTable>
     </List>
   );
 };
+
 export default ListWorkType;

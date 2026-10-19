@@ -110,8 +110,8 @@ export const GlobalHelp = () => {
     <>
       <FloatButton.BackTop
         style={{
-          bottom: "10px", // 距离底部50px
-          right: "20px", // 距离右侧24px
+          bottom: "80px", // 让开右下角的通知区域
+          right: "20px",
         }}
       />
       <Drawer

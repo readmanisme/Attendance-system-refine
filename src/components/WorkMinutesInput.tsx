@@ -60,7 +60,7 @@ export default function WorkMinutesInput({
         style={{ width: 80 }}
       />
       {showHint && value != null && (
-        <span style={{ color: "#94a3b8", fontSize: 12, whiteSpace: "nowrap" }}>
+        <span style={{ color: "var(--text-tertiary)", fontSize: 12, whiteSpace: "nowrap" }}>
           = {new Decimal(value).dividedBy(60).toDecimalPlaces(2, Decimal.ROUND_HALF_UP).toString()} 小时
         </span>
       )}

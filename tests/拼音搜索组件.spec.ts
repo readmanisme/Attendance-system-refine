@@ -4,17 +4,17 @@ import { TestDB } from "./helpers/pb";
 
 const db = new TestDB();
 
-const h1h = '<span style="color: rgb(65, 105, 225);">何玉芳</span>';
+const h1h = '<span style="color: rgb(37, 99, 235);">何玉芳</span>';
 const h1 =
-  '<span style="color: rgb(65, 105, 225);">何</span><span></span><span style="color: rgb(65, 105, 225);">玉</span><span></span><span style="color: rgb(65, 105, 225);">芳</span>'; //因为匹配的是单字，所以就会这样
-const h2h = '<span style="color: rgb(65, 105, 225);">何玉</span><span>芳</span>';
+  '<span style="color: rgb(37, 99, 235);">何</span><span></span><span style="color: rgb(37, 99, 235);">玉</span><span></span><span style="color: rgb(37, 99, 235);">芳</span>'; //因为匹配的是单字，所以就会这样
+const h2h = '<span style="color: rgb(37, 99, 235);">何玉</span><span>芳</span>';
 const h2 =
-  '<span style="color: rgb(65, 105, 225);">何</span><span></span><span style="color: rgb(65, 105, 225);">玉</span><span>芳</span>';
-const h3 = '<span style="color: rgb(65, 105, 225);">何</span><span>玉芳</span>';
+  '<span style="color: rgb(37, 99, 235);">何</span><span></span><span style="color: rgb(37, 99, 235);">玉</span><span>芳</span>';
+const h3 = '<span style="color: rgb(37, 99, 235);">何</span><span>玉芳</span>';
 const h4 =
-  '<span style="color: rgb(65, 105, 225);">何</span><span></span><span style="color: rgb(65, 105, 225);">凡</span><span></span><span style="color: rgb(65, 105, 225);">兰</span>';
+  '<span style="color: rgb(37, 99, 235);">何</span><span></span><span style="color: rgb(37, 99, 235);">凡</span><span></span><span style="color: rgb(37, 99, 235);">兰</span>';
 const h5 =
-  '<span style="color: rgb(65, 105, 225);">何</span><span></span><span style="color: rgb(65, 105, 225);">凡</span><span>兰</span>';
+  '<span style="color: rgb(37, 99, 235);">何</span><span></span><span style="color: rgb(37, 99, 235);">凡</span><span>兰</span>';
 
 test.beforeEach(async () => {
   // 种子必须在每个测试前创建:全局的 afterEach cleanup 会清掉 beforeAll 创建的数据

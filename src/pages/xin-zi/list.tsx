@@ -1,9 +1,9 @@
 import { BaseRecord, useList } from "@refinedev/core";
 import { useTable, List, EditButton, DeleteButton, CreateButton } from "@refinedev/antd";
-import { Table, Space, Alert } from "antd";
-import { useMemo } from "react";
+import { Space } from "antd";
 import { cellTestId } from "@/utils/tableHelpers";
 import { BASE_WORK_TYPE_NAME } from "@/constants";
+import { DataTable } from "@/components/ui/DataTable";
 
 const SalaryTypeList = () => {
   const { tableProps } = useTable({
@@ -16,91 +16,92 @@ const SalaryTypeList = () => {
     resource: __WorkTypes_TableName,
     pagination: { mode: "off" },
   });
-  const get_un_salary_work = useMemo(() => {
-    const work_types = result.data.map((item: any) => item.name);
-    const salary_work_types =
-      tableProps.dataSource
-        ?.filter((item) => item.worker_name === "")
-        .map((item: any) => item.expand?.work_type?.name) || [];
-    const un_salary_work_types = work_types.filter((item) => !salary_work_types.includes(item));
-    if (!un_salary_work_types.length) return "";
-    return `未设置工资的工作类型：${un_salary_work_types.join(
-      ",",
-    )}，请设置其对应的工资,否则按照基础工资计算。`;
-  }, [result.data, tableProps.dataSource]);
 
-  // 让["expand", "work_type", "name"]为“基础”的并且worker_name为空的放在第一行
-  // 不通过排序的方法
-  const sortedDataSource = useMemo(() => {
-    const dataSource = [...(tableProps?.dataSource || [])];
-    // 找到符合条件的项的索引
-    const index = dataSource.findLastIndex(
-      (item) => item.expand?.work_type?.name === BASE_WORK_TYPE_NAME && !item.worker_name,
-    );
-    // 这里用findLastIndex而不是findIndex，因为基础在后面的可能性很大
+  const workTypes = result.data.map((item: any) => item.name);
+  const salaryWorkTypes =
+    tableProps.dataSource
+      ?.filter((item) => item.worker_name === "")
+      .map((item: any) => item.expand?.work_type?.name) || [];
+  const unSalaryWorkTypes = workTypes.filter((item) => !salaryWorkTypes.includes(item));
+  const unSalaryText = unSalaryWorkTypes.length
+    ? `未设置工资的工作类型：${unSalaryWorkTypes.join(",")}，请设置其对应的工资，否则按照基础工资计算。`
+    : "";
 
-    if (index > 0) {
-      // 如果找到了且不在第一位，则将其移动到数组开头
-      const [item] = dataSource.splice(index, 1);
-      dataSource.unshift(item);
-    }
-
-    return dataSource;
-  }, [tableProps.dataSource]);
+  // 基础（全局）时薪置顶：用 findLastIndex 因为基础在后面的可能性更大
+  const dataSource = [...(tableProps?.dataSource || [])];
+  const baseIndex = dataSource.findLastIndex(
+    (item) => item.expand?.work_type?.name === BASE_WORK_TYPE_NAME && !item.worker_name,
+  );
+  if (baseIndex > 0) {
+    const [item] = dataSource.splice(baseIndex, 1);
+    dataSource.unshift(item);
+  }
 
   return (
-    <List headerButtons={<CreateButton data-testid="create-button">添加记录</CreateButton>}>
-      <Alert
-        data-testid="alert"
-        className="mb-2!"
-        message="没有设置薪资的工作会按照基础工作的时薪计算"
-        type="info"
-        showIcon
-      />
-      {get_un_salary_work !== "" && (
-        <Alert
-          data-testid="un-salary-work-alert"
-          message={get_un_salary_work}
-          type="warning"
-          showIcon
-          className="mb-2! mr-2! w-full"
+    <List
+      breadcrumb={false}
+      headerProps={{ subTitle: "设置不同人员 / 工种的时薪；未单独设置的按基础时薪计算" }}
+      headerButtons={<CreateButton data-testid="create-button">添加记录</CreateButton>}
+    >
+      <div
+        style={{
+          display: "flex",
+          flexWrap: "wrap",
+          gap: "4px 16px",
+          marginBottom: 10,
+          fontSize: 12,
+          color: "var(--text-tertiary)",
+        }}
+      >
+        <span data-testid="alert">没有设置薪资的工作会按照基础工作的时薪计算</span>
+        {unSalaryText !== "" && (
+          <span data-testid="un-salary-work-alert" style={{ color: "var(--warning)" }}>
+            {unSalaryText}
+          </span>
+        )}
+      </div>
+
+      <DataTable {...tableProps} dataSource={dataSource} rowKey="id">
+        <DataTable.Column
+          dataIndex="id"
+          title="ID"
+          width={130}
+          ellipsis
+          onCell={cellTestId((i) => `row-id-${i}`)}
         />
-      )}
-      <Table {...tableProps} dataSource={sortedDataSource} rowKey="id">
-        <Table.Column dataIndex="id" title="ID" onCell={cellTestId((i) => `row-id-${i}`)} />
-        <Table.Column
+        <DataTable.Column
           dataIndex={["expand", "worker_name", "name"]}
           title="工人"
           onCell={cellTestId((i) => `row-worker-${i}`)}
         />
-        <Table.Column
+        <DataTable.Column
           dataIndex={["expand", "work_type", "name"]}
           title="工作"
           onCell={cellTestId((i) => `row-work-${i}`)}
         />
-        <Table.Column
+        <DataTable.Column
           dataIndex="SalaryNum"
           title="时薪"
+          className="num"
+          width={100}
           onCell={cellTestId((i) => `row-salary-${i}`)}
         />
-        <Table.Column
-          title={"Actions"}
+        <DataTable.Column
+          title="操作"
           dataIndex="actions"
-          render={(_, record: BaseRecord, index) => (
+          width={110}
+          render={(_value, record: BaseRecord, index: number) => (
             <Space>
               <EditButton
                 data-testid={`edit-button-${index}`}
                 hideText
                 size="small"
                 recordItemId={record.id}
-                // disabled={record.expand?.work_type?.name === "基础"}
               />
-              {/* <ShowButton hideText size="small" recordItemId={record.id} /> */}
               <DeleteButton
                 data-testid={`delete-button-${index}`}
                 disabled={
-                  record.expand?.work_type?.name === BASE_WORK_TYPE_NAME &&
-                  record.worker_name === ""
+                  record.expand?.work_type?.name === BASE_WORK_TYPE_NAME && record.worker_name === ""
                 }
                 hideText
                 size="small"
@@ -109,8 +110,9 @@ const SalaryTypeList = () => {
             </Space>
           )}
         />
-      </Table>
+      </DataTable>
     </List>
   );
 };
+
 export default SalaryTypeList;

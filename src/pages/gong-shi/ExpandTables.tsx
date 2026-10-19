@@ -38,9 +38,10 @@ const columnsMonth = [
     title: "总工时",
     dataIndex: "total_work_hours",
     key: "total_work_hours",
+    className: "num",
     onCell: cellTestId((_i, r) => `row-month-hours-${r.worker}-${_i}`),
   },
-  { title: "薪资", dataIndex: "xinzi", key: "xinzi" },
+  { title: "薪资", dataIndex: "xinzi", key: "xinzi", className: "num" },
 ];
 
 /** 日表列(第二级展开);testid 用"工人+日期",日期在同一张表内唯一,不依赖行号 */
@@ -56,9 +57,10 @@ const columnsDay = [
     title: "总工时",
     dataIndex: "total_work_hours",
     key: "total_work_hours",
+    className: "num",
     onCell: cellTestId((_i, r) => `row-day-hours-${r.worker}-${_i}`),
   },
-  { title: "薪资", dataIndex: "xinzi", key: "xinzi" },
+  { title: "薪资", dataIndex: "xinzi", key: "xinzi", className: "num" },
 ];
 
 /** 明细表"薪资"列:悬浮显示计算依据 */
@@ -80,8 +82,8 @@ const columnsDetail = (workDate: string) => [
     onCell: cellTestId((i) => `row-d3-${workDate}-${i}`),
   },
   { title: "工作类型", dataIndex: "work", key: "work" },
-  { title: "总工时", dataIndex: "total_work_hours", key: "total_work_hours" },
-  { title: "薪资", dataIndex: "xinzi", key: "xinzi", render: salaryCell },
+  { title: "总工时", dataIndex: "total_work_hours", key: "total_work_hours", className: "num" },
+  { title: "薪资", dataIndex: "xinzi", key: "xinzi", className: "num", render: salaryCell },
 ];
 
 export function WorkerExpandTables({
@@ -144,14 +146,16 @@ export function WorkerExpandTables({
       };
     });
     return (
-      <Table
-        // 每日具体记录
-        columns={columnsDetail(workDate)}
-        dataSource={dataSource}
-        size="small"
-        pagination={false}
-        onRow={cellTestId((i) => `row-d3-${workDate}-${i}`)}
-      />
+      <div style={{ borderLeft: "2px solid var(--brand-soft)", paddingLeft: 12 }}>
+        <Table
+          // 每日具体记录
+          columns={columnsDetail(workDate)}
+          dataSource={dataSource}
+          size="small"
+          pagination={false}
+          onRow={cellTestId((i) => `row-d3-${workDate}-${i}`)}
+        />
+      </div>
     );
   };
 
@@ -167,17 +171,19 @@ export function WorkerExpandTables({
         xinzi: (stats.daySalaryMap.get(workerName)?.get(date) || new Decimal(0)).toString(),
       }));
     return (
-      <Table
-        // 每日记录
-        columns={columnsDay}
-        dataSource={dataSource}
-        size="small"
-        pagination={{ showSizeChanger: true }}
-        expandable={{
-          expandedRowRender: renderDetailTable,
-          expandRowByClick: true,
-        }}
-      />
+      <div style={{ borderLeft: "2px solid var(--border)", paddingLeft: 12 }}>
+        <Table
+          // 每日记录
+          columns={columnsDay}
+          dataSource={dataSource}
+          size="small"
+          pagination={{ showSizeChanger: true }}
+          expandable={{
+            expandedRowRender: renderDetailTable,
+            expandRowByClick: true,
+          }}
+        />
+      </div>
     );
   };
 
