@@ -37,12 +37,16 @@ const pct = (v: number | null | undefined): string =>
 
 // ======================== 概览 ========================
 
-/** 每日出勤人数 & 总工时 双轴趋势(人天口径;无人数据日留白,>12h 标红点) */
+/** 每日出勤人数 & 总工时 双轴趋势(人天口径;无人数据日留白,有人单日 >12h 标红点) */
 export const dailyChartOption = (
   daily: Overview["daily"],
   anomalyDays: Overview["anomalyDays"] = [],
 ): ChartOption => {
   const ts = (day: string) => new Date(`${day}T00:00:00`).getTime();
+  // 红点画在"当天总工时"这条线上,点的高度用总工时,value 保留异常的那个人的工时
+  const totalHoursOf = new Map(
+    daily.map((d) => [d.day, d.minutes == null ? null : minutesToHours(d.minutes)]),
+  );
   return {
     tooltip: {
       trigger: "axis",
@@ -80,7 +84,10 @@ export const dailyChartOption = (
           symbolSize: 7,
           itemStyle: { color: "#e24b4a" },
           label: { show: false },
-          data: anomalyDays.map((d) => ({ coord: [ts(d.day), d.hours], value: d.hours })),
+          data: anomalyDays.map((d) => ({
+            coord: [ts(d.day), totalHoursOf.get(d.day) ?? d.hours],
+            value: d.hours,
+          })),
         },
       },
     ],
@@ -337,7 +344,8 @@ export const coHeatmapOption = (relation: Relation): ChartOption => {
     },
     grid: { left: 110, right: 60, top: 48, bottom: 110, containLabel: false },
     xAxis: { type: "category", data: matrixNames, axisLabel: { rotate: 60, fontSize: 11 } },
-    yAxis: { type: "category", data: matrixNames, axisLabel: { fontSize: 11 } },
+    // 类目轴默认从下往上,加 inverse 让第 0 个人显示在最上面,与名单顺序一致
+    yAxis: { type: "category", data: matrixNames, inverse: true, axisLabel: { fontSize: 11 } },
     visualMap: {
       min: 0,
       max: maxCo,
@@ -620,7 +628,7 @@ export const workerMonthHeatOption = (heat: Overview["workerMonthHeat"]): ChartO
   },
   grid: { left: 80, right: 72, top: 48, bottom: 56, containLabel: true },
   xAxis: { type: "category", data: heat.months, axisLabel: { rotate: 45, fontSize: 11 } },
-  yAxis: { type: "category", data: heat.names, axisLabel: { fontSize: 11 } },
+  yAxis: { type: "category", data: heat.names, inverse: true, axisLabel: { fontSize: 11 } },
   visualMap: {
     min: 0,
     max: Math.max(1, ...heat.data.map((d) => d[2])),
@@ -644,7 +652,7 @@ export const workWeekdayOption = (heat: Overview["workWeekday"]): ChartOption =>
   },
   grid: { left: 96, right: 72, top: 48, bottom: 40, containLabel: true },
   xAxis: { type: "category", data: heat.weekdays, axisLabel: { fontSize: 11 } },
-  yAxis: { type: "category", data: heat.works, axisLabel: { fontSize: 11 } },
+  yAxis: { type: "category", data: heat.works, inverse: true, axisLabel: { fontSize: 11 } },
   visualMap: {
     min: 0,
     max: Math.max(1, ...heat.data.map((d) => d[2])),

@@ -60,11 +60,11 @@ describe("classifyShift: 四档首尾相接,无空档", () => {
 });
 
 describe("percentileRank", () => {
-  test("≤ 给定值的占比,含并列", () => {
+  test("严格低于给定值的占比(并列不算超过)", () => {
     expect(percentileRank([], 1)).toBe(0);
-    expect(percentileRank([1, 2, 3, 4], 1)).toBe(25);
-    expect(percentileRank([1, 2, 3, 4], 4)).toBe(100);
-    expect(percentileRank([1, 2, 2, 4], 2)).toBe(75);
+    expect(percentileRank([1, 2, 3, 4], 1)).toBe(0);
+    expect(percentileRank([1, 2, 3, 4], 4)).toBe(75);
+    expect(percentileRank([1, 2, 2, 4], 2)).toBe(25);
   });
 });
 
@@ -73,53 +73,62 @@ describe("buildHealth", () => {
     expect(buildHealth([], buildOverview([]))).toEqual([]);
   });
 
-  test("未来日期", () => {
+  test("未来日期:明细逐条列出日期与记录数", () => {
     const issues = healthOf([
       rec("a", "wA", "t1", "2026-08-01", 60, "甲", "搬运"),
       rec("b", "wA", "t1", "2026-12-01", 60, "甲", "搬运"),
+      rec("c", "wB", "t1", "2026-12-01", 60, "乙", "搬运"),
+      rec("d", "wA", "t1", "2026-11-05", 60, "甲", "搬运"),
     ]);
-    expect(find(issues, "future")).toMatchObject({ count: 1, level: "warn" });
-    expect(find(issues, "future")?.samples).toEqual(["2026-12-01"]);
+    const issue = find(issues, "future");
+    expect(issue).toMatchObject({ count: 2, level: "warn" });
+    expect(issue?.details).toEqual(["2026-11-05 · 1 条记录", "2026-12-01 · 2 条记录"]);
   });
 
-  test("单日总工时 >12h(多人合计)", () => {
+  test("单人单日 >12h:明细带姓名/日期/小时;多人合计不算", () => {
+    // 同一天两人各 10h,合计 20h —— 正常,不报
+    const normal = healthOf([
+      rec("a", "wA", "t1", "2026-08-01", 600, "甲", "搬运"),
+      rec("b", "wB", "t1", "2026-08-01", 600, "乙", "搬运"),
+    ]);
+    expect(find(normal, "over12")).toBeUndefined();
+
+    // 甲当天跨两个工种 10h + 3.33h = 13.33h —— 才算异常
     const issues = healthOf([
       rec("a", "wA", "t1", "2026-08-01", 600, "甲", "搬运"),
-      rec("b", "wB", "t1", "2026-08-01", 300, "乙", "搬运"),
+      rec("b", "wA", "t2", "2026-08-01", 200, "甲", "挖土"),
+      rec("c", "wB", "t1", "2026-08-01", 600, "乙", "搬运"),
     ]);
     const issue = find(issues, "over12");
     expect(issue?.count).toBe(1);
-    expect(issue?.samples[0]).toBe("2026-08-01 合计 15h");
+    expect(issue?.title).toContain("单人单日");
+    expect(issue?.details).toEqual(["甲 · 2026-08-01 · 13.33h"]);
   });
 
-  test("单日总工时 <1h", () => {
+  test("单日总工时 <1h:明细带当天出勤的人", () => {
     const issues = healthOf([rec("a", "wA", "t1", "2026-08-01", 30, "甲", "搬运")]);
-    expect(find(issues, "under1")?.count).toBe(1);
+    expect(find(issues, "under1")?.details).toEqual(["2026-08-01 · 合计 0.5h · 甲"]);
   });
 
-  test("只有 1 人出勤的日期", () => {
-    const issues = healthOf([rec("a", "wA", "t1", "2026-08-01", 600, "甲", "搬运")]);
-    expect(find(issues, "solo")?.count).toBe(1);
-  });
-
-  test("同人同日同工种重复记录", () => {
+  test("同人同日同工种重复记录:明细用姓名/日期/工种", () => {
     const issues = healthOf([
       rec("a", "wA", "t1", "2026-08-01", 60, "甲", "搬运"),
       rec("b", "wA", "t1", "2026-08-01", 60, "甲", "搬运"),
     ]);
-    expect(find(issues, "duplicate")).toMatchObject({ count: 1, level: "warn" });
-    expect(find(issues, "duplicate")?.samples).toEqual(["wA / 2026-08-01 / t1"]);
+    const issue = find(issues, "duplicate");
+    expect(issue).toMatchObject({ count: 1, level: "warn" });
+    expect(issue?.details).toEqual(["甲 · 2026-08-01 · 搬运 · 2 条"]);
   });
 
-  test("未定价工种带兜底金额", () => {
+  test("未定价工种:按工种列出条数/工时/兜底金额", () => {
     const issues = healthOf([rec("a", "wA", "t1", "2026-08-01", 600, "甲", "搬运")]);
     const issue = find(issues, "unpriced");
-    expect(issue?.count).toBe(1);
-    expect(issue?.samples).toEqual(["搬运"]);
-    expect(issue?.hint).toContain("100 元"); // 10h × 基础 10 元
+    expect(issue?.count).toBe(1); // 按工种数计
+    expect(issue?.details).toEqual(["搬运 · 1 条 · 10h · 折合 100 元"]); // 10h × 基础 10 元
+    expect(issue?.hint).toContain("占总支出 100.0%");
   });
 
-  test("月出勤骤降: 上月 ≥5 天且本月不足一半(末月不参与)", () => {
+  test("单人出勤日与月出勤骤降不再算异常", () => {
     const aug = ["01", "02", "03", "04", "05"].map((d, i) =>
       rec(`a${i}`, "wA", "t1", `2026-08-${d}`, 600, "甲", "搬运"),
     );
@@ -128,9 +137,8 @@ describe("buildHealth", () => {
       rec("b", "wA", "t1", "2026-09-01", 600, "甲", "搬运"),
       rec("c", "wA", "t1", "2026-10-01", 600, "甲", "搬运"),
     ]);
-    const issue = find(issues, "drop");
-    expect(issue?.count).toBe(1);
-    expect(issue?.samples[0]).toContain("2026-08 5天 → 2026-09 1天");
+    expect(find(issues, "solo")).toBeUndefined();
+    expect(find(issues, "drop")).toBeUndefined();
   });
 
   test("warn 排在 info 之前", () => {

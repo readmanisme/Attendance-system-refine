@@ -35,44 +35,60 @@ interface OverviewTabProps {
   onPickWorker: (id: string) => void;
 }
 
-const healthColumns = [
-  {
-    title: "等级",
-    dataIndex: "level",
-    key: "level",
-    width: 84,
-    render: (level: HealthIssue["level"]) => (
-      <Tag color={level === "warn" ? "error" : "warning"}>{opts.healthLevelText(level)}</Tag>
+const healthCsv = (health: HealthIssue[]) =>
+  downloadCsv(
+    "数据体检",
+    ["等级", "问题", "数量", "明细", "建议"],
+    // 一条明细一行,方便在表格软件里逐条处理
+    health.flatMap((h) =>
+      h.details.map((d) => [opts.healthLevelText(h.level), h.title, h.count, d, h.hint]),
     ),
-  },
-  { title: "问题", dataIndex: "title", key: "title", width: 180 },
-  { title: "数量", dataIndex: "count", key: "count", width: 72 },
-  {
-    title: "样例",
-    dataIndex: "samples",
-    key: "samples",
-    render: (samples: string[]) => (samples.length ? samples.join(" / ") : "—"),
-  },
-  { title: "建议", dataIndex: "hint", key: "hint" },
-];
+  );
+
+/** 单条体检问题:标题行 + 建议 + 全量明细(超过 8 条默认折叠,可展开看全部) */
+const HealthBlock = ({ issue }: { issue: HealthIssue }) => {
+  const [expanded, setExpanded] = useState(false);
+  const collapsible = issue.details.length > 8;
+  return (
+    <div
+      data-testid={`tj-health-${issue.key}`}
+      className="rounded-md border border-solid border-gray-200 p-2"
+    >
+      <div className="flex flex-row flex-wrap items-center gap-2">
+        <Tag color={issue.level === "warn" ? "error" : "warning"}>
+          {opts.healthLevelText(issue.level)}
+        </Tag>
+        <span className="font-medium">{issue.title}</span>
+        <span className="text-gray-500">{issue.count} 处</span>
+      </div>
+      <div className="mt-1 text-xs text-gray-500">{issue.hint}</div>
+      <div
+        className={
+          collapsible && !expanded
+            ? "mt-1 max-h-48 overflow-y-auto text-xs leading-6"
+            : "mt-1 text-xs leading-6"
+        }
+      >
+        {issue.details.map((d, i) => (
+          <div key={`${issue.key}-${i}`} className="border-t border-solid border-gray-100">
+            {d}
+          </div>
+        ))}
+      </div>
+      {collapsible && (
+        <Button type="link" size="small" onClick={() => setExpanded(!expanded)}>
+          {expanded ? "收起" : `展开全部 ${issue.details.length} 条`}
+        </Button>
+      )}
+    </div>
+  );
+};
 
 export const OverviewTab = ({ overview, profiles, health, onPickWorker }: OverviewTabProps) => {
   const [rankMode, setRankMode] = useState<RankMode>("days");
   const rankItems = profiles.list;
 
   const unpriced = overview.unPriced;
-  const healthCsv = () =>
-    downloadCsv(
-      "数据体检",
-      ["等级", "问题", "数量", "样例", "建议"],
-      health.map((h) => [
-        opts.healthLevelText(h.level),
-        h.title,
-        h.count,
-        h.samples.join(" / "),
-        h.hint,
-      ]),
-    );
 
   return (
     <div className="flex flex-col gap-2">
@@ -137,7 +153,7 @@ export const OverviewTab = ({ overview, profiles, health, onPickWorker }: Overvi
       <Card
         size="small"
         data-testid="tj-health-card"
-        title={cardTitle("数据体检", "只提示不修改;每条都给出核对建议")}
+        title={cardTitle("数据体检", "只提示不修改;每条问题都列出全部明细,便于逐条核对")}
         extra={
           health.length ? (
             <Tooltip title="导出 CSV">
@@ -146,20 +162,18 @@ export const OverviewTab = ({ overview, profiles, health, onPickWorker }: Overvi
                 size="small"
                 aria-label="导出体检结果"
                 icon={<IconDownload size={15} />}
-                onClick={healthCsv}
+                onClick={() => healthCsv(health)}
               />
             </Tooltip>
           ) : null
         }
       >
         {health.length ? (
-          <Table
-            size="small"
-            rowKey="key"
-            pagination={false}
-            dataSource={health}
-            columns={healthColumns}
-          />
+          <div className="flex flex-col gap-2">
+            {health.map((issue) => (
+              <HealthBlock key={issue.key} issue={issue} />
+            ))}
+          </div>
         ) : (
           <Alert type="success" showIcon message="未发现明显的漏录、重复或异常工时。" />
         )}
@@ -167,7 +181,7 @@ export const OverviewTab = ({ overview, profiles, health, onPickWorker }: Overvi
 
       <ChartCard
         title="每日出勤人数 & 总工时趋势"
-        tip="人天口径;无记录日期如实留白不连线;红点=当日合计 >12h"
+        tip="人天口径;无记录日期如实留白不连线;红点=当天有人合计 >12h"
         height={360}
         option={opts.dailyChartOption(overview.daily, overview.anomalyDays)}
       />
@@ -267,6 +281,7 @@ export const OverviewTab = ({ overview, profiles, health, onPickWorker }: Overvi
 
       <Collapse
         size="small"
+        defaultActiveKey="dist" // 默认展开
         items={[
           {
             key: "dist",

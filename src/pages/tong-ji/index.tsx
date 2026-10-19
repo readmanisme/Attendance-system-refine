@@ -19,7 +19,7 @@ import { useList } from "@refinedev/core";
 import { Empty, Segmented, Spin, Tabs, Typography } from "antd";
 import { DatePicker } from "antd";
 import dayjs from "dayjs";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useConfigStore } from "@/stores";
 import {
   buildContext,
@@ -54,6 +54,23 @@ const rangeOfQuick = (key: string): [string | null, string | null] => {
   return [now.subtract(n - 1, "month").format("YYYY-MM"), end];
 };
 
+/**
+ * 把页面拉回顶部:从给定节点往上找最近的可滚动祖先,
+ * 找不到就退回 window(当前布局是 window 滚动,保留祖先查找是为了以后换布局不改这里)。
+ */
+const resetScroll = (from: HTMLElement | null): void => {
+  let node = from?.parentElement ?? null;
+  while (node) {
+    const { overflowY } = getComputedStyle(node);
+    if (/(auto|scroll|overlay)/.test(overflowY) && node.scrollHeight > node.clientHeight) {
+      node.scrollTop = 0;
+      return;
+    }
+    node = node.parentElement;
+  }
+  window.scrollTo(0, 0);
+};
+
 export default function TongJiPage() {
   // 月份范围持久化在 config store(本页专用字段),与记录页/工时页的范围互不影响
   const { tongjiMonthRange: monthRange, setTongjiMonthRange: setMonthRange } = useConfigStore();
@@ -64,6 +81,9 @@ export default function TongJiPage() {
   // Tab 与选中工人:提到父级,供"点排行/热力跳个人分析"联动
   const [activeTab, setActiveTab] = useState("overview");
   const [selectedWorkerId, setSelectedWorkerId] = useState<string | undefined>();
+  // 页面根节点:切 Tab / 联动跳转时把滚动位置拉回顶部
+  const rootRef = useRef<HTMLDivElement | null>(null);
+  const isFirstRender = useRef(true);
 
   // ======================== 数据 ========================
   const { result: recordResult, query: recordQuery } = useList({
@@ -98,6 +118,15 @@ export default function TongJiPage() {
   const health = useMemo(() => buildHealth(filtered, overview), [filtered, overview]);
 
   const hasData = overview.recordCount > 0;
+
+  // 切 Tab(含从排行/热力跳个人分析)后回到顶部;首次渲染不动,避免打断刷新后的滚动位置恢复
+  useEffect(() => {
+    if (isFirstRender.current) {
+      isFirstRender.current = false;
+      return;
+    }
+    resetScroll(rootRef.current);
+  }, [activeTab]);
 
   /** 点排行/热力/网络 → 选中该人并切到个人分析 */
   const pickWorker = (id: string) => {
@@ -144,49 +173,51 @@ export default function TongJiPage() {
   return (
     <List headerButtons={rangeButtons}>
       <Spin spinning={isLoading}>
-        {hasData ? (
-          <Tabs
-            activeKey={activeTab}
-            onChange={setActiveTab}
-            destroyInactiveTabPane
-            items={[
-              {
-                key: "overview",
-                label: "概览",
-                children: (
-                  <OverviewTab
-                    overview={overview}
-                    profiles={profiles}
-                    health={health}
-                    onPickWorker={pickWorker}
-                  />
-                ),
-              },
-              { key: "time", label: "时间模式", children: <TimeTab overview={overview} /> },
-              {
-                key: "relation",
-                label: "关系分析",
-                children: (
-                  <RelationTab relation={relation} sankey={sankey} onPickWorker={pickWorker} />
-                ),
-              },
-              {
-                key: "personal",
-                label: "个人分析",
-                children: (
-                  <PersonalTab
-                    profiles={profiles}
-                    relation={relation}
-                    selectedWorkerId={selectedWorkerId}
-                    onSelectWorker={setSelectedWorkerId}
-                  />
-                ),
-              },
-            ]}
-          />
-        ) : (
-          <Empty description={isLoading ? "加载中..." : "所选范围内没有记录"} />
-        )}
+        <div ref={rootRef}>
+          {hasData ? (
+            <Tabs
+              activeKey={activeTab}
+              onChange={setActiveTab}
+              destroyInactiveTabPane
+              items={[
+                {
+                  key: "overview",
+                  label: "概览",
+                  children: (
+                    <OverviewTab
+                      overview={overview}
+                      profiles={profiles}
+                      health={health}
+                      onPickWorker={pickWorker}
+                    />
+                  ),
+                },
+                { key: "time", label: "时间模式", children: <TimeTab overview={overview} /> },
+                {
+                  key: "relation",
+                  label: "关系分析",
+                  children: (
+                    <RelationTab relation={relation} sankey={sankey} onPickWorker={pickWorker} />
+                  ),
+                },
+                {
+                  key: "personal",
+                  label: "个人分析",
+                  children: (
+                    <PersonalTab
+                      profiles={profiles}
+                      relation={relation}
+                      selectedWorkerId={selectedWorkerId}
+                      onSelectWorker={setSelectedWorkerId}
+                    />
+                  ),
+                },
+              ]}
+            />
+          ) : (
+            <Empty description={isLoading ? "加载中..." : "所选范围内没有记录"} />
+          )}
+        </div>
       </Spin>
     </List>
   );

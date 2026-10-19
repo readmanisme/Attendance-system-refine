@@ -199,13 +199,32 @@ describe("buildOverview", () => {
   });
 
   test("异常日/人月热力/工种×星期", () => {
-    // 08-01 合计 840 分钟 = 14h > 12h
-    expect(o.anomalyDays).toEqual([{ day: "2026-08-01", hours: 14 }]);
+    // 08-01 合计 840 分钟 = 14h,但拆到两个人(甲 10h + 乙 4h)→ 不算异常
+    expect(o.anomalyDays).toEqual([]);
+    expect(o.personDayOver).toEqual([]);
     expect(o.workerMonthHeat.months).toEqual(["2026-08", "2026-09"]);
     expect(o.workerMonthHeat.names).toEqual([nameB, nameA]);
     expect(o.workerMonthHeat.data).toContainEqual([0, 0, 2]); // 乙 8 月 2 天
     expect(o.workWeekday.works).toEqual([nameBy, nameWt]);
     expect(o.workWeekday.data.every(([, , v]) => v > 0)).toBe(true);
+  });
+
+  test("单人单日 >12h 才算异常(多人合计不算)", () => {
+    const o = buildOverview([
+      // 同一天两人各 10h:合计 20h,但每人都不超 12h
+      rec("o1", wA, tBy, "2026-08-01", 600),
+      rec("o2", wB, tBy, "2026-08-01", 600),
+      // 甲 08-02 跨两个工种 10h + 3.33h = 13.33h → 异常
+      rec("o3", wA, tBy, "2026-08-02", 600),
+      rec("o4", wA, tWt, "2026-08-02", 200),
+      // 乙 08-02 只有 4h
+      rec("o5", wB, tBy, "2026-08-02", 240),
+    ]);
+    expect(o.personDayOver).toEqual([
+      { workerId: wA, name: nameA, day: "2026-08-02", hours: 13.33 },
+    ]);
+    // 趋势图按天去重,取当天最长的那个人
+    expect(o.anomalyDays).toEqual([{ day: "2026-08-02", hours: 13.33 }]);
   });
 
   test("空数据不炸", () => {
@@ -389,9 +408,9 @@ describe("buildProfiles", () => {
   });
 
   test("百分位/中位数/P95 与工种收入构成", () => {
-    // 出勤 3 天的乙是全员最高 → 100 分位;甲 2 天 → 50
-    expect(p.byId.get(wB)!.percentile.days).toBe(100);
-    expect(p.byId.get(wA)!.percentile.days).toBe(50);
+    // "超过多少人":出勤 3 天的乙超过 1/2 的人;甲 2 天谁也没超过
+    expect(p.byId.get(wB)!.percentile.days).toBe(50);
+    expect(p.byId.get(wA)!.percentile.days).toBe(0);
     // 出勤率 = 出勤天 / 首末跨度天数
     expect(p.byId.get(wA)!.attendanceRate).toBe(1); // 08-01~08-02 两天都出勤
     expect(p.byId.get(wB)!.attendanceRate).toBe(0.073); // 3 天 / 41 天

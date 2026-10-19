@@ -115,6 +115,53 @@ test("四个 Tab 渲染冒烟(canvas 非空白)", async ({ page }) => {
   await canvasCheck("个人分析", 9);
 });
 
+test("切 Tab 重置页面滚动", async ({ page }) => {
+  await page.goto(appUrl("tongji"));
+  await expect(page.getByTestId("tj-record-count")).toBeVisible();
+
+  /** 从 tablist 往上找真正的滚动容器;当前布局是 window 滚动,找不到就退回 scrollingElement */
+  const scrollTop = () =>
+    page.evaluate(() => {
+      let node = document.querySelector('[role="tablist"]') as HTMLElement | null;
+      while (node) {
+        const scrollable =
+          node.scrollHeight > node.clientHeight &&
+          /(auto|scroll|overlay)/.test(getComputedStyle(node).overflowY);
+        if (scrollable) return node.scrollTop;
+        node = node.parentElement;
+      }
+      return document.scrollingElement?.scrollTop ?? 0;
+    });
+  const scrollToBottom = () =>
+    page.evaluate(() => {
+      let node = document.querySelector('[role="tablist"]') as HTMLElement | null;
+      while (node) {
+        const scrollable =
+          node.scrollHeight > node.clientHeight &&
+          /(auto|scroll|overlay)/.test(getComputedStyle(node).overflowY);
+        if (scrollable) {
+          node.scrollTop = node.scrollHeight;
+          return;
+        }
+        node = node.parentElement;
+      }
+      const el = document.scrollingElement;
+      if (el) el.scrollTop = el.scrollHeight;
+    });
+
+  await scrollToBottom();
+  await expect.poll(scrollTop).toBeGreaterThan(200);
+
+  await tab(page, "时间模式").click();
+  await expect.poll(scrollTop).toBe(0);
+
+  // 反向再验证一次:滚到底后切回概览,同样回顶
+  await scrollToBottom();
+  await expect.poll(scrollTop).toBeGreaterThan(200);
+  await tab(page, "概览").click();
+  await expect.poll(scrollTop).toBe(0);
+});
+
 test("共现阈值联动", async ({ page }) => {
   await page.goto(appUrl("tongji"));
   await tab(page, "关系分析").click();

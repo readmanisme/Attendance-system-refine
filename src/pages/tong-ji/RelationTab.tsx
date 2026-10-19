@@ -19,6 +19,8 @@ interface RelationTabProps {
 export const RelationTab = ({ relation, sankey, onPickWorker }: RelationTabProps) => {
   // 共现阈值(默认 10 天,可调,作用于网络图边与稳定性散点)
   const [coThreshold, setCoThreshold] = useState(10);
+  // 人少时不必占满 560px,按人数收敛,避免格子被拉成大方块
+  const heatHeight = Math.max(320, Math.min(relation.matrixNames.length, 20) * 26 + 140);
 
   return (
     <div className="flex flex-col gap-2">
@@ -30,7 +32,7 @@ export const RelationTab = ({ relation, sankey, onPickWorker }: RelationTabProps
       <ChartCard
         title="两人共现热力"
         tip="行列取出勤 Top20 对角线以下三角;颜色越深共现越多;点格子跳到该人的个人分析"
-        height={560}
+        height={heatHeight}
         option={opts.coHeatmapOption(relation)}
         onEvents={{
           click: (p: any) => {

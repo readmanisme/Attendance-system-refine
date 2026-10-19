@@ -15,7 +15,7 @@ interface TimeTabProps {
 export const TimeTab = ({ overview }: TimeTabProps) => {
   // 日历热力高度 = 年数 × 单年高度 + 边距
   const calendarHeight = Math.max(200, opts.calendarYears(overview.daily).length * 170 + 20);
-  const heatHeight = Math.max(260, Math.min(overview.workerMonthHeat.names.length, 20) * 24 + 120);
+  const heatHeight = Math.max(240, Math.min(overview.workerMonthHeat.names.length, 20) * 30 + 100);
   const { silent } = overview;
 
   return (

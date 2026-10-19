@@ -177,6 +177,8 @@ export interface Overview {
     salary: string;
     /** 占总支出比例(0~1) */
     share: number;
+    /** 按工种拆开的明细(体检表逐条列出用) */
+    items: { name: string; records: number; minutes: number; salary: string }[];
   };
   /** 工人支出合计 Top(钱花在谁身上) */
   salaryTop: { id: string; name: string; salary: number; days: number; hours: number }[];
@@ -195,7 +197,9 @@ export interface Overview {
   weekday: { key: string; personDays: number; hours: number }[];
   /** 出勤 Top15 每人的单日工时五数概括(箱线图:[min,Q1,中位,Q3,max]) */
   boxData: { name: string; box: [number, number, number, number, number]; count: number }[];
-  /** 单日总工时 >12h 的日期(异常点,用于趋势图 markPoint) */
+  /** 单人单日合计 >12h 的明细(体检逐条列出;多人合计不算异常) */
+  personDayOver: { workerId: string; name: string; day: string; hours: number }[];
+  /** 出现"有人单日 >12h"的日期(趋势图 markPoint;hours=当天最长的那个人) */
   anomalyDays: { day: string; hours: number }[];
   /** 人 × 月 出勤热力(出勤 Top20,值=人天) */
   workerMonthHeat: {
@@ -619,10 +623,25 @@ export const buildOverview = (
       };
     });
 
-  // ---- 异常日:单日总工时 >12h ----
-  const anomalyDays = allDays
-    .map((day) => ({ day, hours: minutesToHours(dayMinutes.get(day) ?? 0) }))
-    .filter((d) => d.hours > 12);
+  // ---- 异常:单人单日合计 >12h(多人合计不算,一个人一天干不了那么久) ----
+  const personDayOver: Overview["personDayOver"] = [];
+  for (const [key, minutes] of shiftTotals) {
+    if (minutes <= 720) continue;
+    const sep = key.indexOf("|");
+    const workerId = key.slice(0, sep);
+    personDayOver.push({
+      workerId,
+      name: workerMap.get(workerId) ?? UNKNOWN_NAME,
+      day: key.slice(sep + 1),
+      hours: minutesToHours(minutes),
+    });
+  }
+  // 同一天多人异常时,按小时降序,取最长的那个人作为该日代表点
+  personDayOver.sort((a, b) => (a.day === b.day ? b.hours - a.hours : a.day.localeCompare(b.day)));
+  const anomalyDays = [...new Map(personDayOver.map((p) => [p.day, p])).values()].map((p) => ({
+    day: p.day,
+    hours: p.hours,
+  }));
 
   // ---- 人 × 月 出勤热力(Top20);坐标顺序 [月, 人, 人天] 与 x=月 / y=人 对齐 ----
   const heatWorkers = topWorkers.slice(0, 20);
@@ -700,12 +719,21 @@ export const buildOverview = (
       minutes: unPricedMinutes,
       salary: unPricedSalary.toDecimalPlaces(2).toString(),
       share: unPricedShare,
+      items: [...unPricedList]
+        .sort((a, b) => b[1].minutes - a[1].minutes)
+        .map(([name, v]) => ({
+          name,
+          records: v.records,
+          minutes: v.minutes,
+          salary: v.salary.toDecimalPlaces(2).toString(),
+        })),
     },
     salaryTop,
     growth,
     silent,
     weekday,
     boxData,
+    personDayOver,
     anomalyDays,
     workerMonthHeat,
     workWeekday,
@@ -725,14 +753,14 @@ const quantileOf = (sorted: number[], q: number): number => {
   return Math.round(v * 100) / 100;
 };
 
-/** 有序数组的百分位排名(≤ v 的占比,0~100 整数) */
+/** 有序数组的百分位排名:严格低于 v 的占比(0~100 整数),即"超过了多少人" */
 export const percentileRank = (sorted: number[], v: number): number => {
   if (!sorted.length) return 0;
   let lo = 0;
   let hi = sorted.length;
   while (lo < hi) {
     const mid = (lo + hi) >> 1;
-    if (sorted[mid] <= v) lo = mid + 1;
+    if (sorted[mid] < v) lo = mid + 1;
     else hi = mid;
   }
   return Math.round((lo / sorted.length) * 100);
@@ -760,23 +788,30 @@ export interface HealthIssue {
   level: HealthLevel;
   /** 问题标题(短) */
   title: string;
-  /** 命中数量(天数/条数/人数,由 title 语义决定) */
+  /** 命中数量(天数/条数/工种数,由 title 语义决定) */
   count: number;
   /** 口径与建议动作 */
   hint: string;
-  /** 最多 3 条样例 */
-  samples: string[];
+  /** 全部命中项的明细(逐条列出,便于直接核对/修改) */
+  details: string[];
 }
+
+/** 本地日期 "YYYY-MM-DD"(不能用 toISOString:东八区凌晨会算成前一天) */
+export const localToday = (now = new Date()): string =>
+  `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(
+    now.getDate(),
+  ).padStart(2, "0")}`;
 
 /**
  * 数据体检:找出"看着像录错/漏录"的记录。
  * 只做提示,不修改数据;所有判定都基于筛选后的记录,与图表同口径。
- * @param today 可注入"今天",便于单测;默认取系统日期
+ * 每条问题都带全量明细(不是样例),页面直接列出来供逐条核对。
+ * @param today 可注入"今天",便于单测;默认取本地日期
  */
 export const buildHealth = (
   records: any[] | undefined,
   overview: Overview,
-  today = new Date().toISOString().slice(0, 10),
+  today = localToday(),
 ): HealthIssue[] => {
   const list = records ?? [];
   const issues: HealthIssue[] = [];
@@ -784,27 +819,43 @@ export const buildHealth = (
     if (issue.count > 0) issues.push(issue);
   };
 
+  // 名称映射 + 按天聚合(多条规则复用)
+  const workerNameOf = new Map<string, string>();
+  const workNameOf = new Map<string, string>();
+  const dayRecords = new Map<string, number>();
+  const dayNames = new Map<string, Set<string>>();
+  for (const r of list) {
+    const day = r?.work_date as string | undefined;
+    const workerId = r?.worker_id as string | undefined;
+    const workId = r?.work as string | undefined;
+    const workerName = r?.expand?.worker_id?.name as string | undefined;
+    if (workerId) workerNameOf.set(workerId, workerName ?? UNKNOWN_NAME);
+    if (workId) workNameOf.set(workId, r?.expand?.work?.name ?? UNKNOWN_NAME);
+    if (!day) continue;
+    dayRecords.set(day, (dayRecords.get(day) ?? 0) + 1);
+    if (!dayNames.has(day)) dayNames.set(day, new Set());
+    if (workerName) dayNames.get(day)!.add(workerName);
+  }
+
   // 1) 未来日期
-  const futureDays = [
-    ...new Set(list.map((r) => r?.work_date as string).filter((d) => d && d > today)),
-  ].sort();
+  const futureDays = [...dayRecords.keys()].filter((d) => d > today).sort();
   push({
     key: "future",
     level: "warn",
     title: "未来日期",
     count: futureDays.length,
-    hint: "日期晚于今天,通常是录入时选错月份,建议核对后修正。",
-    samples: futureDays.slice(0, 3),
+    hint: "日期晚于今天,通常是录入时选错月份;到「考勤记录」按日期筛选后改掉即可。",
+    details: futureDays.map((d) => `${d} · ${dayRecords.get(d)} 条记录`),
   });
 
-  // 2) 单日总工时 >12h
+  // 2) 单人单日合计 >12h(多人合计不算异常)
   push({
     key: "over12",
     level: "warn",
-    title: "单日总工时 >12h",
-    count: overview.anomalyDays.length,
-    hint: "同一天合计超过 12 小时,可能是重复录入或工时填错。",
-    samples: overview.anomalyDays.slice(0, 3).map((d) => `${d.day} 合计 ${d.hours}h`),
+    title: "单人单日总工时 >12h",
+    count: overview.personDayOver.length,
+    hint: "同一个人同一天(跨工种)合计超过 12 小时,基本只能是重复录入或工时填错;多人合计不算异常。",
+    details: overview.personDayOver.map((p) => `${p.name} · ${p.day} · ${p.hours}h`),
   });
 
   // 3) 单日总工时 <1h(有记录但不足 1 小时)
@@ -817,93 +868,58 @@ export const buildHealth = (
     title: "单日总工时 <1h",
     count: tinyDays.length,
     hint: "不足 1 小时的出勤日,确认是短时帮工还是分钟数填错。",
-    samples: tinyDays
-      .slice(0, 3)
-      .map((d) => `${d.day} 合计 ${minutesToHours(d.minutes as number)}h`),
+    details: tinyDays.map(
+      (d) =>
+        `${d.day} · 合计 ${minutesToHours(d.minutes as number)}h · ${
+          [...(dayNames.get(d.day) ?? [])].join("、") || "—"
+        }`,
+    ),
   });
 
-  // 4) 全天只有 1 人出勤(可能漏记)
-  const soloDays = overview.daily.filter((d) => d.persons === 1);
-  push({
-    key: "solo",
-    level: "info",
-    title: "只有 1 人出勤的日期",
-    count: soloDays.length,
-    hint: "若当天实际不止一人,通常是漏录,建议对照签到补录。",
-    samples: soloDays.slice(0, 3).map((d) => d.day),
-  });
-
-  // 5) 同人同日同工种多条(库有唯一索引,正常应为 0)
-  const keyCount = new Map<string, number>();
+  // 4) 同人同日同工种多条(库有唯一索引,正常应为 0)
+  const dupMap = new Map<string, { workerId: string; day: string; workId: string; n: number }>();
   for (const r of list) {
     const workerId = r?.worker_id as string | undefined;
     const workId = r?.work as string | undefined;
     const day = r?.work_date as string | undefined;
     if (!workerId || !workId || !day) continue;
     const k = `${workerId}|${day}|${workId}`;
-    keyCount.set(k, (keyCount.get(k) ?? 0) + 1);
+    const cur = dupMap.get(k);
+    if (cur) cur.n++;
+    else dupMap.set(k, { workerId, day, workId, n: 1 });
   }
-  const dupKeys = [...keyCount.entries()].filter(([, n]) => n > 1);
+  const dups = [...dupMap.values()].filter((d) => d.n > 1);
   push({
     key: "duplicate",
     level: "warn",
     title: "同人同日同工种重复记录",
-    count: dupKeys.length,
-    hint: "同一人同一天同一工种出现多条,建议合并为一条(库的唯一索引异常时才可能发生)。",
-    samples: dupKeys.slice(0, 3).map(([k]) => {
-      const [w, d, t] = k.split("|");
-      return `${w} / ${d} / ${t}`;
-    }),
+    count: dups.length,
+    hint: "同一人同一天同一工种出现多条,建议合并为一条(正常有唯一索引,出现即异常)。",
+    details: dups
+      .sort((a, b) =>
+        a.day === b.day ? a.workerId.localeCompare(b.workerId) : a.day.localeCompare(b.day),
+      )
+      .map(
+        (d) =>
+          `${workerNameOf.get(d.workerId) ?? UNKNOWN_NAME} · ${d.day} · ${
+            workNameOf.get(d.workId) ?? UNKNOWN_NAME
+          } · ${d.n} 条`,
+      ),
   });
 
-  // 6) 未定价工种(兜底按"基础"价)
+  // 5) 未定价工种(兜底按"基础"价)
+  const unpriced = overview.unPriced;
   push({
     key: "unpriced",
     level: "info",
     title: "未单独定价的工种",
-    count: overview.unPriced.records,
-    hint: `按"基础"时薪兜底,折合 ${overview.unPriced.salary} 元;补价后概览与个人收入会自动修正。`,
-    samples: overview.unPriced.names.slice(0, 3),
-  });
-
-  // 7) 个人月出勤骤降(上月 ≥5 天,本月跌到不足一半;末月为进行中,跳过)
-  const nameOf = new Map<string, string>();
-  const workerIds = new Set<string>();
-  /** `${workerId}|${month}` → 该月出勤日集合 */
-  const monthDaySets = new Map<string, Set<string>>();
-  for (const r of list) {
-    const workerId = r?.worker_id as string | undefined;
-    const day = r?.work_date as string | undefined;
-    if (!workerId || !day) continue;
-    nameOf.set(workerId, r?.expand?.worker_id?.name ?? UNKNOWN_NAME);
-    workerIds.add(workerId);
-    const k = `${workerId}|${day.slice(0, 7)}`;
-    if (!monthDaySets.has(k)) monthDaySets.set(k, new Set());
-    monthDaySets.get(k)!.add(day);
-  }
-  const dropSamples: string[] = [];
-  const completeMonths = overview.monthly.slice(0, -1).map((m) => m.month);
-  for (const workerId of workerIds) {
-    for (let i = 1; i < completeMonths.length; i++) {
-      const cur = completeMonths[i];
-      const prev = completeMonths[i - 1];
-      const curDays = monthDaySets.get(`${workerId}|${cur}`)?.size ?? 0;
-      const prevDays = monthDaySets.get(`${workerId}|${prev}`)?.size ?? 0;
-      if (prevDays >= 5 && curDays <= prevDays / 2) {
-        dropSamples.push(
-          `${nameOf.get(workerId) ?? UNKNOWN_NAME} ${prev} ${prevDays}天 → ${cur} ${curDays}天`,
-        );
-        break;
-      }
-    }
-  }
-  push({
-    key: "drop",
-    level: "info",
-    title: "月出勤天数骤降",
-    count: dropSamples.length,
-    hint: "上月出勤 ≥5 天、本月不足一半;末月为进行中月份不参与判定。",
-    samples: dropSamples.slice(0, 3),
+    count: unpriced.items.length,
+    hint: `共 ${unpriced.records} 条记录按"基础"时薪兜底,折合 ${unpriced.salary} 元(占总支出 ${(
+      unpriced.share * 100
+    ).toFixed(1)}%)。到「薪资设置」给这些工种补价,概览与个人收入会自动修正。`,
+    details: unpriced.items.map(
+      (i) => `${i.name} · ${i.records} 条 · ${minutesToHours(i.minutes)}h · 折合 ${i.salary} 元`,
+    ),
   });
 
   // warn 优先,同级别按命中数量降序
