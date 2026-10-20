@@ -4,6 +4,7 @@ import { Space } from "antd";
 import { cellTestId } from "@/utils/tableHelpers";
 import { BASE_WORK_TYPE_NAME } from "@/constants";
 import { DataTable } from "@/components/ui/DataTable";
+import { EmptyState } from "@/components/ui/EmptyState";
 
 const SalaryTypeList = () => {
   const { tableProps } = useTable({
@@ -61,18 +62,33 @@ const SalaryTypeList = () => {
         )}
       </div>
 
-      <DataTable {...tableProps} dataSource={dataSource} rowKey="id" tableLayout="fixed">
+      <DataTable
+        {...tableProps}
+        dataSource={dataSource}
+        rowKey="id"
+        tableLayout="fixed"
+        locale={{
+          emptyText: (
+            <EmptyState compact title="还没有薪资设置" description="点右上角「添加记录」设置时薪" />
+          ),
+        }}
+      >
         <DataTable.Column
           dataIndex="id"
           title="ID"
-          width={130}
+          width={96}
+          className="id-col"
           ellipsis
           onCell={cellTestId((i) => `row-id-${i}`)}
         />
         <DataTable.Column
           dataIndex={["expand", "worker_name", "name"]}
           title="工人"
-          width={200}
+          render={(value: string) =>
+            value || (
+              <span style={{ color: "var(--text-tertiary)", fontSize: 12 }}>全部人员（默认）</span>
+            )
+          }
           onCell={cellTestId((i) => `row-worker-${i}`)}
         />
         <DataTable.Column
@@ -83,9 +99,9 @@ const SalaryTypeList = () => {
         />
         <DataTable.Column
           dataIndex="SalaryNum"
-          title="时薪"
+          title="时薪(元/时)"
           className="num"
-          width={110}
+          width={120}
           onCell={cellTestId((i) => `row-salary-${i}`)}
         />
         <DataTable.Column
@@ -103,6 +119,8 @@ const SalaryTypeList = () => {
               />
               <DeleteButton
                 data-testid={`delete-button-${index}`}
+                className="danger-hover"
+                type="text"
                 disabled={
                   record.expand?.work_type?.name === BASE_WORK_TYPE_NAME && record.worker_name === ""
                 }

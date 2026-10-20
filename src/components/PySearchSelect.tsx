@@ -23,6 +23,8 @@ export interface PySearchSelectProps {
   /** "qiandao" 时接受外部 value 实现受控 */
   type?: string;
   value?: any;
+  /** 下拉列表高度；签到页放在页面底部，压低一点让下拉朝下展开，别盖住上面的工时 */
+  listHeight?: number;
 }
 /**
  * 自定义的选择器，支持拼音搜索,
@@ -41,6 +43,7 @@ export default function PySearchSelect({
   disabled = false,
   type = undefined,
   value = undefined,
+  listHeight = 180,
 }: PySearchSelectProps) {
   // 高亮词集合:拼音模式存匹配到的字符,汉字模式存输入词
   const [highlightWords, setHighlightWords] = useState(new Set<string>());
@@ -145,7 +148,7 @@ export default function PySearchSelect({
         labelInValue
         optionFilterProp="label"
         style={{ width: width }}
-        listHeight={180}
+        listHeight={listHeight}
         filterOption={handleFilter}
         onChange={handleChange} //选择和删除选项触发
         onClear={handleClear}

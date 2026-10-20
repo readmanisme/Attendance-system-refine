@@ -4,10 +4,11 @@
  * 搭档排名 → 工种收入构成。
  * 只放与该人相关的图;选人状态由父级持有,便于从排行/热力联动跳转。
  */
-import { Alert, Card, Col, Empty, Row, Select, Statistic, Typography } from "antd";
+import { Alert, Card, Col, Empty, Row, Select, Typography } from "antd";
 import type { Profiles, Relation, WorkerProfile } from "./compute";
 import * as opts from "./options";
 import { ChartCard } from "./ChartCard";
+import { StatCard } from "@/components/ui/StatCard";
 
 interface PersonalTabProps {
   profiles: Profiles;
@@ -62,27 +63,41 @@ export const PersonalTab = ({
             }))}
           />
         </Col>
-        <Col xs={8} md={3} data-testid="tj-p-days">
-          <Statistic title="出勤天数" value={selected.days} suffix="天" />
+        <Col xs={8} md={3}>
+          <StatCard testId="tj-p-days" title="出勤天数" value={selected.days} suffix="天" />
         </Col>
-        <Col xs={8} md={3} data-testid="tj-p-hours">
-          <Statistic title="总工时" value={selected.hours} suffix="h" precision={1} />
+        <Col xs={8} md={3}>
+          <StatCard
+            testId="tj-p-hours"
+            title="总工时"
+            value={selected.hours}
+            suffix="h"
+            precision={1}
+          />
         </Col>
-        <Col xs={8} md={3} data-testid="tj-p-salary">
-          <Statistic title="收入(估算)" value={selected.salary} suffix="元" />
+        <Col xs={8} md={3}>
+          <StatCard testId="tj-p-salary" title="收入(估算)" value={selected.salary} suffix="元" />
         </Col>
-        <Col xs={12} md={3} data-testid="tj-p-avg">
-          <Statistic title="日均工时" value={selected.avgDayHours} suffix="h" precision={1} />
+        <Col xs={12} md={3}>
+          <StatCard
+            testId="tj-p-avg"
+            title="日均工时"
+            value={selected.avgDayHours}
+            suffix="h"
+            precision={1}
+          />
         </Col>
-        <Col xs={12} md={3} data-testid="tj-p-rate">
-          <Statistic
+        <Col xs={12} md={3}>
+          <StatCard
+            testId="tj-p-rate"
             title="出勤率"
             value={Number((selected.attendanceRate * 100).toFixed(1))}
             suffix="%"
           />
         </Col>
-        <Col xs={12} md={3} data-testid="tj-p-top">
-          <Statistic
+        <Col xs={12} md={3}>
+          <StatCard
+            testId="tj-p-top"
             title="主工种/广度"
             value={selected.topWork}
             suffix={selected.workCount > 1 ? ` +${selected.workCount - 1}` : ""}

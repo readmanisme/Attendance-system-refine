@@ -6,6 +6,7 @@ import { useInvalidate } from "@refinedev/core";
 import { cellTestId } from "@/utils/tableHelpers";
 import { BASE_WORK_TYPE_NAME } from "@/constants";
 import { DataTable } from "@/components/ui/DataTable";
+import { EmptyState } from "@/components/ui/EmptyState";
 
 const ListWorkType = () => {
   const invalidate = useInvalidate();
@@ -119,18 +120,28 @@ const ListWorkType = () => {
         <span data-testid="delete-alert">删除工作将一并删除与之相关的考勤记录和薪资计算方式</span>
       </div>
 
-      <DataTable {...tableProps} dataSource={dataSource} rowKey="id" tableLayout="fixed">
+      <DataTable
+        {...tableProps}
+        dataSource={dataSource}
+        rowKey="id"
+        tableLayout="fixed"
+        locale={{
+          emptyText: (
+            <EmptyState compact title="还没有工种" description="点右上角「添加工作」新建一个" />
+          ),
+        }}
+      >
         <DataTable.Column
           dataIndex="id"
           title="ID"
-          width={130}
+          width={96}
+          className="id-col"
           ellipsis
           onCell={cellTestId((i) => `row-id-${i}`)}
         />
         <DataTable.Column
           dataIndex="name"
           title="名字"
-          width={200}
           onCell={cellTestId((i) => `row-name-${i}`)}
         />
         <DataTable.Column
@@ -158,6 +169,7 @@ const ListWorkType = () => {
               <DeleteButton
                 data-testid={`delete-button-${index}`}
                 disabled={record.name === BASE_WORK_TYPE_NAME}
+                className="danger-hover"
                 type="text"
                 confirmTitle={
                   WorkRecordNum.get(record.id) > 0

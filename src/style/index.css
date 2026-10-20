@@ -11,11 +11,19 @@
   --bg-layout: #f6f7f9;
   --bg-container: #ffffff;
   --bg-subtle: #f8fafc;
+  --bg-hover: #f1f5f9;
   --border: #e5e8ee;
   --border-subtle: #eef1f5;
   --text: #0f172a;
   --text-secondary: #475569;
   --text-tertiary: #94a3b8;
+  /* 语义色：与 src/theme/tokens.ts 的 semantic 保持一致，
+     组件里用 var(--warning) 等变量时必须在这里有定义，否则等于没颜色 */
+  --success: #16a34a;
+  --warning: #d97706;
+  --error: #dc2626;
+  --info: #2563eb;
+  --radius-sm: 6px;
   --radius-base: 8px;
   --radius-lg: 12px;
   --shadow-card: 0 1px 2px rgba(15, 23, 42, 0.04), 0 1px 3px rgba(15, 23, 42, 0.06);
@@ -101,6 +109,33 @@ body {
 .ant-table-wrapper .ant-table-thead > tr > th.num {
   text-align: right;
   font-variant-numeric: tabular-nums;
+}
+
+/* 行内编辑：整行换底色 + 左侧色条，一眼看出"这行正在改" */
+.ant-table-wrapper .ant-table-tbody > tr.row-editing > td {
+  background: var(--brand-soft) !important;
+}
+.ant-table-wrapper .ant-table-tbody > tr.row-editing > td:first-child {
+  box-shadow: inset 3px 0 0 var(--brand);
+}
+
+/* 删除按钮默认中性，悬浮才变红：避免整张表一排红字 */
+.ant-btn.danger-hover,
+.ant-btn.danger-hover .anticon {
+  color: var(--text-secondary) !important;
+}
+.ant-btn.danger-hover:hover,
+.ant-btn.danger-hover:hover .anticon {
+  color: var(--error) !important;
+  background: #fef2f2 !important;
+}
+
+/* ID 列：技术字段，弱化成灰色小号等宽，不参与视觉主次 */
+.ant-table-wrapper .ant-table-tbody > tr > td.id-col,
+.ant-table-wrapper .ant-table-thead > tr > th.id-col {
+  font-size: 12px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  color: var(--text-tertiary);
 }
 
 /* ---------- 卡片 ---------- */

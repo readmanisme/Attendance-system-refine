@@ -19,6 +19,7 @@ import { cellTestId, buildEqOrFilter } from "@/utils/tableHelpers";
 import { useBatchRowSelection } from "../useBatchRowSelection";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { BatchEntryPanel } from "./BatchEntryPanel";
+import { DayStatsBar } from "./DayStatsBar";
 import { useBatchEntry } from "./useBatchEntry";
 
 export default function QianDaoPage() {
@@ -139,6 +140,9 @@ export default function QianDaoPage() {
               <span data-testid="search-alert">可用搜索筛选人员，快速确认某人当天是否已记录</span>
             </div>
 
+            {/* 当天汇总：和记录表放一起，"记了多少、还差谁"一眼能对上 */}
+            <DayStatsBar checkDate={checkDate} />
+
             <Flex justify="space-between" align="center" gap={8} style={{ marginBottom: 12 }}>
               <PySearchSelect
                 onChangeFn={(values) => {
@@ -178,6 +182,10 @@ export default function QianDaoPage() {
                 rowKey="id"
                 size="middle"
                 tableLayout="fixed"
+                // 行内编辑时整行换底色，避免"点开编辑但看不出在改哪一行"
+                rowClassName={(record) =>
+                  record.id && isEditing(record.id) ? "row-editing" : ""
+                }
                 locale={{
                   emptyText: (
                     <EmptyState
@@ -193,13 +201,13 @@ export default function QianDaoPage() {
                 <Table.Column
                   dataIndex={["expand", "worker_id", "name"]}
                   title="人员姓名"
-                  width={200}
+                  width={180}
                   onCell={cellTestId((i) => `row-name-${i}`)}
                 />
                 <Table.Column
                   dataIndex="workTime"
-                  title="工时"
-                  width={220}
+                  title="工时(h)"
+                  width={150}
                   onCell={cellTestId((i) => `row-time-${i}`)}
                   render={(value, record) => {
                     if (isEditing(record.id)) {
@@ -219,7 +227,7 @@ export default function QianDaoPage() {
                 <Table.Column
                   dataIndex={["expand", "work", "name"]}
                   title="工作类型"
-                  width={220}
+                  width={180}
                   onCell={cellTestId((i) => `row-work-${i}`)}
                   render={(value, record) => {
                     if (isEditing(record.id)) {
@@ -272,6 +280,7 @@ export default function QianDaoPage() {
                         />
                         <DeleteButton
                           data-testid={`delete-button-${index}`}
+                          className="danger-hover"
                           hideText
                           disabled={selection.hasSelection}
                           size="small"

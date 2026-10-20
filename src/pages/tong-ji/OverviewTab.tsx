@@ -146,7 +146,7 @@ export const OverviewTab = ({ overview, profiles, health, onPickWorker }: Overvi
         id="tj-health"
         size="small"
         data-testid="tj-health-card"
-        title={cardTitle("数据体检", "只提示不修改;每条问题都列出全部明细,便于逐条核对")}
+        title={cardTitle("数据体检", "只提示不修改;每条问题都列出全部明细,便于逐条核对,如果确认无异常可忽略")}
         extra={
           health.length ? (
             <Tooltip title="导出 CSV">

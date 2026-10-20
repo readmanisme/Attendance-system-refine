@@ -50,3 +50,4 @@ pocketbase-for-playwright-test/
 coverage/
 .workbuddy-ai/
 test-results*
+.archify/

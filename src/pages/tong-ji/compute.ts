@@ -854,7 +854,7 @@ export const buildHealth = (
     level: "warn",
     title: "单人单日总工时 >12h",
     count: overview.personDayOver.length,
-    hint: "同一个人同一天(跨工种)合计超过 12 小时,基本只能是重复录入或工时填错;多人合计不算异常。",
+    hint: "同一个人同一天(跨工种)合计超过 12 小时,可能是重复录入或工时填错;多人合计不算异常。",
     details: overview.personDayOver.map((p) => `${p.name} · ${p.day} · ${p.hours}h`),
   });
 

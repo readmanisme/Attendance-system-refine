@@ -5,6 +5,7 @@ import { Space } from "antd";
 import { buildEqOrFilter, cellTestId } from "@/utils/tableHelpers";
 import { FilterBar } from "@/components/ui/FilterBar";
 import { DataTable } from "@/components/ui/DataTable";
+import { EmptyState } from "@/components/ui/EmptyState";
 
 type SearchValue = { value: string; label: string };
 
@@ -33,14 +34,16 @@ const WorkersList = () => {
     {
       dataIndex: "id",
       title: "ID",
-      width: 130,
+      // ID 对个人使用没有意义，压窄 + 灰字，别让它抢走第一眼的注意力
+      width: 96,
+      className: "id-col",
       ellipsis: true,
       onCell: cellTestId((i) => `row-id-${i}`),
     },
     {
       dataIndex: "name",
       title: "姓名",
-      width: 180,
+      // 不设宽度：吸收剩余空间，避免 ID 列被等比撑宽
       onCell: cellTestId((i) => `row-name-${i}`),
     },
     {
@@ -63,6 +66,7 @@ const WorkersList = () => {
           </EditButton>
           <DeleteButton
             data-testid={`delete-button-${index}`}
+            className="danger-hover"
             type="text"
             confirmTitle={
               WorkerRecordNum.get(record.id) > 0
@@ -111,6 +115,11 @@ const WorkersList = () => {
         rowKey="id"
         columns={columns}
         tableLayout="fixed"
+        locale={{
+          emptyText: (
+            <EmptyState compact title="还没有人员" description="点右上角「添加人员」开始记工" />
+          ),
+        }}
         pagination={{ ...tableProps.pagination, showSizeChanger: true }}
       />
     </List>

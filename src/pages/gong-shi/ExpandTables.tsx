@@ -25,7 +25,7 @@ interface WorkerExpandTablesProps {
   salaryDict: Record<string, number>;
 }
 
-/** 月表列(第一级展开) */
+/** 月表列(第一级展开)；工人列保留（展开多个人后仍能认出属于谁），但压窄成上下文信息 */
 const columnsMonth = [
   {
     title: "月份",
@@ -33,15 +33,15 @@ const columnsMonth = [
     key: "month",
     onCell: cellTestId((_i, r) => `row-month-${r.worker}-${_i}`),
   },
-  { title: "工人", dataIndex: "worker", key: "worker" },
+  { title: "工人", dataIndex: "worker", key: "worker", width: 90 },
   {
-    title: "总工时",
+    title: "总工时(h)",
     dataIndex: "total_work_hours",
     key: "total_work_hours",
     className: "num",
     onCell: cellTestId((_i, r) => `row-month-hours-${r.worker}-${_i}`),
   },
-  { title: "薪资", dataIndex: "xinzi", key: "xinzi", className: "num" },
+  { title: "薪资(元)", dataIndex: "xinzi", key: "xinzi", className: "num" },
 ];
 
 /** 日表列(第二级展开);testid 用"工人+日期",日期在同一张表内唯一,不依赖行号 */
@@ -52,15 +52,15 @@ const columnsDay = [
     key: "date",
     onCell: cellTestId((_i, r) => `row-day-${r.worker}-${r.date}`),
   },
-  { title: "工人", dataIndex: "worker", key: "worker" },
+  { title: "工人", dataIndex: "worker", key: "worker", width: 90 },
   {
-    title: "总工时",
+    title: "总工时(h)",
     dataIndex: "total_work_hours",
     key: "total_work_hours",
     className: "num",
     onCell: cellTestId((_i, r) => `row-day-hours-${r.worker}-${_i}`),
   },
-  { title: "薪资", dataIndex: "xinzi", key: "xinzi", className: "num" },
+  { title: "薪资(元)", dataIndex: "xinzi", key: "xinzi", className: "num" },
 ];
 
 /** 明细表"薪资"列:悬浮显示计算依据 */
@@ -82,8 +82,8 @@ const columnsDetail = (workDate: string) => [
     onCell: cellTestId((i) => `row-d3-${workDate}-${i}`),
   },
   { title: "工作类型", dataIndex: "work", key: "work" },
-  { title: "总工时", dataIndex: "total_work_hours", key: "total_work_hours", className: "num" },
-  { title: "薪资", dataIndex: "xinzi", key: "xinzi", className: "num", render: salaryCell },
+  { title: "总工时(h)", dataIndex: "total_work_hours", key: "total_work_hours", className: "num" },
+  { title: "薪资(元)", dataIndex: "xinzi", key: "xinzi", className: "num", render: salaryCell },
 ];
 
 export function WorkerExpandTables({
@@ -177,7 +177,8 @@ export function WorkerExpandTables({
           columns={columnsDay}
           dataSource={dataSource}
           size="small"
-          pagination={{ showSizeChanger: true }}
+          // 一个月最多 31 行，不需要分页器；展开表里再嵌一个分页控件只会增加噪音
+          pagination={false}
           expandable={{
             expandedRowRender: renderDetailTable,
             expandRowByClick: true,

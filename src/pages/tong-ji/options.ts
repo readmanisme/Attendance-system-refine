@@ -18,6 +18,32 @@ import type {
   WorkerProfile,
 } from "./compute";
 import { minutesToHours } from "./compute";
+
+/**
+ * 统一样式的 dataZoom 滑块。
+ * 默认样式是一条贴底的浅蓝条，看起来像"多出来一条滚动条"；
+ * 这里显式给底色 / 填充 / 手柄，让它像个能拖的控件。
+ * 数据点少时不要加（见各 option 里的长度判断）。
+ */
+const zoomSlider = (bottom: number) => ({
+  type: "slider" as const,
+  bottom,
+  height: 18,
+  borderColor: "transparent",
+  backgroundColor: "#f1f5f9",
+  fillerColor: "rgba(37, 99, 235, 0.12)",
+  handleSize: 14,
+  handleStyle: { color: "#fff", borderColor: "#cbd5e1" },
+  dataBackground: {
+    lineStyle: { color: "#cbd5e1" },
+    areaStyle: { color: "#e2e8f0" },
+  },
+  selectedDataBackground: {
+    lineStyle: { color: "#2563eb" },
+    areaStyle: { color: "rgba(37, 99, 235, 0.15)" },
+  },
+  textStyle: { color: "#94a3b8", fontSize: 11 },
+});
 import type { ChartOption } from "./EChart";
 
 /** 公共 grid(标签留足空间) */
@@ -55,7 +81,7 @@ export const dailyChartOption = (
     legend: { top: 12 },
     grid: { ...grid, bottom: daily.length > 120 ? 80 : 64 },
     // 数据点多时给滑块,避免两年 700+ 天挤在一起
-    dataZoom: daily.length > 120 ? [{ type: "slider", bottom: 8, height: 22 }] : undefined,
+    dataZoom: daily.length > 120 ? [zoomSlider(10)] : undefined,
     xAxis: { type: "time", name: "" },
     yAxis: [
       { type: "value", name: "出勤人数(人)", minInterval: 1 },
@@ -66,7 +92,11 @@ export const dailyChartOption = (
         name: "出勤人数",
         type: "line",
         yAxisIndex: 0,
-        showSymbol: false,
+        // 有断档的日子只连出一小段线,不画点的话看起来像一根根竖线(条形码);
+        // 跨度不大时把点画出来,孤立的出勤日也能看清
+        showSymbol: daily.length <= 200,
+        symbol: "circle",
+        symbolSize: 4,
         connectNulls: false,
         data: daily.map((d) => [ts(d.day), d.persons]),
         lineStyle: { width: 2 },
@@ -75,7 +105,9 @@ export const dailyChartOption = (
         name: "总工时",
         type: "line",
         yAxisIndex: 1,
-        showSymbol: false,
+        showSymbol: daily.length <= 200,
+        symbol: "circle",
+        symbolSize: 4,
         connectNulls: false,
         data: daily.map((d) => [ts(d.day), d.minutes == null ? null : minutesToHours(d.minutes)]),
         lineStyle: { width: 2 },
@@ -111,8 +143,8 @@ export const monthlyOverviewOption = (monthly: Overview["monthly"]): ChartOption
     },
   },
   legend: { top: 12 },
-  grid: { ...grid, bottom: 80 },
-  dataZoom: [{ type: "slider", bottom: 8, height: 22 }],
+  grid: { ...grid, bottom: monthly.length > 12 ? 80 : 56 },
+  dataZoom: monthly.length > 12 ? [zoomSlider(8)] : undefined,
   xAxis: { type: "category", data: monthly.map((m) => m.month), axisLabel: { rotate: 45 } },
   yAxis: [
     { type: "value", name: "人天/工时" },
@@ -315,8 +347,8 @@ export const workTypeMonthlyOption = (data: Overview["workTypeMonthly"]): ChartO
   return {
     tooltip: { trigger: "axis", valueFormatter: (v: number) => `${v}h` },
     legend: { top: 12, type: "scroll" },
-    grid: { ...grid, bottom: 96 },
-    dataZoom: [{ type: "slider", bottom: 24, height: 22 }],
+    grid: { ...grid, bottom: data.length > 12 ? 96 : 56 },
+    dataZoom: data.length > 12 ? [zoomSlider(24)] : undefined,
     xAxis: { type: "category", data: data.map((m) => m.month), axisLabel: { rotate: 45 } },
     yAxis: { type: "value", name: "工时(h)" },
     series: workNames.map((name) => ({
@@ -893,8 +925,8 @@ export const personalMonthlyOption = (
 ): ChartOption => ({
   tooltip: { trigger: "axis" },
   legend: { top: 12 },
-  grid: { ...grid, bottom: 84 },
-  dataZoom: [{ type: "slider", bottom: 24, height: 22 }],
+  grid: { ...grid, bottom: series.length > 12 ? 84 : 56 },
+  dataZoom: series.length > 12 ? [zoomSlider(24)] : undefined,
   xAxis: { type: "category", data: series.map((s) => s.month), axisLabel: { rotate: 45 } },
   yAxis: [
     { type: "value", name: "出勤天/工时h" },

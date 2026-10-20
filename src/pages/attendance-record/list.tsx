@@ -11,6 +11,7 @@ import { useResourceParams } from "@refinedev/core";
 import { useBatchRowSelection } from "../useBatchRowSelection";
 import { FilterBar } from "@/components/ui/FilterBar";
 import { DataTable } from "@/components/ui/DataTable";
+import { EmptyState } from "@/components/ui/EmptyState";
 
 const AttendanceRecordList = () => {
   const datePickerFilter = useGetDatePickerFilter();
@@ -56,7 +57,14 @@ const AttendanceRecordList = () => {
       headerButtons={
         <Tooltip title="请到签到页面添加记录">
           {/* CreateButton 会导致 tooltip 位置异常，所以换成普通按钮 */}
-          <Button data-testid="add-button" disabled icon={<PlusSquareOutlined />} size="middle">
+          <Button
+            data-testid="add-button"
+            disabled
+            type="text"
+            icon={<PlusSquareOutlined />}
+            size="middle"
+            style={{ color: "var(--text-tertiary)" }}
+          >
             添加记录
           </Button>
         </Tooltip>
@@ -127,6 +135,15 @@ const AttendanceRecordList = () => {
 
       <DataTable
         {...tableProps}
+        locale={{
+          emptyText: (
+            <EmptyState
+              compact
+              title="当前范围没有考勤记录"
+              description="可调整右上角的月份范围，或到「人员签到」页录入"
+            />
+          ),
+        }}
         pagination={{
           ...tableProps.pagination,
           showSizeChanger: true,
@@ -141,14 +158,14 @@ const AttendanceRecordList = () => {
         <DataTable.Column
           dataIndex="id"
           title="ID"
-          width={130}
+          width={96}
+          className="id-col"
           ellipsis
           onCell={cellTestId((i) => `row-id-${i}`)}
         />
         <DataTable.Column
           dataIndex={["expand", "worker_id", "name"]}
           title="人员姓名"
-          width={160}
           onCell={cellTestId((i) => `row-name-${i}`)}
         />
         <DataTable.Column
@@ -159,7 +176,7 @@ const AttendanceRecordList = () => {
         />
         <DataTable.Column
           dataIndex="work_minutes"
-          title="工时"
+          title="工时(h)"
           className="num"
           width={110}
           render={(value: number | null) => formatHoursExact(value)}
@@ -186,6 +203,7 @@ const AttendanceRecordList = () => {
               />
               <DeleteButton
                 data-testid={`delete-button-${index}`}
+                className="danger-hover"
                 hideText
                 size="small"
                 recordItemId={record.id}

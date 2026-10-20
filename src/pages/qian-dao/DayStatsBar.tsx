@@ -1,7 +1,10 @@
 /**
  * 签到页「所选日期」的统计条：出勤人数 / 记录条数 / 总工时 / 人均工时 + 工种分布。
  * 数据来自 useDayStats(当天全部记录,不受表格的人员筛选影响)。
- * 视觉上压成一条，避免四个大号 Statistic 卡片占掉半屏。
+ *
+ * 2026-10-20：从"左栏底部独立卡片"改成"右栏当天记录表上方的一行"——
+ * 它回答的是"这天记了多少、还差谁"，和记录表是同一件事，放在一起才看得到；
+ * 而且 1366×768 下原位置在折叠线以下，等于白做。
  */
 import { Tag } from "antd";
 import type { Dayjs } from "dayjs";
@@ -9,12 +12,12 @@ import { formatHoursExact } from "@/utils/workTime";
 import { useDayStats } from "./useDayStats";
 
 const Metric = ({ testId, label, value }: { testId: string; label: string; value: string }) => (
-  <div style={{ display: "flex", alignItems: "baseline", gap: 6 }}>
+  <div style={{ display: "flex", alignItems: "baseline", gap: 4 }}>
     <span style={{ fontSize: 12, color: "var(--text-tertiary)" }}>{label}</span>
     <span
       data-testid={testId}
       style={{
-        fontSize: 15,
+        fontSize: 14,
         fontWeight: 600,
         fontVariantNumeric: "tabular-nums",
         color: "var(--text)",
@@ -32,29 +35,20 @@ export function DayStatsBar({ checkDate }: { checkDate: Dayjs }) {
     <div
       data-testid="day-stats"
       style={{
-        marginTop: 12,
-        padding: "12px 16px",
-        background: "var(--bg-container)",
-        border: "1px solid var(--border-subtle)",
-        borderRadius: "var(--radius-lg)",
-        boxShadow: "var(--shadow-card)",
+        display: "flex",
+        alignItems: "center",
+        flexWrap: "wrap",
+        gap: "6px 18px",
+        padding: "8px 12px",
+        marginBottom: 12,
+        background: "var(--bg-subtle)",
+        borderRadius: "var(--radius-base)",
+        minHeight: 38,
       }}
     >
-      <div
-        style={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          marginBottom: 8,
-        }}
-      >
-        <span style={{ fontSize: 13, fontWeight: 500, color: "var(--text-secondary)" }}>
-          当天汇总
-        </span>
-        <span style={{ fontSize: 11, color: "var(--text-tertiary)" }}>
-          按所选日期的全部记录，不受人员筛选影响
-        </span>
-      </div>
+      <span style={{ fontSize: 12, fontWeight: 500, color: "var(--text-secondary)" }}>
+        当天汇总
+      </span>
 
       {isLoading ? (
         <span style={{ fontSize: 12, color: "var(--text-tertiary)" }}>统计加载中…</span>
@@ -63,7 +57,7 @@ export function DayStatsBar({ checkDate }: { checkDate: Dayjs }) {
           所选日期暂无记录
         </span>
       ) : (
-        <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: "8px 24px" }}>
+        <>
           <Metric testId="day-stats-workers" label="出勤" value={`${stats.workerCount}人`} />
           <Metric testId="day-stats-records" label="记录" value={`${stats.recordCount}条`} />
           <Metric
@@ -87,7 +81,7 @@ export function DayStatsBar({ checkDate }: { checkDate: Dayjs }) {
               ))}
             </div>
           )}
-        </div>
+        </>
       )}
     </div>
   );

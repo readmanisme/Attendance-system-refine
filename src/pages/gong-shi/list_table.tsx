@@ -1,4 +1,5 @@
 import { List as LList, useTable } from "@refinedev/antd";
+import { Button } from "antd";
 import { useList, type CrudFilter } from "@refinedev/core";
 import PySearchSelect from "@/components/PySearchSelect";
 import { useEffect, useMemo, useState, type Key } from "react";
@@ -72,7 +73,7 @@ export default function GongShiList() {
 
   // 主表汇总：当前日期范围内每人的合计工时 / 合计薪资。
   // 与展开表、Excel 导出共用 computeSalaryStats 的同一套口径。
-  const { recordMonthRange } = useConfigStore();
+  const { recordMonthRange, setRecordMonthRange } = useConfigStore();
   const rangeFilter = useMemo<CrudFilter>(() => {
     const { gte, lte } = getWorkDateRange(recordMonthRange);
     return {
@@ -95,6 +96,16 @@ export default function GongShiList() {
   });
   const isTableLoading =
     isDataLoading || rangeQuery.isLoading || allWorkersQuery.isLoading;
+
+  // 范围内一条记录都没有时给个出口：默认范围是"本月~下月"，
+  // 若最近没记工，整张表全是 -- / 0，看起来像页面坏了
+  const { result: latestRecordResult } = useList({
+    resource: __AttendanceRecord_TableName,
+    pagination: { pageSize: 1 },
+    sorters: [{ field: "work_date", order: "desc" }],
+  });
+  const latestMonth = latestRecordResult?.data?.[0]?.work_date?.slice(0, 7) as string | undefined;
+  const rangeIsEmpty = !isTableLoading && (rangeRecords?.data?.length ?? 0) === 0;
 
   // ======================== 衍生数据计算 ========================
   const workTypeMap = new Map<string, string>();
@@ -217,6 +228,34 @@ export default function GongShiList() {
         right={<SwitchDataRange />}
       />
 
+      {rangeIsEmpty && (
+        <div
+          data-testid="range-empty-hint"
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: 4,
+            marginBottom: 10,
+            fontSize: 12,
+            color: "var(--text-tertiary)",
+          }}
+        >
+          <span>
+            {recordMonthRange[0]} ~ {recordMonthRange[1]} 内没有考勤记录
+          </span>
+          {latestMonth && latestMonth !== recordMonthRange[1] && (
+            <Button
+              type="link"
+              size="small"
+              style={{ padding: 0, height: "auto", fontSize: 12 }}
+              onClick={() => setRecordMonthRange([latestMonth, latestMonth])}
+            >
+              跳到最近有记录的 {latestMonth}
+            </Button>
+          )}
+        </div>
+      )}
+
       <DataTable
         {...workerData}
         pagination={{
@@ -236,25 +275,26 @@ export default function GongShiList() {
         <DataTable.Column
           dataIndex="id"
           title="ID"
-          width={130}
+          width={96}
+          className="id-col"
           ellipsis
           onCell={cellTestId((i) => `row-id-${i}`)}
         />
         <DataTable.Column
           dataIndex="name"
           title="姓名"
-          width={200}
+          // 不设宽度：让姓名列吸收剩余空间，ID 列才能保持 96px 不被等比放大
           onCell={cellTestId((i) => `row-name-${i}`)}
         />
         <DataTable.Column
-          title="合计工时"
+          title="合计工时(h)"
           width={150}
           className="num"
           render={(_: any, record: any) => formatHoursExact(rangeTotals.get(record.id)?.minutes)}
           onCell={cellTestId((i) => `row-hours-${i}`)}
         />
         <DataTable.Column
-          title="合计薪资"
+          title="合计薪资(元)"
           width={150}
           className="num"
           render={(_: any, record: any) =>

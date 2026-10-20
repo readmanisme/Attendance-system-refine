@@ -65,7 +65,8 @@ test.describe("无基础工作提示", () => {
     await page.getByRole("link", { name: "薪资设置" }).click();
     // 判断信息
     await expect(page.getByTestId("row-work-0")).toContainText("基础");
-    await expect(page.getByTestId("row-worker-0")).toBeEmpty();
+    // 默认薪资条目的"工人"为空，UI 现在显式写成「全部人员（默认）」，不再是空白单元格
+    await expect(page.getByTestId("row-worker-0")).toContainText("全部人员（默认）");
     await expect(page.getByTestId("row-salary-0")).toContainText("10"); //基础时薪默认10
   });
 });
