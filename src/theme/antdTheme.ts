@@ -84,7 +84,8 @@ export const antdTheme: ThemeConfig = {
       headerBg: neutral.bgSubtle,
       headerColor: neutral.textSecondary,
       headerSplitColor: "transparent",
-      rowHoverBg: neutral.bgSubtle,
+      // hover 要比斑马纹底色(--bg-stripe)更深，否则斑马行/白行的 hover 都看不出变化
+      rowHoverBg: neutral.bgHover,
       borderColor: neutral.borderSubtle,
       cellPaddingBlock: 10,
       cellPaddingInline: 12,

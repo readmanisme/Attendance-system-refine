@@ -15,7 +15,7 @@ import { useState } from "react";
 import { formatHoursExact } from "@/utils/workTime";
 import WorkMinutesInput from "@/components/WorkMinutesInput";
 import PySearchSelect from "@/components/PySearchSelect";
-import { cellTestId, buildEqOrFilter } from "@/utils/tableHelpers";
+import { cellTestId, buildEqOrFilter, zebraRowClass } from "@/utils/tableHelpers";
 import { useBatchRowSelection } from "../useBatchRowSelection";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { BatchEntryPanel } from "./BatchEntryPanel";
@@ -182,9 +182,9 @@ export default function QianDaoPage() {
                 rowKey="id"
                 size="middle"
                 tableLayout="fixed"
-                // 行内编辑时整行换底色，避免"点开编辑但看不出在改哪一行"
-                rowClassName={(record) =>
-                  record.id && isEditing(record.id) ? "row-editing" : ""
+                // 行内编辑时整行换底色，避免"点开编辑但看不出在改哪一行"；其余行保留斑马纹
+                rowClassName={(record, index) =>
+                  zebraRowClass(index, record.id && isEditing(record.id) ? "row-editing" : "")
                 }
                 locale={{
                   emptyText: (

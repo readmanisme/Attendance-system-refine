@@ -12,6 +12,9 @@
   --bg-container: #ffffff;
   --bg-subtle: #f8fafc;
   --bg-hover: #f1f5f9;
+  /* 斑马纹偶数行底色：比 --bg-subtle 再淡一点，
+     保证 hover（--bg-hover）时仍有明显变化 */
+  --bg-stripe: #fafbfc;
   --border: #e5e8ee;
   --border-subtle: #eef1f5;
   --text: #0f172a;
@@ -109,6 +112,20 @@ body {
 .ant-table-wrapper .ant-table-thead > tr > th.num {
   text-align: right;
   font-variant-numeric: tabular-nums;
+}
+
+/* 斑马纹：偶数行（第二行起）加 .zebra-stripe，由 DataTable / 各表格的 rowClassName 挂上。
+   antd v5 的样式被 :where() 降权，这里普通选择器会盖掉它自带的 hover / 选中底色，
+   所以下面三条必须成套写：
+   1) 斑马行底色，但要排除选中行，否则批量选择时看不出哪些被勾选；
+   2) 斑马行 hover 补一条，否则 hover 无反馈；
+   3) 行内编辑（.row-editing）自带 !important，天然压过斑马纹，不用特殊处理。 */
+.ant-table-wrapper .ant-table-tbody > tr.zebra-stripe:not(.ant-table-row-selected) > td {
+  background: var(--bg-stripe);
+}
+
+.ant-table-wrapper .ant-table-tbody > tr.zebra-stripe:hover > td {
+  background: var(--bg-hover);
 }
 
 /* 行内编辑：整行换底色 + 左侧色条，一眼看出"这行正在改" */
