@@ -185,7 +185,8 @@ const AttendanceRecordList = () => {
         <DataTable.Column
           dataIndex={["expand", "work", "name"]}
           title="工作类型"
-          width={160}
+          width={100}
+          align="right"
           onCell={cellTestId((i) => `row-work-${i}`)}
         />
         <DataTable.Column

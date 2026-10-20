@@ -3,6 +3,7 @@ import { execFile, spawn, type ChildProcess } from "node:child_process";
 import { existsSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import net from "node:net";
 import path from "node:path";
+import { backupBeforeStart } from "./backup";
 
 /**
  * PocketBase 子进程的生命周期管理。
@@ -90,7 +91,10 @@ function getFreePort(): Promise<number> {
   });
 }
 
-function run(file: string, args: string[]): Promise<{ code: number; stdout: string; stderr: string }> {
+function run(
+  file: string,
+  args: string[],
+): Promise<{ code: number; stdout: string; stderr: string }> {
   return new Promise((resolve) => {
     execFile(file, args, { windowsHide: true }, (error, stdout, stderr) => {
       const code = error ? (typeof error.code === "number" ? error.code : -1) : 0;
@@ -187,6 +191,10 @@ export async function startPocketBase(appRoot: string): Promise<number | null> {
 
   await killOrphan();
 
+  // 备份必须在 PB 启动前：此刻没有进程持有 db 文件，快照才是一致的。
+  // 数据没变化时 backupBeforeStart 只做一次 stat 就返回，不读文件也不哈希。
+  backupBeforeStart(pbDir);
+
   for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
     let port: number;
     try {
@@ -226,8 +234,7 @@ export async function startPocketBase(appRoot: string): Promise<number | null> {
       return port;
     }
 
-    lastFailure =
-      exitCode === null ? "健康检查超时" : `进程提前退出，退出码 ${exitCode}`;
+    lastFailure = exitCode === null ? "健康检查超时" : `进程提前退出，退出码 ${exitCode}`;
     await forceKill(proc, pid);
     rmPidFile();
   }

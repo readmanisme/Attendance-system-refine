@@ -28,6 +28,8 @@ node scripts/migrate-hours/migrate.ts --url http://127.0.0.1:29401 --email <超�
 | `--email` / `--password` | 超管账号;也可用环境变量 `PB_ADMIN_EMAIL` / `PB_ADMIN_PASSWORD` |
 | `--dry-run`              | 只打印计划不动数据                                             |
 | `--keep-old-fields`      | 临时保留 check_in/check_out(调试用),默认删除                   |
+| `--views a,b`            | 要清理的遗留视图,默认按表名后缀推导(见下)                      |
+| `--keep-views`           | 跳过视图清理(调试用)                                           |
 
 脚本会自动探测新版(`_superusers`)和旧版(`/api/admins`)登录端点,新旧 PocketBase 都能跑。
 
@@ -39,9 +41,32 @@ node scripts/migrate-hours/migrate.ts --url http://127.0.0.1:29401 --email <超�
 4. 添加唯一索引 (worker_id, work_date, work):按索引名精确剔除同名旧索引后再建,
    避免"同名但非 UNIQUE / 列不符"的索引导致建索引失败;判定时校验列组合,
    不会被 `(work_date)` 之类的其他唯一索引误判为已完成
-5. 删除 `check_in` / `check_out` 字段
-6. 自校验:迁移前后按合并键的工时合计逐键比对;报告写入
-   `scripts/migrate-hours/report-*.json`,不一致退出码 2
+5. 删除遗留视图 `workHour_day_view(_test)` / `workHour_month_view(_test)`
+6. 删除 `check_in` / `check_out` 字段
+7. 自校验:迁移前后按合并键的工时合计逐键比对;报告写入运行目录下的
+   `report-*.json`,不一致退出码 2
+
+### 关于第 5 步(删视图)
+
+这两个旧视图的 `viewQuery` 直接引用 `check_in` / `check_out`:
+
+```sql
+SELECT ar.worker_id, DATE(ar.check_in,'localtime') AS work_date, ...
+WHERE check_in IS NOT "" AND check_out IS NOT ""
+```
+
+字段一删,视图就变成坏的(而且 PocketBase 在源表结构变化后会重算视图,
+可能导致源表的 PATCH 连带失败),所以**必须先删视图再删字段**,脚本里顺序就是这样。
+已迁移过的库也可能残留这两个坏视图,所以这一步不看是否已迁移,每次都执行。
+
+安全措施:
+
+- 只删 `type === "view"` 的集合;同名但实际是 base 表(有真实数据)的会跳过并告警
+- 不存在即视为完成(幂等),不报错
+- `work_record_num` / `worker_record_num` 等其他视图不受影响
+
+视图名默认按 `--table` 后缀推导:`attendance_record_test` → `workHour_day_view_test`;
+`attendance_record` → `workHour_day_view`。要删别的名字用 `--views a,b`。
 
 ## 生产环境操作步骤
 

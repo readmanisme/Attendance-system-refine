@@ -8,13 +8,17 @@
  *   2. work_minutes = round((check_out - check_in) / 60000)，on faith 取绝对值
  *   3. 同 (worker_id, work_date, work) 的多条记录合并为一条（分钟求和），多余条删除
  *   4. 在 (worker_id, work_date, work) 上加唯一索引，防止再次出现可合并的重复记录
- *   5. 删除 check_in / check_out 字段
+ *   5. 删除遗留视图 workHour_day_view(_test) / workHour_month_view(_test)
+ *      （它们的 viewQuery 引用了 check_in/check_out，必须先于第 6 步删字段，否则视图重算会失败）
+ *   6. 删除 check_in / check_out 字段
  *
  * 幂等：脚本可重复运行；已迁移（无 check_in 字段）的库会跳过数据改动，只做校验。
  *
  * 用法（在仓库根目录运行）：
  *   node scripts/migrate-hours/migrate.ts --url http://127.0.0.1:29401 --dry-run
  *   node scripts/migrate-hours/migrate.ts --url http://127.0.0.1:29401
+ *   # 视图清理：默认按表名后缀推导；可用 --views a,b 指定，或 --keep-views 跳过
+ *   node scripts/migrate-hours/migrate.ts --table attendance_record --views workHour_day_view,workHour_month_view
  *
  * 兼容：登录端点自动探测（新版 /api/collections/_superusers/auth-with-password，
  *       旧版 /api/admins/auth-with-password）。
@@ -40,12 +44,39 @@ const PASSWORD = argValue("password") || process.env.PB_ADMIN_PASSWORD || "bPWU8
 const KEEP_OLD_FIELDS = argFlag("keep-old-fields");
 const DRY_RUN = argFlag("dry-run");
 
+/**
+ * 需要清理的遗留视图：工时按天/按月汇总的旧视图，迁移后由前端/新视图取代。
+ * 默认名按表名后缀推导（attendance_record_test -> workHour_day_view_test），
+ * 所以对生产表（attendance_record）跑时会自动找 workHour_day_view。
+ */
+const TABLE_SUFFIX = TABLE.endsWith("_test") ? "_test" : "";
+const DEFAULT_LEGACY_VIEWS = [
+  `workHour_day_view${TABLE_SUFFIX}`,
+  `workHour_month_view${TABLE_SUFFIX}`,
+];
+const LEGACY_VIEWS = (argValue("views") ?? DEFAULT_LEGACY_VIEWS.join(","))
+  .split(",")
+  .map((s) => s.trim())
+  .filter(Boolean);
+/** 跳过视图清理（临时排查用） */
+const KEEP_VIEWS = argFlag("keep-views");
+
 if (!EMAIL || !PASSWORD) {
   console.error("缺少 --email/--password（或环境变量 PB_ADMIN_EMAIL / PB_ADMIN_PASSWORD）");
   process.exit(1);
 }
 
 // ---------- 基础请求 ----------
+
+/** 带上 HTTP 状态码的错误，便于区分 404（不存在）与其他失败 */
+class HttpError extends Error {
+  readonly status: number;
+  constructor(message: string, status: number) {
+    super(message);
+    this.name = "HttpError";
+    this.status = status;
+  }
+}
 
 async function req(
   path: string,
@@ -64,12 +95,16 @@ async function req(
   try {
     json = text ? JSON.parse(text) : null;
   } catch {
-    throw new Error(
+    throw new HttpError(
       `${init.method ?? "GET"} ${path} -> ${res.status}: 非JSON响应 ${text.slice(0, 300)}`,
+      res.status,
     );
   }
   if (!res.ok) {
-    throw new Error(`${init.method ?? "GET"} ${path} -> ${res.status}: ${JSON.stringify(json)}`);
+    throw new HttpError(
+      `${init.method ?? "GET"} ${path} -> ${res.status}: ${JSON.stringify(json)}`,
+      res.status,
+    );
   }
   return json;
 }
@@ -166,6 +201,64 @@ function sameColumns(a: string[], b: string[]): boolean {
   const sa = a.map((s) => s.toLowerCase()).sort();
   const sb = b.map((s) => s.toLowerCase()).sort();
   return sa.every((v, i) => v === sb[i]);
+}
+
+// ---------- 遗留视图清理 ----------
+
+type ViewAction = "deleted" | "absent" | "planned" | "skipped:非视图";
+
+/**
+ * 删除遗留的工时视图（workHour_day_view / workHour_month_view）。
+ *
+ * 为什么必须在删除 check_in/check_out 之前做：这两个视图的 viewQuery 直接
+ * 引用了 check_in / check_out，PocketBase 在源表结构变化后会重算视图，
+ * 字段没了视图就变成坏的，源表的 PATCH 也可能连带失败。
+ *
+ * 安全性：
+ *   - 只删 type === "view" 的集合；同名但不是视图（真表、可能有数据）一律跳过并告警
+ *   - 不存在即视为已完成（幂等），不报错
+ *   - dry-run 只打印计划
+ */
+async function dropLegacyViews(token: string): Promise<Record<string, ViewAction>> {
+  const actions: Record<string, ViewAction> = {};
+  if (KEEP_VIEWS) {
+    console.log("已指定 --keep-views，跳过遗留视图清理");
+    return actions;
+  }
+  if (!LEGACY_VIEWS.length) return actions;
+
+  console.log(`遗留视图: ${LEGACY_VIEWS.join(", ")}`);
+  for (const name of LEGACY_VIEWS) {
+    let col: any;
+    try {
+      col = await req(`/api/collections/${name}`, { token });
+    } catch (e) {
+      if (e instanceof HttpError && e.status === 404) {
+        console.log(`  视图不存在，无需删除: ${name}`);
+        actions[name] = "absent";
+        continue;
+      }
+      throw e;
+    }
+
+    if (col.type !== "view") {
+      console.warn(`⚠️  ${name} 不是 view 集合(type=${col.type})，为避免误删数据已跳过`);
+      actions[name] = "skipped:非视图";
+      continue;
+    }
+
+    if (DRY_RUN) {
+      console.log(`  （dry-run）将删除视图: ${name}`);
+      actions[name] = "planned";
+      continue;
+    }
+
+    // 按 id 删除，避免名字里的特殊字符被当成路径
+    await req(`/api/collections/${col.id}`, { method: "DELETE", token });
+    console.log(`  已删除视图: ${name}`);
+    actions[name] = "deleted";
+  }
+  return actions;
 }
 
 async function main() {
@@ -327,6 +420,8 @@ async function main() {
         console.log(`  示例更新: ${u.id} -> ${JSON.stringify(u.body)}`);
       }
       for (const d of deletes.slice(0, 5)) console.log(`  示例删除: ${d}`);
+      // 视图清理也走一遍（函数内部在 dry-run 下只打印）
+      await dropLegacyViews(token);
       console.log("dry-run 结束，未做任何修改。");
       return;
     }
@@ -397,7 +492,13 @@ async function main() {
     }
   }
 
-  // ---------- 5. 删除旧字段（首次迁移且未指定 keep） ----------
+  // ---------- 5. 删除遗留工时视图 ----------
+  // 必须早于第 6 步删字段：这两个视图的 viewQuery 引用了 check_in/check_out，
+  // 字段一删，PocketBase 重算视图就会失败（视图变坏，源表 PATCH 也可能被连带拒绝）。
+  // 已迁移的库（check_in 早已删除）也可能残留这两个坏视图，所以不看 alreadyMigrated，总是执行。
+  const viewActions = await dropLegacyViews(token);
+
+  // ---------- 6. 删除旧字段（首次迁移且未指定 keep） ----------
   if (!alreadyMigrated && !KEEP_OLD_FIELDS) {
     const cur = await req(`/api/collections/${TABLE}`, { token });
     const kept = (cur.fields ?? []).filter(
@@ -407,7 +508,7 @@ async function main() {
     console.log("已删除字段: check_in, check_out");
   }
 
-  // ---------- 6. 自校验 ----------
+  // ---------- 7. 自校验 ----------
   const afterRecords: RecordRow[] = await fetchAllRecords(token, TABLE);
   const afterSnapshot: Snap = new Map();
   for (const r of afterRecords) {
@@ -441,6 +542,7 @@ async function main() {
     mergedKeys,
     recordUpdates: updates.length,
     duplicateDeleted: deletes.length,
+    legacyViews: viewActions,
     diffs,
     ok: diffs.length === 0,
     checkedAt: new Date().toISOString(),
