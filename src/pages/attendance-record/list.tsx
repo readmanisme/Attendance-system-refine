@@ -158,7 +158,7 @@ const AttendanceRecordList = () => {
         <DataTable.Column
           dataIndex="id"
           title="ID"
-          width={96}
+          // width={96}
           className="id-col"
           ellipsis
           onCell={cellTestId((i) => `row-id-${i}`)}
@@ -171,7 +171,7 @@ const AttendanceRecordList = () => {
         <DataTable.Column
           dataIndex="work_date"
           title="日期"
-          width={150}
+          // width={150}
           onCell={cellTestId((i) => `row-date-${i}`)}
         />
         <DataTable.Column
@@ -191,7 +191,7 @@ const AttendanceRecordList = () => {
         <DataTable.Column
           title="操作"
           dataIndex="actions"
-          width={120}
+          // width={120}
           align="right"
           render={(_: any, record: BaseRecord, index: number) => (
             <div style={{ display: "flex", gap: 6, justifyContent: "flex-end" }}>

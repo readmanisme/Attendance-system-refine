@@ -35,7 +35,7 @@ const WorkersList = () => {
       dataIndex: "id",
       title: "ID",
       // ID 对个人使用没有意义，压窄 + 灰字，别让它抢走第一眼的注意力
-      width: 96,
+      // width: 96,
       className: "id-col",
       ellipsis: true,
       onCell: cellTestId((i) => `row-id-${i}`),
@@ -50,21 +50,28 @@ const WorkersList = () => {
       dataIndex: "num",
       title: "考勤记录数",
       className: "num",
-      width: 130,
+      // width: 130,
       onCell: cellTestId((i) => `row-num-${i}`),
       render: (_text: any, record: any) => WorkerRecordNum.get(record.id),
     },
     {
       title: "操作",
       dataIndex: "actions",
-      width: 110,
+      // 与工作/薪资列表保持一致：图标化后两个按钮约 56px，留出 88 已够
+      // width: 88,
       align: "right" as const,
       render: (_value: any, record: BaseRecord, index: number) => (
-        <Space>
-          <EditButton size="small" recordItemId={record.id} data-testid={`edit-button-${index}`}>
-            编辑
-          </EditButton>
+        <Space size={4}>
+          <EditButton
+            hideText
+            title="编辑"
+            size="small"
+            recordItemId={record.id}
+            data-testid={`edit-button-${index}`}
+          />
           <DeleteButton
+            hideText
+            title="删除"
             data-testid={`delete-button-${index}`}
             className="danger-hover"
             type="text"
@@ -75,9 +82,7 @@ const WorkersList = () => {
             }
             size="small"
             recordItemId={record.id}
-          >
-            删除
-          </DeleteButton>
+          />
         </Space>
       ),
     },

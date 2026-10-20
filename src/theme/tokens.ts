@@ -105,6 +105,8 @@ export const font = {
 export const layout = {
   /** 内容区最大宽度（超过则居中，避免超宽屏拉散） */
   contentMaxWidth: 1440,
+  /** 列少、内容短的列表页（人员/工作/薪资）用的窄容器，避免单元格里大片留白 */
+  narrowContentMaxWidth: 880,
   headerHeight: 60,
   siderWidth: 208,
   siderCollapsedWidth: 72,

@@ -76,7 +76,7 @@ const SalaryTypeList = () => {
         <DataTable.Column
           dataIndex="id"
           title="ID"
-          width={96}
+          // width={96}
           className="id-col"
           ellipsis
           onCell={cellTestId((i) => `row-id-${i}`)}
@@ -94,20 +94,20 @@ const SalaryTypeList = () => {
         <DataTable.Column
           dataIndex={["expand", "work_type", "name"]}
           title="工作"
-          width={200}
+          // width={200}
           onCell={cellTestId((i) => `row-work-${i}`)}
         />
         <DataTable.Column
           dataIndex="SalaryNum"
           title="时薪(元/时)"
           className="num"
-          width={120}
+          // width={120}
           onCell={cellTestId((i) => `row-salary-${i}`)}
         />
         <DataTable.Column
           title="操作"
           dataIndex="actions"
-          width={110}
+          // width={110}
           align="right"
           render={(_value, record: BaseRecord, index: number) => (
             <Space>

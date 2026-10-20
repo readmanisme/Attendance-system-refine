@@ -134,7 +134,7 @@ const ListWorkType = () => {
         <DataTable.Column
           dataIndex="id"
           title="ID"
-          width={96}
+          // width={96}
           className="id-col"
           ellipsis
           onCell={cellTestId((i) => `row-id-${i}`)}
@@ -148,14 +148,14 @@ const ListWorkType = () => {
           dataIndex="num"
           title="考勤记录数"
           className="num"
-          width={130}
+          // width={130}
           render={(_text: any, record: any) => WorkRecordNum.get(record.id)}
           onCell={cellTestId((i) => `row-num-${i}`)}
         />
         <DataTable.Column
           title="操作"
           dataIndex="actions"
-          width={120}
+          // width={120}
           align="right"
           render={(_value, record: BaseRecord, index: number) => (
             <Space>
@@ -167,6 +167,7 @@ const ListWorkType = () => {
                 disabled={record.name === BASE_WORK_TYPE_NAME}
               />
               <DeleteButton
+                hideText
                 data-testid={`delete-button-${index}`}
                 disabled={record.name === BASE_WORK_TYPE_NAME}
                 className="danger-hover"

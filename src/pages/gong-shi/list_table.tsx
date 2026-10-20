@@ -275,7 +275,7 @@ export default function GongShiList() {
         <DataTable.Column
           dataIndex="id"
           title="ID"
-          width={96}
+          // width={96}
           className="id-col"
           ellipsis
           onCell={cellTestId((i) => `row-id-${i}`)}
