@@ -72,7 +72,7 @@ export default function PySearchSelect({
     if (!label) return false;
 
     if (isPinyin(input)) {
-      const result = match(label, input, { v: true });
+      const result = match(label, input, { v: true, continuous: true });
       if (result) {
         setHighlightWords((prev) => {
           const newSet = new Set(prev);

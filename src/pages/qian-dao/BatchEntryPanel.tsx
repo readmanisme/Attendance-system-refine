@@ -18,7 +18,7 @@ import {
   ExclamationCircleFilled,
   InfoCircleFilled,
 } from "@ant-design/icons";
-import { formatHoursHm, minutesToHours } from "@/utils/workTime";
+import { formatHoursHm, minutesToHours, formatHoursExact } from "@/utils/workTime";
 import PySearchSelect from "@/components/PySearchSelect";
 import { HelpTip } from "@/components/ui/HelpTip";
 import type { WorkerOption, useBatchEntry } from "./useBatchEntry";
@@ -65,7 +65,7 @@ const Field = ({
 );
 
 /** 未填完的三种状态用中性灰，别一进页面就弹黄色警告 */
-const NEUTRAL_TESTIDS = new Set(["no-worker-alert", "no-work-alert", "no-minutes-alert"]);
+const NEUTRAL_TESTIDS = new Set([""]);
 
 /** 状态行：替代原来的整块 Alert，高度从约 40px 降到约 20px */
 const StatusLine = ({
@@ -305,7 +305,7 @@ export function BatchEntryPanel({ batch, workTypeSelectProps }: BatchEntryPanelP
               fontVariantNumeric: "tabular-nums",
             }}
           >
-            {minutesToHours(minutes) ?? 0}
+            {formatHoursExact(minutes) ?? 0}
           </span>
           <span>
             小时 · {workType?.label ?? "未选工种"} · {checkDate.format("YYYY-MM-DD")}

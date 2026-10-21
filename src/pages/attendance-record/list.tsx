@@ -206,6 +206,7 @@ const AttendanceRecordList = () => {
                 data-testid={`delete-button-${index}`}
                 className="danger-hover"
                 hideText
+                type="text"
                 size="small"
                 recordItemId={record.id}
                 disabled={selection.hasSelection}

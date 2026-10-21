@@ -25,6 +25,7 @@
   --success: #16a34a;
   --warning: #d97706;
   --error: #dc2626;
+  --error-soft: #fef2f2;
   --info: #2563eb;
   --radius-sm: 6px;
   --radius-base: 8px;
@@ -136,15 +137,18 @@ body {
   box-shadow: inset 3px 0 0 var(--brand);
 }
 
-/* 删除按钮默认中性，悬浮才变红：避免整张表一排红字 */
-.ant-btn.danger-hover,
-.ant-btn.danger-hover .anticon {
+/* 删除按钮默认中性，悬浮才变红：避免整张表一排红字。
+   :not(:disabled) 必须带上：否则 !important 会压掉 antd 的禁用配色，
+   且禁用按钮仍会命中 :hover 变红，看起来像可点（审计报告 2026-10-21 P1）。
+   注意：将来若做暗色模式，新增禁用分支时要同样豁免。 */
+.ant-btn.danger-hover:not(:disabled),
+.ant-btn.danger-hover:not(:disabled) .anticon {
   color: var(--text-secondary) !important;
 }
-.ant-btn.danger-hover:hover,
-.ant-btn.danger-hover:hover .anticon {
+.ant-btn.danger-hover:not(:disabled):hover,
+.ant-btn.danger-hover:not(:disabled):hover .anticon {
   color: var(--error) !important;
-  background: #fef2f2 !important;
+  background: var(--error-soft) !important;
 }
 
 /* ID 列：技术字段，弱化成灰色小号等宽，不参与视觉主次 */

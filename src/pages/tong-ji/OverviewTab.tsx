@@ -280,6 +280,7 @@ export const OverviewTab = ({ overview, profiles, health, onPickWorker }: Overvi
       {/* 分布与画像默认收起：首屏只留结论 */}
       <Collapse
         size="small"
+        defaultActiveKey="dist" // 默认展开
         items={[
           {
             key: "dist",

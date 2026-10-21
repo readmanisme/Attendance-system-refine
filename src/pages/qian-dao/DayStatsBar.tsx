@@ -65,7 +65,7 @@ export function DayStatsBar({ checkDate }: { checkDate: Dayjs }) {
             label="总工时"
             value={`${formatHoursExact(stats.totalMinutes)}h`}
           />
-          <Metric testId="day-stats-avg" label="人均" value={`${formatHoursExact(stats.avgMinutes)}h`} />
+          <Metric testId="day-stats-avg" label="人均" value={`${formatHoursExact(stats.avgMinutes)}`} />
 
           {stats.works.length > 0 && (
             <div style={{ display: "flex", flexWrap: "wrap", gap: 4 }}>
