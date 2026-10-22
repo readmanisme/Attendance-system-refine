@@ -1,0 +1,846 @@
+{
+  "meta": {
+    "generatedAt": "2026-10-22T00:08:00.460Z",
+    "backend": "http://127.0.0.1:29401",
+    "node": "v24.22.1",
+    "platform": "win32 x64",
+    "cpu": "11th Gen Intel(R) Core(TM) i7-11800H @ 2.30GHz × 16",
+    "totalMemMB": 284
+  },
+  "dataset": {
+    "records": 2010,
+    "workers": 65,
+    "workersInRecords": 65,
+    "workTypes": 5,
+    "worksInRecords": 5,
+    "salaries": 4,
+    "from": "2025-01-28",
+    "to": "2026-09-28",
+    "spanDays": 609,
+    "activeDays": 304,
+    "months": 17,
+    "personDays": 2007,
+    "recordsPerActiveDay": 6.61,
+    "recordsPerPersonDay": 1,
+    "perDayRecords": {
+      "min": 1,
+      "median": 5,
+      "p95": 18,
+      "max": 25
+    },
+    "perPersonDayRecords": {
+      "median": 1,
+      "max": 2
+    },
+    "avgWorkersPerDay": 6.6
+  },
+  "requests": {
+    "gongshi": {
+      "current": {
+        "median": 44.7414,
+        "min": 40.75,
+        "max": 51.82869999999991,
+        "mean": 45.60909999999998,
+        "repeat": 5
+      },
+      "currentDetail": {
+        "logicalQueries": 7,
+        "httpRequests": 11,
+        "bytes": 575828,
+        "wallMs": 47.91,
+        "rows": 2160
+      },
+      "optimized": {
+        "median": 42.84879999999998,
+        "min": 39.92679999999996,
+        "max": 48.56550000000004,
+        "mean": 43.47377999999999,
+        "repeat": 5
+      },
+      "optimizedDetail": {
+        "logicalQueries": 5,
+        "httpRequests": 9,
+        "bytes": 563599,
+        "wallMs": 42.81,
+        "rows": 2094
+      }
+    },
+    "expand": {
+      "one": {
+        "median": 3.9961000000000695,
+        "min": 3.5616999999999734,
+        "max": 5.047599999999875,
+        "mean": 4.154479999999967,
+        "repeat": 5
+      },
+      "oneDetail": {
+        "logicalQueries": 1,
+        "httpRequests": 1,
+        "bytes": 53650,
+        "wallMs": 4.64,
+        "rows": 197
+      },
+      "ten": {
+        "median": 30.081300000000056,
+        "min": 27.631399999999985,
+        "max": 31.46050000000014,
+        "mean": 29.72440000000006,
+        "repeat": 3
+      },
+      "tenDetail": {
+        "logicalQueries": 10,
+        "httpRequests": 10,
+        "bytes": 290607,
+        "wallMs": 29.98,
+        "rows": 1066
+      },
+      "localFilter": {
+        "median": 0.25900000000001455,
+        "min": 0.21790000000009968,
+        "max": 0.3567000000000462,
+        "mean": 0.2730428571428547,
+        "repeat": 7
+      },
+      "localFilterResult": {
+        "ms": 0.19139999999993051,
+        "groups": 10
+      }
+    },
+    "qiandao": {
+      "current": {
+        "median": 4.267100000000028,
+        "min": 4.164600000000064,
+        "max": 4.7590000000000146,
+        "mean": 4.353020000000015,
+        "repeat": 5
+      },
+      "currentDetail": {
+        "logicalQueries": 4,
+        "httpRequests": 4,
+        "bytes": 18663,
+        "wallMs": 3.44,
+        "rows": 80
+      },
+      "optimized": {
+        "median": 3.2865999999999076,
+        "min": 3.0471999999999753,
+        "max": 3.721200000000181,
+        "mean": 3.329280000000017,
+        "repeat": 5
+      },
+      "optimizedDetail": {
+        "logicalQueries": 3,
+        "httpRequests": 3,
+        "bytes": 16249,
+        "wallMs": 3.37,
+        "rows": 75
+      }
+    },
+    "export": {
+      "detail": {
+        "logicalQueries": 3,
+        "httpRequests": 7,
+        "bytes": 559915,
+        "wallMs": 42.78,
+        "rows": 2080
+      }
+    },
+    "tongji": {
+      "detail": {
+        "logicalQueries": 2,
+        "httpRequests": 6,
+        "bytes": 1337364,
+        "wallMs": 117.47,
+        "rows": 2014
+      }
+    }
+  },
+  "compute": [
+    {
+      "factor": 1,
+      "records": 2010,
+      "months": 17,
+      "personDays": 2007,
+      "timings": {
+        "filter": {
+          "median": 1.6816000000001168,
+          "min": 1.1966999999999643,
+          "max": 2.102300000000014,
+          "mean": 1.6715857142857788,
+          "repeat": 7
+        },
+        "context": {
+          "median": 5.839199999999892,
+          "min": 5.390099999999848,
+          "max": 8.433300000000145,
+          "mean": 6.314171428571432,
+          "repeat": 7
+        },
+        "overview": {
+          "median": 17.491700000000037,
+          "min": 13.842499999999973,
+          "max": 21.00540000000001,
+          "mean": 17.770342857142882,
+          "repeat": 7
+        },
+        "profiles": {
+          "median": 6.563599999999951,
+          "min": 6.074600000000146,
+          "max": 9.277900000000045,
+          "mean": 7.045757142857188,
+          "repeat": 7
+        },
+        "relation": {
+          "median": 7.605599999999868,
+          "min": 6.438900000000103,
+          "max": 8.815899999999829,
+          "mean": 7.645585714285646,
+          "repeat": 7
+        },
+        "sankey": {
+          "median": 0.8086000000002969,
+          "min": 0.5148999999996704,
+          "max": 1.163499999999658,
+          "mean": 0.8104999999999174,
+          "repeat": 7
+        },
+        "health": {
+          "median": 1.106999999999971,
+          "min": 1.0326999999997497,
+          "max": 2.209900000000289,
+          "mean": 1.3303571428572079,
+          "repeat": 7
+        },
+        "all": {
+          "median": 40.6878999999999,
+          "min": 37.280399999999645,
+          "max": 43.83849999999984,
+          "mean": 40.823228571428444,
+          "repeat": 7
+        },
+        "overviewOnly": {
+          "median": 33.65570000000025,
+          "min": 28.84429999999975,
+          "max": 45.29019999999991,
+          "mean": 35.25301428571428,
+          "repeat": 7
+        }
+      },
+      "derived": {
+        "sumAll": 41.1,
+        "sumOverviewOnly": 32.68,
+        "relationPlusSankey": 8.41,
+        "wastedMs": 8.41,
+        "wastedRatio": 20.47
+      },
+      "traversals": {
+        "filter": 1,
+        "context": 2,
+        "overview": 2,
+        "relation": 1,
+        "profiles": 1,
+        "sankey": 2,
+        "health": 2,
+        "total": 11
+      }
+    },
+    {
+      "factor": 3,
+      "records": 6030,
+      "months": 49,
+      "personDays": 6021,
+      "timings": {
+        "filter": {
+          "median": 3.846100000000206,
+          "min": 3.6307999999999083,
+          "max": 4.604900000000271,
+          "mean": 3.8895857142857233,
+          "repeat": 7
+        },
+        "context": {
+          "median": 14.440000000000055,
+          "min": 12.96810000000005,
+          "max": 15.792799999999716,
+          "mean": 14.339128571428514,
+          "repeat": 7
+        },
+        "overview": {
+          "median": 59.142199999999775,
+          "min": 53.43939999999975,
+          "max": 68.22330000000011,
+          "mean": 60.220942857142745,
+          "repeat": 7
+        },
+        "profiles": {
+          "median": 18.547799999999825,
+          "min": 16.898299999999836,
+          "max": 24.3433,
+          "mean": 20.017471428571362,
+          "repeat": 7
+        },
+        "relation": {
+          "median": 17.291799999999967,
+          "min": 14.288399999999456,
+          "max": 17.499199999999746,
+          "mean": 16.493385714285655,
+          "repeat": 7
+        },
+        "sankey": {
+          "median": 1.4221000000006825,
+          "min": 1.0442999999995664,
+          "max": 1.9926000000004933,
+          "mean": 1.492014285714374,
+          "repeat": 7
+        },
+        "health": {
+          "median": 3.2186000000001513,
+          "min": 3.0252000000000407,
+          "max": 3.351300000000265,
+          "mean": 3.1901428571430057,
+          "repeat": 7
+        },
+        "all": {
+          "median": 116.25460000000021,
+          "min": 106.63919999999962,
+          "max": 132.3672999999999,
+          "mean": 118.54442857142853,
+          "repeat": 7
+        },
+        "overviewOnly": {
+          "median": 101.65329999999994,
+          "min": 93.83100000000013,
+          "max": 110.15800000000036,
+          "mean": 102.58420000000011,
+          "repeat": 7
+        }
+      },
+      "derived": {
+        "sumAll": 117.91,
+        "sumOverviewOnly": 99.19,
+        "relationPlusSankey": 18.71,
+        "wastedMs": 18.71,
+        "wastedRatio": 15.87
+      },
+      "traversals": {
+        "filter": 1,
+        "context": 2,
+        "overview": 2,
+        "relation": 1,
+        "profiles": 1,
+        "sankey": 2,
+        "health": 2,
+        "total": 11
+      }
+    },
+    {
+      "factor": 6,
+      "records": 12060,
+      "months": 97,
+      "personDays": 12042,
+      "timings": {
+        "filter": {
+          "median": 6.885000000000218,
+          "min": 6.483300000000781,
+          "max": 8.770199999999932,
+          "mean": 7.420540000000256,
+          "repeat": 5
+        },
+        "context": {
+          "median": 29.59600000000046,
+          "min": 27.47690000000057,
+          "max": 34.45480000000043,
+          "mean": 30.30530000000017,
+          "repeat": 5
+        },
+        "overview": {
+          "median": 133.9902000000002,
+          "min": 119.69530000000032,
+          "max": 148.33560000000034,
+          "mean": 132.73102,
+          "repeat": 5
+        },
+        "profiles": {
+          "median": 39.738499999999476,
+          "min": 37.82089999999971,
+          "max": 45.027000000000044,
+          "mean": 40.78377999999975,
+          "repeat": 5
+        },
+        "relation": {
+          "median": 32.767399999999725,
+          "min": 24.890300000000025,
+          "max": 37.19390000000021,
+          "mean": 31.284180000000013,
+          "repeat": 5
+        },
+        "sankey": {
+          "median": 3.251299999999901,
+          "min": 3.016299999999319,
+          "max": 4.015900000000329,
+          "mean": 3.3376799999994544,
+          "repeat": 5
+        },
+        "health": {
+          "median": 6.331300000001647,
+          "min": 6.138800000000629,
+          "max": 7.325600000000122,
+          "mean": 6.571520000000601,
+          "repeat": 5
+        },
+        "all": {
+          "median": 254.79649999999856,
+          "min": 230.3721999999998,
+          "max": 284.58230000000003,
+          "mean": 253.15925999999962,
+          "repeat": 5
+        },
+        "overviewOnly": {
+          "median": 205.7383000000009,
+          "min": 194.16690000000017,
+          "max": 236.86110000000008,
+          "mean": 214.2727999999999,
+          "repeat": 5
+        }
+      },
+      "derived": {
+        "sumAll": 252.56,
+        "sumOverviewOnly": 216.54,
+        "relationPlusSankey": 36.02,
+        "wastedMs": 36.02,
+        "wastedRatio": 14.26
+      },
+      "traversals": {
+        "filter": 1,
+        "context": 2,
+        "overview": 2,
+        "relation": 1,
+        "profiles": 1,
+        "sankey": 2,
+        "health": 2,
+        "total": 11
+      }
+    },
+    {
+      "factor": 12,
+      "records": 24120,
+      "months": 193,
+      "personDays": 24084,
+      "timings": {
+        "filter": {
+          "median": 16.251000000000204,
+          "min": 14.588900000000649,
+          "max": 17.446799999999712,
+          "mean": 16.060020000000076,
+          "repeat": 5
+        },
+        "context": {
+          "median": 67.97609999999986,
+          "min": 59.16649999999936,
+          "max": 71.52270000000135,
+          "mean": 65.98192000000017,
+          "repeat": 5
+        },
+        "overview": {
+          "median": 339.9467999999997,
+          "min": 315.6337000000003,
+          "max": 349.82460000000174,
+          "mean": 336.9698800000002,
+          "repeat": 5
+        },
+        "profiles": {
+          "median": 76.50390000000152,
+          "min": 70.42770000000019,
+          "max": 82.16390000000138,
+          "mean": 75.46024000000071,
+          "repeat": 5
+        },
+        "relation": {
+          "median": 54.68530000000101,
+          "min": 48.07760000000053,
+          "max": 59.089599999999336,
+          "mean": 54.57636000000021,
+          "repeat": 5
+        },
+        "sankey": {
+          "median": 4.822299999999814,
+          "min": 4.457699999999022,
+          "max": 7.84559999999874,
+          "mean": 5.522179999999207,
+          "repeat": 5
+        },
+        "health": {
+          "median": 13.380099999998492,
+          "min": 12.01810000000114,
+          "max": 14.373199999999997,
+          "mean": 13.256399999999848,
+          "repeat": 5
+        },
+        "all": {
+          "median": 581.5460999999996,
+          "min": 519.2963999999993,
+          "max": 618.2481999999982,
+          "mean": 567.1400600000001,
+          "repeat": 5
+        },
+        "overviewOnly": {
+          "median": 496.85180000000037,
+          "min": 489.4289000000026,
+          "max": 507.3017,
+          "mean": 497.5863000000012,
+          "repeat": 5
+        }
+      },
+      "derived": {
+        "sumAll": 573.57,
+        "sumOverviewOnly": 514.06,
+        "relationPlusSankey": 59.51,
+        "wastedMs": 59.51,
+        "wastedRatio": 10.38
+      },
+      "traversals": {
+        "filter": 1,
+        "context": 2,
+        "overview": 2,
+        "relation": 1,
+        "profiles": 1,
+        "sankey": 2,
+        "health": 2,
+        "total": 11
+      }
+    }
+  ],
+  "items": {
+    "B1": {
+      "months": 21,
+      "personDays": 2007,
+      "activeDays": 304,
+      "theoreticalIterations": 48531,
+      "current": {
+        "median": 5.95600000000195,
+        "min": 3.066399999999703,
+        "max": 10.025000000001455,
+        "mean": 6.792228571428756,
+        "repeat": 7
+      },
+      "optimized": {
+        "median": 1,
+        "min": 0.5184000000008382,
+        "max": 2.02730000000156,
+        "mean": 0.9806428571438508,
+        "repeat": 7
+      },
+      "speedup": 5.96,
+      "identicalResult": true,
+      "scale6": {
+        "records": 12060,
+        "months": 121,
+        "personDays": 12042,
+        "theoreticalIterations": 1677786,
+        "current": {
+          "median": 66.45369999999821,
+          "min": 63.815300000002026,
+          "max": 76.0515000000014,
+          "mean": 68.59886000000043,
+          "repeat": 5
+        },
+        "optimized": {
+          "median": 2.4959000000017113,
+          "min": 1.9086000000024796,
+          "max": 3.353500000001077,
+          "mean": 2.5941600000005565,
+          "repeat": 5
+        },
+        "speedup": 26.63,
+        "identicalResult": true
+      },
+      "scale12": {
+        "records": 24120,
+        "months": 241,
+        "personDays": 24084,
+        "theoreticalIterations": 6683412,
+        "current": {
+          "median": 218.31940000000031,
+          "min": 207.6936999999998,
+          "max": 225.68439999999828,
+          "mean": 217.97509999999966,
+          "repeat": 5
+        },
+        "optimized": {
+          "median": 3.8773000000001048,
+          "min": 3.636899999997695,
+          "max": 4.952400000001944,
+          "mean": 4.025499999999738,
+          "repeat": 5
+        },
+        "speedup": 56.31,
+        "identicalResult": true
+      }
+    },
+    "B2": {
+      "shiftTotalsSize": 2007,
+      "traversals": 25,
+      "theoreticalIterations": 50175,
+      "onePassMs": {
+        "median": 0.15940000000045984,
+        "min": 0.023300000000745058,
+        "max": 0.3293999999987136,
+        "mean": 0.14944285714279562,
+        "repeat": 7
+      }
+    },
+    "B6": {
+      "records": 2010,
+      "secondPass": {
+        "median": 0.8020999999971536,
+        "min": 0.5957000000016706,
+        "max": 1.1609999999964202,
+        "mean": 0.828885714284427,
+        "repeat": 7
+      },
+      "fromEngine": {
+        "median": 0.08740000000034343,
+        "min": 0.058400000001711305,
+        "max": 0.19610000000102445,
+        "mean": 0.09974285714425994,
+        "repeat": 7
+      },
+      "speedup": 9.18
+    },
+    "B7": {
+      "records": 2010,
+      "full": {
+        "median": 4.391799999997602,
+        "min": 3.576100000002043,
+        "max": 4.9354999999995925,
+        "mean": 4.296571428572081,
+        "repeat": 7
+      },
+      "recordsOnly": {
+        "median": 2.6635999999998603,
+        "min": 2.322599999999511,
+        "max": 4.341400000001158,
+        "mean": 2.9722714285713403,
+        "repeat": 7
+      },
+      "speedup": 1.65
+    },
+    "B8": {
+      "dayRecords": 5,
+      "workersInDay": 5,
+      "n1": {
+        "median": 0.11599999999816646,
+        "min": 0.08849999999802094,
+        "max": 0.14569999999730499,
+        "mean": 0.11945714285684517,
+        "repeat": 7
+      },
+      "n10": {
+        "median": 0.07459999999991851,
+        "min": 0.06409999999959837,
+        "max": 0.1062000000019907,
+        "mean": 0.08194285714385582,
+        "repeat": 7
+      },
+      "n30": {
+        "median": 0.07030000000304426,
+        "min": 0.06269999999858555,
+        "max": 0.08429999999862048,
+        "mean": 0.07262857142891985,
+        "repeat": 7
+      },
+      "theoreticalIterations": {
+        "n1": 5,
+        "n10": 50,
+        "n30": 25
+      }
+    },
+    "B9": {
+      "n100": {
+        "indexOf": {
+          "median": 0.03470000000015716,
+          "min": 0.032499999997526174,
+          "max": 0.05910000000221771,
+          "mean": 0.0390399999996589,
+          "repeat": 5
+        },
+        "set": {
+          "median": 0.02269999999771244,
+          "min": 0.02179999999862048,
+          "max": 0.06739999999990687,
+          "mean": 0.03319999999948777,
+          "repeat": 5
+        },
+        "speedup": 1.53,
+        "same": true
+      },
+      "n500": {
+        "indexOf": {
+          "median": 0.3500999999996566,
+          "min": 0.33000000000174623,
+          "max": 0.7013000000006286,
+          "mean": 0.4143000000003667,
+          "repeat": 5
+        },
+        "set": {
+          "median": 0.04579999999987194,
+          "min": 0.0385999999998603,
+          "max": 0.10480000000097789,
+          "mean": 0.06081999999951222,
+          "repeat": 5
+        },
+        "speedup": 7.64,
+        "same": true
+      },
+      "n1000": {
+        "indexOf": {
+          "median": 1.3615000000027067,
+          "min": 1.3005000000011933,
+          "max": 1.5476999999991676,
+          "mean": 1.388640000000305,
+          "repeat": 5
+        },
+        "set": {
+          "median": 0.08269999999902211,
+          "min": 0.06599999999889405,
+          "max": 0.10740000000077998,
+          "mean": 0.08202000000019324,
+          "repeat": 5
+        },
+        "speedup": 16.46,
+        "same": true
+      },
+      "n2000": {
+        "indexOf": {
+          "median": 4.06079999999929,
+          "min": 3.5499000000017986,
+          "max": 4.7400999999990745,
+          "mean": 4.162860000000364,
+          "repeat": 5
+        },
+        "set": {
+          "median": 0.17619999999806168,
+          "min": 0.1481000000021595,
+          "max": 0.21740000000136206,
+          "mean": 0.18260000000082072,
+          "repeat": 5
+        },
+        "speedup": 23.05,
+        "same": true
+      }
+    },
+    "B11": {
+      "iterations": 1000,
+      "decimal": {
+        "median": 1.485000000000582,
+        "min": 1.2422000000005937,
+        "max": 2.004799999998795,
+        "mean": 1.5956285714284084,
+        "repeat": 7
+      },
+      "native": {
+        "median": 0.018299999999726424,
+        "min": 0.011899999997694977,
+        "max": 0.13170000000172877,
+        "mean": 0.04012857142879511,
+        "repeat": 7
+      },
+      "speedup": 81.15
+    },
+    "B12": {
+      "months": 21,
+      "works": 5,
+      "recompute": {
+        "median": 0.034899999998742715,
+        "min": 0.029200000000855653,
+        "max": 0.04460000000108266,
+        "mean": 0.03641428571427241,
+        "repeat": 7
+      },
+      "reuse": {
+        "median": 0.010500000000320142,
+        "min": 0.009200000000419095,
+        "max": 0.050900000002002344,
+        "mean": 0.020385714286281394,
+        "repeat": 7
+      },
+      "speedup": 3.32
+    },
+    "B13": {
+      "records": 2010,
+      "calls": 4020,
+      "twice": {
+        "median": 1.3466999999982363,
+        "min": 1.1193999999995867,
+        "max": 1.8796999999976833,
+        "mean": 1.4230142857138293,
+        "repeat": 7
+      },
+      "once": {
+        "median": 1.1231000000007043,
+        "min": 0.6480000000010477,
+        "max": 1.4360999999989872,
+        "mean": 1.0397714285728787,
+        "repeat": 7
+      },
+      "saved": 0.22
+    },
+    "A1": [
+      {
+        "factor": 1,
+        "records": 2010,
+        "all": 41.1,
+        "overviewOnly": 32.68,
+        "relationPlusSankey": 8.41,
+        "wastedMs": 8.41,
+        "wastedRatio": 20.47
+      },
+      {
+        "factor": 3,
+        "records": 6030,
+        "all": 117.91,
+        "overviewOnly": 99.19,
+        "relationPlusSankey": 18.71,
+        "wastedMs": 18.71,
+        "wastedRatio": 15.87
+      },
+      {
+        "factor": 6,
+        "records": 12060,
+        "all": 252.56,
+        "overviewOnly": 216.54,
+        "relationPlusSankey": 36.02,
+        "wastedMs": 36.02,
+        "wastedRatio": 14.26
+      },
+      {
+        "factor": 12,
+        "records": 24120,
+        "all": 573.57,
+        "overviewOnly": 514.06,
+        "relationPlusSankey": 59.51,
+        "wastedMs": 59.51,
+        "wastedRatio": 10.38
+      }
+    ],
+    "e2e": {
+      "tongji": {
+        "median": 118.78100000000268,
+        "min": 115.72060000000056,
+        "max": 123.02600000000166,
+        "mean": 119.1758666666683,
+        "repeat": 3
+      },
+      "tongjiOverviewOnly": {
+        "median": 99.14969999999812,
+        "min": 98.33619999999792,
+        "max": 117.3827999999994,
+        "mean": 104.95623333333181,
+        "repeat": 3
+      },
+      "tongjiPayload": {
+        "bytes": 1337364,
+        "http": 6
+      }
+    }
+  }
+}

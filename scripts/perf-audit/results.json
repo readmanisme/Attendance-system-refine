@@ -1,0 +1,852 @@
+{
+  "meta": {
+    "generatedAt": "2026-10-22T00:06:59.764Z",
+    "backend": "http://127.0.0.1:29401",
+    "node": "v24.22.1",
+    "platform": "win32 x64",
+    "cpu": "11th Gen Intel(R) Core(TM) i7-11800H @ 2.30GHz × 16",
+    "totalMemMB": 284,
+    "mergedFrom": [
+      "results-1.json",
+      "results-2.json",
+      "results-3.json"
+    ],
+    "mergedAt": "2026-10-22T00:08:40.404Z"
+  },
+  "dataset": {
+    "records": 2010,
+    "workers": 65,
+    "workersInRecords": 65,
+    "workTypes": 5,
+    "worksInRecords": 5,
+    "salaries": 4,
+    "from": "2025-01-28",
+    "to": "2026-09-28",
+    "spanDays": 609,
+    "activeDays": 304,
+    "months": 17,
+    "personDays": 2007,
+    "recordsPerActiveDay": 6.61,
+    "recordsPerPersonDay": 1,
+    "perDayRecords": {
+      "min": 1,
+      "median": 5,
+      "p95": 18,
+      "max": 25
+    },
+    "perPersonDayRecords": {
+      "median": 1,
+      "max": 2
+    },
+    "avgWorkersPerDay": 6.6
+  },
+  "requests": {
+    "gongshi": {
+      "current": {
+        "median": 44.741,
+        "min": 40.697,
+        "max": 52.086,
+        "mean": 45.609,
+        "repeat": 5
+      },
+      "currentDetail": {
+        "logicalQueries": 7,
+        "httpRequests": 11,
+        "bytes": 575828,
+        "wallMs": 47.91,
+        "rows": 2160
+      },
+      "optimized": {
+        "median": 42.849,
+        "min": 38.708,
+        "max": 53.354,
+        "mean": 43.474,
+        "repeat": 5
+      },
+      "optimizedDetail": {
+        "logicalQueries": 5,
+        "httpRequests": 9,
+        "bytes": 563599,
+        "wallMs": 42.81,
+        "rows": 2094
+      }
+    },
+    "expand": {
+      "one": {
+        "median": 3.878,
+        "min": 3.225,
+        "max": 5.188,
+        "mean": 4.154,
+        "repeat": 5
+      },
+      "oneDetail": {
+        "logicalQueries": 1,
+        "httpRequests": 1,
+        "bytes": 53650,
+        "wallMs": 3.98,
+        "rows": 197
+      },
+      "ten": {
+        "median": 35.814,
+        "min": 27.631,
+        "max": 45.478,
+        "mean": 33.858,
+        "repeat": 3
+      },
+      "tenDetail": {
+        "logicalQueries": 10,
+        "httpRequests": 10,
+        "bytes": 290607,
+        "wallMs": 31.59,
+        "rows": 1066
+      },
+      "localFilter": {
+        "median": 0.225,
+        "min": 0.166,
+        "max": 0.383,
+        "mean": 0.249,
+        "repeat": 7
+      },
+      "localFilterResult": {
+        "ms": 0.191,
+        "groups": 10
+      }
+    },
+    "qiandao": {
+      "current": {
+        "median": 4.202,
+        "min": 3.675,
+        "max": 5.752,
+        "mean": 4.353,
+        "repeat": 5
+      },
+      "currentDetail": {
+        "logicalQueries": 4,
+        "httpRequests": 4,
+        "bytes": 18663,
+        "wallMs": 3.71,
+        "rows": 80
+      },
+      "optimized": {
+        "median": 3.065,
+        "min": 2.584,
+        "max": 3.721,
+        "mean": 3.046,
+        "repeat": 5
+      },
+      "optimizedDetail": {
+        "logicalQueries": 3,
+        "httpRequests": 3,
+        "bytes": 16249,
+        "wallMs": 3.16,
+        "rows": 75
+      }
+    },
+    "export": {
+      "detail": {
+        "logicalQueries": 3,
+        "httpRequests": 7,
+        "bytes": 559915,
+        "wallMs": 47.16,
+        "rows": 2080
+      }
+    },
+    "tongji": {
+      "detail": {
+        "logicalQueries": 2,
+        "httpRequests": 6,
+        "bytes": 1337364,
+        "wallMs": 87.09,
+        "rows": 2014
+      }
+    }
+  },
+  "compute": [
+    {
+      "factor": 1,
+      "records": 2010,
+      "months": 17,
+      "personDays": 2007,
+      "timings": {
+        "filter": {
+          "median": 1.682,
+          "min": 1.059,
+          "max": 2.135,
+          "mean": 1.672,
+          "repeat": 7
+        },
+        "context": {
+          "median": 5.831,
+          "min": 5.023,
+          "max": 8.433,
+          "mean": 5.947,
+          "repeat": 7
+        },
+        "overview": {
+          "median": 17.492,
+          "min": 12.324,
+          "max": 22.258,
+          "mean": 17.77,
+          "repeat": 7
+        },
+        "profiles": {
+          "median": 7.203,
+          "min": 6.075,
+          "max": 9.398,
+          "mean": 7.663,
+          "repeat": 7
+        },
+        "relation": {
+          "median": 7.606,
+          "min": 6.439,
+          "max": 8.816,
+          "mean": 7.646,
+          "repeat": 7
+        },
+        "sankey": {
+          "median": 0.905,
+          "min": 0.5,
+          "max": 1.419,
+          "mean": 0.898,
+          "repeat": 7
+        },
+        "health": {
+          "median": 1.107,
+          "min": 0.91,
+          "max": 2.21,
+          "mean": 1.209,
+          "repeat": 7
+        },
+        "all": {
+          "median": 40.688,
+          "min": 34.111,
+          "max": 52.447,
+          "mean": 40.823,
+          "repeat": 7
+        },
+        "overviewOnly": {
+          "median": 33.224,
+          "min": 27.314,
+          "max": 53.038,
+          "mean": 35.253,
+          "repeat": 7
+        }
+      },
+      "derived": {
+        "sumAll": 41.1,
+        "sumOverviewOnly": 32.68,
+        "relationPlusSankey": 8.41,
+        "wastedMs": 8.41,
+        "wastedRatio": 20.47
+      },
+      "traversals": {
+        "filter": 1,
+        "context": 2,
+        "overview": 2,
+        "relation": 1,
+        "profiles": 1,
+        "sankey": 2,
+        "health": 2,
+        "total": 11
+      }
+    },
+    {
+      "factor": 3,
+      "records": 6030,
+      "months": 49,
+      "personDays": 6021,
+      "timings": {
+        "filter": {
+          "median": 3.858,
+          "min": 3.589,
+          "max": 5.942,
+          "mean": 4.253,
+          "repeat": 7
+        },
+        "context": {
+          "median": 14.44,
+          "min": 12.812,
+          "max": 27.364,
+          "mean": 14.611,
+          "repeat": 7
+        },
+        "overview": {
+          "median": 59.142,
+          "min": 49.544,
+          "max": 82.889,
+          "mean": 60.221,
+          "repeat": 7
+        },
+        "profiles": {
+          "median": 18.548,
+          "min": 16.041,
+          "max": 28.64,
+          "mean": 20.017,
+          "repeat": 7
+        },
+        "relation": {
+          "median": 17.292,
+          "min": 13.359,
+          "max": 23.868,
+          "mean": 16.493,
+          "repeat": 7
+        },
+        "sankey": {
+          "median": 1.422,
+          "min": 1.044,
+          "max": 2.428,
+          "mean": 1.492,
+          "repeat": 7
+        },
+        "health": {
+          "median": 3.219,
+          "min": 2.935,
+          "max": 5.395,
+          "mean": 3.405,
+          "repeat": 7
+        },
+        "all": {
+          "median": 128.13,
+          "min": 101.645,
+          "max": 174.056,
+          "mean": 128.92,
+          "repeat": 7
+        },
+        "overviewOnly": {
+          "median": 102.56,
+          "min": 93.195,
+          "max": 145.347,
+          "mean": 103.343,
+          "repeat": 7
+        }
+      },
+      "derived": {
+        "sumAll": 117.91,
+        "sumOverviewOnly": 99.19,
+        "relationPlusSankey": 18.71,
+        "wastedMs": 18.71,
+        "wastedRatio": 15.47
+      },
+      "traversals": {
+        "filter": 1,
+        "context": 2,
+        "overview": 2,
+        "relation": 1,
+        "profiles": 1,
+        "sankey": 2,
+        "health": 2,
+        "total": 11
+      }
+    },
+    {
+      "factor": 6,
+      "records": 12060,
+      "months": 97,
+      "personDays": 12042,
+      "timings": {
+        "filter": {
+          "median": 8.127,
+          "min": 6.483,
+          "max": 11.607,
+          "mean": 8.277,
+          "repeat": 5
+        },
+        "context": {
+          "median": 32.787,
+          "min": 27.477,
+          "max": 43.457,
+          "mean": 34.301,
+          "repeat": 5
+        },
+        "overview": {
+          "median": 133.99,
+          "min": 116.896,
+          "max": 213.978,
+          "mean": 132.731,
+          "repeat": 5
+        },
+        "profiles": {
+          "median": 39.738,
+          "min": 34.394,
+          "max": 62.174,
+          "mean": 41.476,
+          "repeat": 5
+        },
+        "relation": {
+          "median": 32.684,
+          "min": 24.89,
+          "max": 37.194,
+          "mean": 31.284,
+          "repeat": 5
+        },
+        "sankey": {
+          "median": 3.136,
+          "min": 1.887,
+          "max": 4.016,
+          "mean": 3.178,
+          "repeat": 5
+        },
+        "health": {
+          "median": 6.331,
+          "min": 5.466,
+          "max": 7.847,
+          "mean": 6.572,
+          "repeat": 5
+        },
+        "all": {
+          "median": 254.796,
+          "min": 218.773,
+          "max": 321.084,
+          "mean": 253.159,
+          "repeat": 5
+        },
+        "overviewOnly": {
+          "median": 205.738,
+          "min": 193.18,
+          "max": 287.343,
+          "mean": 214.273,
+          "repeat": 5
+        }
+      },
+      "derived": {
+        "sumAll": 252.56,
+        "sumOverviewOnly": 216.54,
+        "relationPlusSankey": 35.82,
+        "wastedMs": 35.82,
+        "wastedRatio": 13.23
+      },
+      "traversals": {
+        "filter": 1,
+        "context": 2,
+        "overview": 2,
+        "relation": 1,
+        "profiles": 1,
+        "sankey": 2,
+        "health": 2,
+        "total": 11
+      }
+    },
+    {
+      "factor": 12,
+      "records": 24120,
+      "months": 193,
+      "personDays": 24084,
+      "timings": {
+        "filter": {
+          "median": 16.251,
+          "min": 12.552,
+          "max": 24.884,
+          "mean": 16.06,
+          "repeat": 5
+        },
+        "context": {
+          "median": 67.976,
+          "min": 57.215,
+          "max": 91.2,
+          "mean": 65.982,
+          "repeat": 5
+        },
+        "overview": {
+          "median": 339.947,
+          "min": 313.696,
+          "max": 447.42,
+          "mean": 344.314,
+          "repeat": 5
+        },
+        "profiles": {
+          "median": 72.445,
+          "min": 67.028,
+          "max": 82.384,
+          "mean": 72.463,
+          "repeat": 5
+        },
+        "relation": {
+          "median": 54.177,
+          "min": 48.078,
+          "max": 59.09,
+          "mean": 54.247,
+          "repeat": 5
+        },
+        "sankey": {
+          "median": 4.822,
+          "min": 4.13,
+          "max": 8.301,
+          "mean": 5.522,
+          "repeat": 5
+        },
+        "health": {
+          "median": 13.112,
+          "min": 11.336,
+          "max": 15.131,
+          "mean": 13.256,
+          "repeat": 5
+        },
+        "all": {
+          "median": 581.546,
+          "min": 519.296,
+          "max": 618.248,
+          "mean": 567.14,
+          "repeat": 5
+        },
+        "overviewOnly": {
+          "median": 497.576,
+          "min": 469.506,
+          "max": 584.452,
+          "mean": 501.663,
+          "repeat": 5
+        }
+      },
+      "derived": {
+        "sumAll": 573.57,
+        "sumOverviewOnly": 514.06,
+        "relationPlusSankey": 59.51,
+        "wastedMs": 59.51,
+        "wastedRatio": 10.38
+      },
+      "traversals": {
+        "filter": 1,
+        "context": 2,
+        "overview": 2,
+        "relation": 1,
+        "profiles": 1,
+        "sankey": 2,
+        "health": 2,
+        "total": 11
+      }
+    }
+  ],
+  "items": {
+    "B1": {
+      "months": 21,
+      "personDays": 2007,
+      "activeDays": 304,
+      "theoreticalIterations": 48531,
+      "current": {
+        "median": 5.901,
+        "min": 2.499,
+        "max": 10.025,
+        "mean": 5.583,
+        "repeat": 7
+      },
+      "optimized": {
+        "median": 0.544,
+        "min": 0.47,
+        "max": 2.027,
+        "mean": 0.609,
+        "repeat": 7
+      },
+      "speedup": 8.22,
+      "identicalResult": true,
+      "scale6": {
+        "records": 12060,
+        "months": 121,
+        "personDays": 12042,
+        "theoreticalIterations": 1677786,
+        "current": {
+          "median": 68.385,
+          "min": 60.346,
+          "max": 80.357,
+          "mean": 68.599,
+          "repeat": 5
+        },
+        "optimized": {
+          "median": 2.496,
+          "min": 1.702,
+          "max": 3.354,
+          "mean": 2.594,
+          "repeat": 5
+        },
+        "speedup": 26.63,
+        "identicalResult": true
+      },
+      "scale12": {
+        "records": 24120,
+        "months": 241,
+        "personDays": 24084,
+        "theoreticalIterations": 6683412,
+        "current": {
+          "median": 230.491,
+          "min": 207.694,
+          "max": 251.694,
+          "mean": 231.229,
+          "repeat": 5
+        },
+        "optimized": {
+          "median": 4.136,
+          "min": 3.637,
+          "max": 5.404,
+          "mean": 4.278,
+          "repeat": 5
+        },
+        "speedup": 55.73,
+        "identicalResult": true
+      }
+    },
+    "B2": {
+      "shiftTotalsSize": 2007,
+      "traversals": 25,
+      "theoreticalIterations": 50175,
+      "onePassMs": {
+        "median": 0.178,
+        "min": 0.019,
+        "max": 0.33,
+        "mean": 0.149,
+        "repeat": 7
+      }
+    },
+    "B6": {
+      "records": 2010,
+      "secondPass": {
+        "median": 0.802,
+        "min": 0.596,
+        "max": 2.013,
+        "mean": 0.829,
+        "repeat": 7
+      },
+      "fromEngine": {
+        "median": 0.087,
+        "min": 0.043,
+        "max": 0.215,
+        "mean": 0.1,
+        "repeat": 7
+      },
+      "speedup": 9.91
+    },
+    "B7": {
+      "records": 2010,
+      "full": {
+        "median": 5.027,
+        "min": 3.576,
+        "max": 6.975,
+        "mean": 5.058,
+        "repeat": 7
+      },
+      "recordsOnly": {
+        "median": 2.664,
+        "min": 2.323,
+        "max": 4.341,
+        "mean": 2.972,
+        "repeat": 7
+      },
+      "speedup": 1.65
+    },
+    "B8": {
+      "dayRecords": 5,
+      "workersInDay": 5,
+      "n1": {
+        "median": 0.108,
+        "min": 0.084,
+        "max": 0.176,
+        "mean": 0.119,
+        "repeat": 7
+      },
+      "n10": {
+        "median": 0.095,
+        "min": 0.064,
+        "max": 0.121,
+        "mean": 0.089,
+        "repeat": 7
+      },
+      "n30": {
+        "median": 0.075,
+        "min": 0.063,
+        "max": 0.11,
+        "mean": 0.074,
+        "repeat": 7
+      },
+      "theoreticalIterations": {
+        "n1": 5,
+        "n10": 50,
+        "n30": 25
+      }
+    },
+    "B9": {
+      "n100": {
+        "indexOf": {
+          "median": 0.04,
+          "min": 0.032,
+          "max": 0.095,
+          "mean": 0.051,
+          "repeat": 5
+        },
+        "set": {
+          "median": 0.024,
+          "min": 0.022,
+          "max": 0.067,
+          "mean": 0.033,
+          "repeat": 5
+        },
+        "speedup": 1.53,
+        "same": true
+      },
+      "n500": {
+        "indexOf": {
+          "median": 0.341,
+          "min": 0.309,
+          "max": 0.701,
+          "mean": 0.403,
+          "repeat": 5
+        },
+        "set": {
+          "median": 0.046,
+          "min": 0.035,
+          "max": 0.105,
+          "mean": 0.063,
+          "repeat": 5
+        },
+        "speedup": 7.64,
+        "same": true
+      },
+      "n1000": {
+        "indexOf": {
+          "median": 1.45,
+          "min": 1.301,
+          "max": 2.465,
+          "mean": 1.571,
+          "repeat": 5
+        },
+        "set": {
+          "median": 0.083,
+          "min": 0.064,
+          "max": 0.107,
+          "mean": 0.082,
+          "repeat": 5
+        },
+        "speedup": 17.5,
+        "same": true
+      },
+      "n2000": {
+        "indexOf": {
+          "median": 4.084,
+          "min": 3.55,
+          "max": 5.899,
+          "mean": 4.163,
+          "repeat": 5
+        },
+        "set": {
+          "median": 0.133,
+          "min": 0.122,
+          "max": 0.225,
+          "mean": 0.15,
+          "repeat": 5
+        },
+        "speedup": 33.04,
+        "same": true
+      }
+    },
+    "B11": {
+      "iterations": 1000,
+      "decimal": {
+        "median": 1.366,
+        "min": 1.153,
+        "max": 2.088,
+        "mean": 1.439,
+        "repeat": 7
+      },
+      "native": {
+        "median": 0.014,
+        "min": 0.012,
+        "max": 0.185,
+        "mean": 0.04,
+        "repeat": 7
+      },
+      "speedup": 95.51
+    },
+    "B12": {
+      "months": 21,
+      "works": 5,
+      "recompute": {
+        "median": 0.035,
+        "min": 0.029,
+        "max": 0.053,
+        "mean": 0.037,
+        "repeat": 7
+      },
+      "reuse": {
+        "median": 0.011,
+        "min": 0.009,
+        "max": 0.057,
+        "mean": 0.02,
+        "repeat": 7
+      },
+      "speedup": 2.86
+    },
+    "B13": {
+      "records": 2010,
+      "calls": 4020,
+      "twice": {
+        "median": 1.347,
+        "min": 1.079,
+        "max": 2.353,
+        "mean": 1.446,
+        "repeat": 7
+      },
+      "once": {
+        "median": 0.842,
+        "min": 0.605,
+        "max": 1.436,
+        "mean": 0.811,
+        "repeat": 7
+      },
+      "saved": 0.49
+    },
+    "A1": [
+      {
+        "factor": 1,
+        "records": 2010,
+        "all": 41.1,
+        "overviewOnly": 32.68,
+        "relationPlusSankey": 8.41,
+        "wastedMs": 8.41,
+        "wastedRatio": 20.47
+      },
+      {
+        "factor": 3,
+        "records": 6030,
+        "all": 117.91,
+        "overviewOnly": 99.19,
+        "relationPlusSankey": 18.71,
+        "wastedMs": 18.71,
+        "wastedRatio": 15.47
+      },
+      {
+        "factor": 6,
+        "records": 12060,
+        "all": 252.56,
+        "overviewOnly": 216.54,
+        "relationPlusSankey": 35.82,
+        "wastedMs": 35.82,
+        "wastedRatio": 13.23
+      },
+      {
+        "factor": 12,
+        "records": 24120,
+        "all": 573.57,
+        "overviewOnly": 514.06,
+        "relationPlusSankey": 59.51,
+        "wastedMs": 59.51,
+        "wastedRatio": 10.38
+      }
+    ],
+    "e2e": {
+      "tongji": {
+        "median": 117.826,
+        "min": 106.075,
+        "max": 134.094,
+        "mean": 119.176,
+        "repeat": 3
+      },
+      "tongjiOverviewOnly": {
+        "median": 104.093,
+        "min": 98.336,
+        "max": 125.977,
+        "mean": 109.024,
+        "repeat": 3
+      },
+      "tongjiPayload": {
+        "bytes": 1337364,
+        "http": 6
+      }
+    }
+  }
+}
